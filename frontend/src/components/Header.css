@@ -1,0 +1,82 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: white;
+}
+
+.logo-icon {
+  width: 28px;
+  height: 28px;
+  margin-right: 0.75rem;
+}
+
+.logo-text-link {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+  text-decoration: none;
+}
+
+.header-nav {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Reusing button styles from LandingPage.css for consistency */
+.btn {
+  padding: 0.625rem 1.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  border: 2px solid white;
+}
+
+.btn-signup {
+  background-color: transparent;
+  color: white;
+}
+
+.btn-signup:hover {
+  background-color: white;
+  color: #3b82f6;
+}
+
+.btn-signin {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+}
+
+.btn-signin:hover {
+  background-color: white;
+  color: #3b82f6;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  .logo {
+    margin-bottom: 1rem;
+  }
+}
