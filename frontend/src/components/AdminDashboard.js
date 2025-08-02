@@ -9,6 +9,7 @@ function AdminDashboard() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState(null);
+  const [rejecting, setRejecting] = useState(null);
 
   const fetchPending = async () => {
     try {
@@ -25,6 +26,11 @@ function AdminDashboard() {
 
   useEffect(() => {
     fetchPending();
+    
+    // Set up auto-refresh every 30 seconds for real-time updates
+    const interval = setInterval(fetchPending, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const approveUser = async (id) => {
@@ -44,9 +50,38 @@ function AdminDashboard() {
     }
   };
 
+  const rejectUser = async (id) => {
+    try {
+      setRejecting(id);
+      await axios.post(`/admin/reject/${id}`);
+      setMessage('User request rejected and removed.');
+      await fetchPending();
+      
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      console.error(error);
+      setMessage('Rejection failed.');
+    } finally {
+      setRejecting(null);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  // Format registration date for display
+  const formatRegistrationDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} hours ago`;
+    return date.toLocaleDateString();
   };
 
   return (
@@ -143,22 +178,28 @@ function AdminDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  Pending User Approvals
+                  Pending User Approvals ({users.length})
                 </h3>
                 <p className="mt-1 max-w-2xl text-sm text-gray-500">
-                  Review and approve new user registrations
+                  Review and approve new user registrations • Auto-refreshing every 30s
                 </p>
               </div>
-              <button
-                onClick={fetchPending}
-                className="btn-secondary flex items-center space-x-2"
-                disabled={loading}
-              >
-                <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <span>Refresh</span>
-              </button>
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-gray-600">Live</span>
+                </div>
+                <button
+                  onClick={fetchPending}
+                  className="btn-secondary flex items-center space-x-2"
+                  disabled={loading}
+                >
+                  <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span>Refresh</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -228,31 +269,58 @@ function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          Just now
+                          {formatRegistrationDate(user.createdAt)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => approveUser(user.id)}
-                            disabled={approving === user.id}
-                            className="btn-primary px-4 py-2 text-sm flex items-center space-x-2"
-                          >
-                            {approving === user.id ? (
-                              <>
-                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span>Approving...</span>
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span>Approve</span>
-                              </>
-                            )}
-                          </button>
+                          <div className="flex items-center space-x-2 justify-end">
+                            {/* Approve Button */}
+                            <button
+                              onClick={() => approveUser(user.id)}
+                              disabled={approving === user.id || rejecting === user.id}
+                              className="btn-primary px-3 py-2 text-sm flex items-center space-x-1"
+                            >
+                              {approving === user.id ? (
+                                <>
+                                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  <span>Approving...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>Approve</span>
+                                </>
+                              )}
+                            </button>
+                            
+                            {/* Reject Button */}
+                            <button
+                              onClick={() => rejectUser(user.id)}
+                              disabled={approving === user.id || rejecting === user.id}
+                              className="bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white px-3 py-2 text-sm rounded-lg flex items-center space-x-1 transition-colors duration-200"
+                            >
+                              {rejecting === user.id ? (
+                                <>
+                                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  <span>Rejecting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  <span>Reject</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

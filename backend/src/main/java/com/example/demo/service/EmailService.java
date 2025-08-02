@@ -51,6 +51,19 @@ public class EmailService {
         }
     }
 
+    public void sendRejectionNotification(String toEmail, String userName) {
+        String subject = "Application Status - Academy Platform";
+        String htmlContent = buildRejectionEmailTemplate(userName);
+
+        try {
+            sendEmail(toEmail, subject, htmlContent);
+            log.info("Rejection notification sent successfully to: {}", toEmail);
+        } catch (Exception e) {
+            log.error("Failed to send rejection notification to: {}. Falling back to logging.", toEmail, e);
+            logEmailFallback(toEmail, subject, "Dear " + userName + ", we regret to inform you that your application to Academy Platform was not approved at this time.");
+        }
+    }
+
     private void sendEmail(String toEmail, String subject, String htmlContent) throws MessagingException {
         // Check if SMTP is properly configured
         if ("your-email@gmail.com".equals(smtpUsername)) {
@@ -159,6 +172,46 @@ public class EmailService {
                             <a href="#" class="btn">Login to Academy Platform</a>
                         </div>
                         <p>Welcome aboard! We're excited to see what you'll achieve.</p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2024 Academy Platform. All rights reserved.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(userName);
+    }
+
+    private String buildRejectionEmailTemplate(String userName) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    .container { max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; }
+                    .header { background-color: #dc3545; color: white; text-align: center; padding: 20px; }
+                    .content { padding: 20px; background-color: #f8f9fa; }
+                    .footer { background-color: #6c757d; color: white; text-align: center; padding: 10px; }
+                    .btn { display: inline-block; padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Application Status Update</h1>
+                    </div>
+                    <div class="content">
+                        <h2>Hello %s</h2>
+                        <p>Thank you for your interest in joining the Academy Platform.</p>
+                        <p>After careful review, we regret to inform you that your application was not approved at this time.</p>
+                        <p><strong>This could be due to:</strong></p>
+                        <ul>
+                            <li>High volume of applications</li>
+                            <li>Specific program requirements not met</li>
+                            <li>Limited available spaces</li>
+                        </ul>
+                        <p>We encourage you to apply again in the future when circumstances may be different.</p>
+                        <p>Thank you for your understanding.</p>
                     </div>
                     <div class="footer">
                         <p>© 2024 Academy Platform. All rights reserved.</p>

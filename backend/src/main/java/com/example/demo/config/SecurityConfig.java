@@ -33,7 +33,7 @@ public class SecurityConfig {
                 // public signup & login
                 .requestMatchers("/api/auth/**", "/api/test").permitAll()
                 // admin-only endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN") // Secure admin endpoints
                 // everything else requires authentication
                 .anyRequest().authenticated()
             )
