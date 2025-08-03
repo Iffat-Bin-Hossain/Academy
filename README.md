@@ -18,7 +18,7 @@ A comprehensive full-stack web application for academy management with complete 
 - **Spring Boot** (Java 17) - REST API server
 - **Spring Security** - JWT-based authentication and authorization
 - **JPA/Hibernate** - Database ORM with entity relationships
-- **H2 Database** - In-memory database for development
+- **PostgreSQL** - Production database with full ACID compliance
 - **Lombok** - Code generation and boilerplate reduction
 - **Jakarta Validation** - Input validation and constraints
 - **Port**: 8080
@@ -56,10 +56,11 @@ npm start
 *The frontend will start on http://localhost:3000*
 
 ### Database
-- Uses **H2 in-memory database** for development
-- Database console available at: http://localhost:8080/h2-console
-- JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`, Password: *(empty)*
+- Uses **PostgreSQL** for production data storage
+- Database console available at: http://localhost:5432
+- Database name: `academydb`
+- Username: `academyuser`, Password: `academy123`
+- H2 fallback available for development testing
 
 ## 📱 Complete Feature Set
 
@@ -360,7 +361,7 @@ npm start
 
 **Project**: Academy Platform - Full-Stack Learning Management System  
 **Purpose**: Educational project demonstrating modern web development practices  
-**Technologies**: Spring Boot, React, JWT, JPA, H2 Database  
+**Technologies**: Spring Boot, React, JWT, JPA, PostgreSQL Database  
 **Status**: Complete MVP with all core features implemented
 
 ### Acknowledgments
