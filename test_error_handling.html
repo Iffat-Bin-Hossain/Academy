@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Deletion Error Handling Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 3px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Course Deletion Error Handling Test</h1>
+    <p>This page tests the improved error handling logic for course deletion without needing the backend.</p>
+
+    <div class="test-section">
+        <h2>Test Scenarios</h2>
+        <button onclick="testScenario(401, 'Authentication failed')">Test 401 - Authentication Failed</button>
+        <button onclick="testScenario(403, 'Access denied')">Test 403 - Access Denied</button>
+        <button onclick="testScenario(400, 'foreign key constraint violation')">Test 400 - Foreign Key Error</button>
+        <button onclick="testScenario(404, 'Course not found')">Test 404 - Not Found</button>
+        <button onclick="testScenario(0, 'Network error')">Test Network Error</button>
+        <button onclick="testScenario(500, 'Internal server error')">Test 500 - Server Error</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        // Mock axios delete function that simulates our error handling
+        const mockAxiosDelete = async (courseId, statusCode, errorMessage) => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    if (statusCode === 200) {
+                        resolve({ data: 'Course deleted successfully' });
+                    } else if (statusCode === 0) {
+                        // Network error
+                        const error = new Error(errorMessage);
+                        error.request = {}; // Indicates network error
+                        reject(error);
+                    } else {
+                        // HTTP error
+                        const error = new Error(errorMessage);
+                        error.response = {
+                            status: statusCode,
+                            data: { error: errorMessage },
+                            statusText: errorMessage
+                        };
+                        reject(error);
+                    }
+                }, 100);
+            });
+        };
+
+        // Mock message display function
+        const showMessage = (message, type) => {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.innerHTML = `<strong>${type.toUpperCase()}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        };
+
+        // Simulated deleteCourse function with improved error handling
+        const deleteCourse = async (id, mockStatusCode, mockErrorMessage) => {
+            if (!window.confirm('Are you sure you want to delete this course?')) {
+                showMessage('Deletion cancelled by user', 'success');
+                return;
+            }
+
+            try {
+                const response = await mockAxiosDelete(id, mockStatusCode, mockErrorMessage);
+                console.log('Delete response:', response.data);
+                showMessage('Course deleted successfully!', 'success');
+                // fetchData(); // Would refresh the course list
+            } catch (error) {
+                console.error('Error deleting course:', error);
+                if (error.response) {
+                    const status = error.response.status;
+                    const errorData = error.response.data;
+                    
+                    console.error('Error status:', status);
+                    console.error('Error data:', errorData);
+                    
+                    // Handle specific error cases
+                    if (status === 401) {
+                        showMessage('Authentication failed. Please login again.', 'error');
+                        // Clear invalid token and redirect to login
+                        localStorage.removeItem('token');
+                        setTimeout(() => {
+                            showMessage('Would redirect to /login in a real app', 'error');
+                        }, 2000);
+                    } else if (status === 403) {
+                        showMessage('Access denied. You don\'t have permission to delete courses.', 'error');
+                    } else if (status === 400 && errorData.error && errorData.error.includes('foreign key')) {
+                        showMessage('Cannot delete course: This course has enrollments. Please remove all enrollments first.', 'error');
+                    } else if (status === 404) {
+                        showMessage('Course not found. It may have been already deleted.', 'error');
+                        // Refresh the data to show current state
+                        showMessage('Would refresh course list in a real app', 'success');
+                    } else {
+                        const errorMessage = errorData.error || errorData.message || error.response.statusText || 'Unknown error';
+                        showMessage(`Failed to delete course: ${errorMessage}`, 'error');
+                    }
+                } else if (error.request) {
+                    showMessage('Failed to delete course: Unable to connect to server. Please check your internet connection.', 'error');
+                } else {
+                    showMessage('Failed to delete course: An unexpected error occurred.', 'error');
+                }
+            }
+        };
+
+        // Test function
+        const testScenario = (statusCode, errorMessage) => {
+            document.getElementById('results').innerHTML = '<h3>Test Results:</h3>';
+            showMessage(`Testing scenario: ${statusCode} - ${errorMessage}`, 'success');
+            deleteCourse(1, statusCode, errorMessage);
+        };
+    </script>
+</body>
+</html>

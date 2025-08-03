@@ -3,6 +3,7 @@ package com.example.demo.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -20,43 +21,70 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1) CORS using your existing config
+            // 1. Enable CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // 2) Disable CSRF (we’re stateless)
+
+            // 2. Disable CSRF because we're stateless (using JWT)
             .csrf(csrf -> csrf.disable())
-            // 3) No HTTP session; we use JWT only
-            .sessionManagement(sm -> sm
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            // 4) Route protection
+
+            // 3. Stateless session management
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // 4. Authorize requests by roles
             .authorizeHttpRequests(auth -> auth
-                // public signup & login
+
+                // 4.1 Public endpoints
                 .requestMatchers("/api/auth/**", "/api/test").permitAll()
-                // admin-only endpoints
-                .requestMatchers("/api/admin/**").hasRole("ADMIN") // Secure admin endpoints
-                // everything else requires authentication
+
+                // 4.2 Admin-only
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/courses/assign").hasRole("ADMIN")
+                
+                // Course CRUD - Admin only for create/update/delete
+                .requestMatchers(HttpMethod.POST, "/api/courses").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/courses/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/courses/*").hasRole("ADMIN")
+                
+                // Course viewing - Allow all authenticated users
+                .requestMatchers(HttpMethod.GET, "/api/courses").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/courses/*").authenticated()
+
+                // 4.3 Student-only
+                .requestMatchers("/api/courses/enroll").hasRole("STUDENT")
+                .requestMatchers("/api/courses/student/**").hasRole("STUDENT")
+
+                // 4.4 Teacher-only
+                .requestMatchers("/api/courses/teacher/**").hasRole("TEACHER")
+                .requestMatchers("/api/courses/decide").hasRole("TEACHER")
+                .requestMatchers("/api/courses/*/pending").hasRole("TEACHER")
+
+                // 4.5 Any other route requires authentication
                 .anyRequest().authenticated()
             )
-            // 5) Inject our JWT validation filter
+
+            // 5. Add our JWT filter *before* UsernamePasswordAuthenticationFilter
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    /**
+     * Configure allowed CORS origins and methods.
+     * This allows frontend (localhost:3000) to access your backend (8080).
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // adjust origins as needed
         config.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "http://localhost:8080"
+            "http://localhost:3000", // React frontend
+            "http://localhost:8080"  // Optional (for Swagger or direct backend access)
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // apply to all paths
         source.registerCorsConfiguration("/**", config);
         return source;
     }

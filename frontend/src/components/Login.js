@@ -29,10 +29,20 @@ function Login() {
       const decodedToken = jwtDecode(token);
       const userRole = decodedToken.role;
 
-      if (userRole === 'ADMIN') {
-        navigate('/admin');
-      } else {
-        navigate('/home');
+      // Redirect based on user role
+      switch (userRole) {
+        case 'ADMIN':
+          navigate('/admin');
+          break;
+        case 'TEACHER':
+          navigate('/teacher');
+          break;
+        case 'STUDENT':
+          navigate('/student');
+          break;
+        default:
+          navigate('/home');
+          break;
       }
     } catch (error) {
       setError(error.response?.data?.error || 'Login failed');
@@ -43,7 +53,8 @@ function Login() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-auto" style={{
-      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)'
+      background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)',
+      paddingTop: '100px'
     }}>
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0" style={{

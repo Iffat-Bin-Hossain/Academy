@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.naming.NamingException;
@@ -19,6 +20,9 @@ import java.util.regex.Pattern;
 @Service
 @Slf4j
 public class EmailValidationService {
+    
+    @Value("${app.email.validation.strict-mode:true}")
+    private boolean strictMode;
 
     // Enhanced email pattern (more strict than the basic one)
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
@@ -35,7 +39,7 @@ public class EmailValidationService {
      * Comprehensive email validation with multiple checks
      */
     public EmailValidationResult validateEmail(String email) {
-        log.info("Starting email validation for: {}", maskEmail(email));
+        log.info("Starting email validation for: {} (strict mode: {})", maskEmail(email), strictMode);
         
         if (email == null || email.trim().isEmpty()) {
             log.warn("Email validation failed: Email is null or empty");
@@ -48,6 +52,12 @@ public class EmailValidationService {
         if (!EMAIL_PATTERN.matcher(email).matches()) {
             log.warn("Email validation failed for {}: Invalid format", maskEmail(email));
             return new EmailValidationResult(false, "Please provide a valid email format", "INVALID_FORMAT");
+        }
+        
+        // If strict mode is disabled, only do basic format validation
+        if (!strictMode) {
+            log.info("Email validation successful for: {} (non-strict mode)", maskEmail(email));
+            return new EmailValidationResult(true, "Email is valid (non-strict mode)", "SUCCESS");
         }
 
         // 2. Additional format checks

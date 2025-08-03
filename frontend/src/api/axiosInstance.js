@@ -15,4 +15,23 @@ instance.interceptors.request.use(config => {
   return config;
 });
 
+// Add response interceptor to handle authentication errors globally
+instance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If we get a 401 (unauthorized) error, the token is likely expired or invalid
+    if (error.response && error.response.status === 401) {
+      console.error('Authentication failed - token may be expired');
+      // Clear the invalid token
+      localStorage.removeItem('token');
+      // Only redirect if we're not already on the login page
+      if (window.location.pathname !== '/login') {
+        console.log('Redirecting to login due to authentication failure');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default instance;
