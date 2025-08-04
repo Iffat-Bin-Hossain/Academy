@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
 import ModernAdminDashboard from './components/ModernAdminDashboard';
 import ModernTeacherDashboard from './components/ModernTeacherDashboard';
+import CourseDetailsPage from './components/CourseDetailsPage';
 import ModernStudentDashboard from './components/ModernStudentDashboard';
+import StudentCourseDetailsPage from './components/StudentCourseDetailsPage';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -65,7 +67,10 @@ function App() {
           path="/teacher/*"
           element={
             <ProtectedRoute roleRequired="TEACHER">
-              <ModernTeacherDashboard />
+              <Routes>
+                <Route path="/" element={<ModernTeacherDashboard />} />
+                <Route path="/:courseCode" element={<CourseDetailsPage />} />
+              </Routes>
             </ProtectedRoute>
           }
         />
@@ -73,7 +78,10 @@ function App() {
           path="/student/*"
           element={
             <ProtectedRoute roleRequired="STUDENT">
-              <ModernStudentDashboard />
+              <Routes>
+                <Route path="/" element={<ModernStudentDashboard />} />
+                <Route path="/:courseCode" element={<StudentCourseDetailsPage />} />
+              </Routes>
             </ProtectedRoute>
           }
         />

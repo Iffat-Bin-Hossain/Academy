@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 
 const ModernStudentDashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     enrolledCourses: 0,
@@ -488,7 +490,10 @@ const ModernStudentDashboard = () => {
                             </div>
                           </div>
                           <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button className="btn btn-primary btn-sm">
+                            <button 
+                              className="btn btn-primary btn-sm"
+                              onClick={() => navigate(`/student/${enrollment.course.courseCode}`)}
+                            >
                               📖 View Details
                             </button>
                             {enrollment.status === 'APPROVED' && (

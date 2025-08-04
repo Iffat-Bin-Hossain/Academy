@@ -12,13 +12,13 @@ const ModernTeacherDashboard = () => {
   });
   const [courses, setCourses] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
-  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);
@@ -69,9 +69,7 @@ const ModernTeacherDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const showMessage = (text, type = 'info') => {
+  };  const showMessage = (text, type = 'info') => {
     setMessage(text);
     setMessageType(type);
     setTimeout(() => {
@@ -95,54 +93,15 @@ const ModernTeacherDashboard = () => {
     });
   };
 
-  const approveEnrollment = async (enrollmentId) => {
-    if (!user || !user.id) {
-      showMessage('User information not available', 'error');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/courses/decide', null, {
-        params: {
-          enrollmentId: enrollmentId,
-          approve: true,
-          teacherId: user.id
-        }
-      });
-      
-      showMessage(response.data, 'success');
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error('Error approving enrollment:', error);
-      showMessage(error.response?.data || 'Failed to approve enrollment', 'error');
-    }
-  };
-
-  const rejectEnrollment = async (enrollmentId) => {
-    if (!window.confirm('Are you sure you want to reject this enrollment request?')) {
-      return;
-    }
-
-    if (!user || !user.id) {
-      showMessage('User information not available', 'error');
-      return;
-    }
-
-    try {
-      const response = await axios.post('/courses/decide', null, {
-        params: {
-          enrollmentId: enrollmentId,
-          approve: false,
-          teacherId: user.id
-        }
-      });
-      
-      showMessage(response.data, 'success');
-      fetchData(); // Refresh data
-    } catch (error) {
-      console.error('Error rejecting enrollment:', error);
-      showMessage(error.response?.data || 'Failed to reject enrollment', 'error');
-    }
+  const getFilteredCourses = () => {
+    if (!searchTerm) return courses;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return courses.filter(course => 
+      course.title.toLowerCase().includes(searchLower) ||
+      course.courseCode.toLowerCase().includes(searchLower) ||
+      course.description.toLowerCase().includes(searchLower)
+    );
   };
 
   if (loading) {
@@ -176,7 +135,7 @@ const ModernTeacherDashboard = () => {
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'courses', label: 'My Courses & Students', icon: '�' },
+              { id: 'courses', label: 'Courses', icon: '📚' },
               { id: 'assignments', label: 'Assignments', icon: '📝' }
             ].map(tab => (
               <button
@@ -233,7 +192,7 @@ const ModernTeacherDashboard = () => {
                   onClick={() => setActiveTab('courses')}
                 >
                   <span style={{ marginRight: '0.5rem' }}>📚</span>
-                  View My Courses & Students
+                  View My Courses
                 </button>
               </div>
             </div>
@@ -246,9 +205,9 @@ const ModernTeacherDashboard = () => {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
-              <h3 style={{ margin: 0, color: '#1e293b' }}>My Courses & Students</h3>
+              <h3 style={{ margin: 0, color: '#1e293b' }}>My Courses</h3>
               <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-                {courses.length} course{courses.length !== 1 ? 's' : ''} assigned by administration
+                {getFilteredCourses().length} of {courses.length} course{courses.length !== 1 ? 's' : ''} {searchTerm && '(filtered)'}
               </p>
             </div>
           </div>
@@ -256,194 +215,197 @@ const ModernTeacherDashboard = () => {
           {/* Search Bar */}
           <div className="card" style={{ marginBottom: '2rem' }}>
             <div className="card-body" style={{ padding: '1rem' }}>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="text"
-                  placeholder="🔍 Search courses by name, code, or student name..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e2e8f0',
-                    borderRadius: '8px',
-                    fontSize: '1rem',
-                    outline: 'none',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
-                />
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Search courses by title, code, or description..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem',
+                      border: '2px solid #e2e8f0',
+                      borderRadius: '8px',
+                      fontSize: '1rem',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                  />
+                </div>
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      background: '#f9fafb',
+                      color: '#6b7280',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      whiteSpace: 'nowrap'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = '#f3f4f6';
+                      e.target.style.borderColor = '#9ca3af';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = '#f9fafb';
+                      e.target.style.borderColor = '#d1d5db';
+                    }}
+                  >
+                    ✕ Clear
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {courses.length === 0 ? (
+          {getFilteredCourses().length === 0 ? (
             <div className="card">
               <div className="card-body">
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📚</span>
-                  <h4>No courses assigned yet</h4>
-                  <p>Contact your administrator to get courses assigned to you.</p>
-                  <p style={{ fontSize: '0.875rem', marginTop: '1rem', fontStyle: 'italic' }}>
-                    Note: Only administrators can create and assign courses to teachers.
+                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>
+                    {courses.length === 0 ? '📚' : '🔍'}
+                  </span>
+                  <h4>
+                    {courses.length === 0 
+                      ? 'No courses assigned yet' 
+                      : 'No courses match your search'
+                    }
+                  </h4>
+                  <p>
+                    {courses.length === 0 
+                      ? 'Contact your administrator to get courses assigned to you.'
+                      : 'Try adjusting your search terms or clear the search to see all courses.'
+                    }
                   </p>
+                  {courses.length === 0 && (
+                    <p style={{ fontSize: '0.875rem', marginTop: '1rem', fontStyle: 'italic' }}>
+                      Note: Only administrators can create and assign courses to teachers.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1">
-              {courses
-                .filter(course => {
-                  if (!searchTerm) return true;
-                  const searchLower = searchTerm.toLowerCase();
-                  
-                  // Search in course title and code
-                  const courseMatch = course.title.toLowerCase().includes(searchLower) || 
-                                    course.courseCode.toLowerCase().includes(searchLower);
-                  
-                  // Search in student names for this course
-                  const studentMatch = enrollments.some(enrollment => 
-                    enrollment.course?.id === course.id && 
-                    enrollment.student?.name.toLowerCase().includes(searchLower)
-                  );
-                  
-                  return courseMatch || studentMatch;
-                })
-                .map(course => {
-                  const courseEnrollments = enrollments.filter(e => e.course?.id === course.id);
-                  const approvedCount = courseEnrollments.filter(e => e.status === 'APPROVED').length;
-                  const pendingCount = courseEnrollments.filter(e => e.status === 'PENDING').length;
-                  const retakingCount = courseEnrollments.filter(e => e.status === 'RETAKING').length;
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" style={{ gap: '1.5rem' }}>
+              {getFilteredCourses().map(course => {
+                const courseEnrollments = enrollments.filter(e => e.course?.id === course.id);
+                const approvedCount = courseEnrollments.filter(e => e.status === 'APPROVED').length;
+                const pendingCount = courseEnrollments.filter(e => e.status === 'PENDING').length;
+                const retakingCount = courseEnrollments.filter(e => e.status === 'RETAKING').length;
 
-                  return (
-                    <div key={course.id} className="card">
-                      <div className="card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                              <h4 style={{ margin: '0', color: '#1e293b' }}>
-                                {course.title}
-                              </h4>
-                              <span style={{
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '6px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#3b82f6',
-                                color: 'white',
-                                border: '1px solid #2563eb'
-                              }}>
-                                {course.courseCode}
-                              </span>
-                            </div>
-                            <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
-                              {course.description}
-                            </p>
-                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-                              <span>📅 Created: {formatDate(course.createdAt)}</span>
-                              <span>👨‍🎓 Active: {approvedCount}</span>
-                              {pendingCount > 0 && <span style={{ color: '#f59e0b' }}>⏳ Pending: {pendingCount}</span>}
-                              {retakingCount > 0 && <span style={{ color: '#ef4444' }}>🔄 Retaking: {retakingCount}</span>}
-                            </div>
-
-                            {/* Student List for this course */}
-                            {courseEnrollments.length > 0 && (
-                              <div style={{ 
-                                marginTop: '1rem', 
-                                padding: '1rem', 
-                                backgroundColor: '#f8fafc', 
-                                borderRadius: '8px',
-                                border: '1px solid #e2e8f0'
-                              }}>
-                                <h5 style={{ margin: '0 0 0.75rem 0', color: '#1e293b', fontSize: '0.875rem', fontWeight: '600' }}>
-                                  📋 Enrolled Students ({courseEnrollments.length})
-                                </h5>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                  {courseEnrollments.map(enrollment => (
-                                    <div key={enrollment.id} style={{
-                                      display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'center',
-                                      padding: '0.5rem',
-                                      backgroundColor: enrollment.status === 'RETAKING' ? '#fef2f2' : 'white',
-                                      borderRadius: '6px',
-                                      border: `1px solid ${enrollment.status === 'RETAKING' ? '#fecaca' : '#e5e7eb'}`,
-                                      fontSize: '0.875rem'
-                                    }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <span style={{ 
-                                          color: enrollment.status === 'RETAKING' ? '#dc2626' : '#1e293b',
-                                          fontWeight: '500'
-                                        }}>
-                                          {enrollment.student.name}
-                                        </span>
-                                        <span style={{
-                                          padding: '0.125rem 0.5rem',
-                                          borderRadius: '12px',
-                                          fontSize: '0.75rem',
-                                          fontWeight: '600',
-                                          background: enrollment.status === 'RETAKING' ? '#fecaca' : 
-                                                     enrollment.status === 'PENDING' ? '#fef3c7' : 
-                                                     enrollment.status === 'APPROVED' ? '#dcfce7' : '#fee2e2',
-                                          color: enrollment.status === 'RETAKING' ? '#dc2626' : 
-                                                enrollment.status === 'PENDING' ? '#92400e' : 
-                                                enrollment.status === 'APPROVED' ? '#166534' : '#dc2626'
-                                        }}>
-                                          {enrollment.status}
-                                        </span>
-                                      </div>
-                                      <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                        {enrollment.status === 'PENDING' && (
-                                          <>
-                                            <button 
-                                              className="btn btn-success btn-sm"
-                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                                              onClick={() => approveEnrollment(enrollment.id)}
-                                            >
-                                              ✅
-                                            </button>
-                                            <button 
-                                              className="btn btn-danger btn-sm"
-                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                                              onClick={() => rejectEnrollment(enrollment.id)}
-                                            >
-                                              ❌
-                                            </button>
-                                          </>
-                                        )}
-                                        {enrollment.status === 'RETAKING' && (
-                                          <>
-                                            <button 
-                                              className="btn btn-success btn-sm"
-                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                                              onClick={() => approveEnrollment(enrollment.id)}
-                                              title="Approve retake request"
-                                            >
-                                              ✅ Allow Retake
-                                            </button>
-                                            <button 
-                                              className="btn btn-danger btn-sm"
-                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                                              onClick={() => rejectEnrollment(enrollment.id)}
-                                              title="Reject retake request"
-                                            >
-                                              ❌ Deny Retake
-                                            </button>
-                                          </>
-                                        )}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                return (
+                  <div 
+                    key={course.id} 
+                    className="card"
+                    style={{ 
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      borderRadius: '12px',
+                      overflow: 'hidden'
+                    }}
+                    onClick={() => window.location.href = `/teacher/${course.courseCode}`}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                    }}
+                  >
+                    <div className="card-body" style={{ padding: '1.5rem' }}>
+                      <div style={{ marginBottom: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '8px',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                            background: '#3b82f6',
+                            color: 'white',
+                            letterSpacing: '0.5px'
+                          }}>
+                            {course.courseCode}
+                          </span>
+                        </div>
+                        <h4 style={{ margin: '0', color: '#1e293b', fontSize: '1.25rem', fontWeight: '600', lineHeight: '1.4' }}>
+                          {course.title}
+                        </h4>
+                      </div>
+                      
+                      <p style={{ 
+                        margin: '0 0 1.5rem 0', 
+                        color: '#64748b', 
+                        fontSize: '0.875rem',
+                        lineHeight: '1.5',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
+                      }}>
+                        {course.description}
+                      </p>
+                      
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        paddingTop: '1rem',
+                        borderTop: '1px solid #e2e8f0'
+                      }}>
+                        <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                          📅 {formatDate(course.createdAt)}
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          {approvedCount > 0 && (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: '#dcfce7',
+                              color: '#166534'
+                            }}>
+                              {approvedCount} enrolled
+                            </span>
+                          )}
+                          {pendingCount > 0 && (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: '#fef3c7',
+                              color: '#92400e'
+                            }}>
+                              {pendingCount} pending
+                            </span>
+                          )}
+                          {retakingCount > 0 && (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: '#fecaca',
+                              color: '#dc2626'
+                            }}>
+                              {retakingCount} retaking
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                );
+              })}
             </div>
           )}
         </>
