@@ -1,315 +1,394 @@
 FullName: Hozifa Rahman Hamim Abs
 Email: hozifa@gmail.com
 Password: hozifa123
+Role: STUDENT
 
 FullName: Labiba Binte Tasin Abs
 Email: labiba@gmail.com
 Password: labiba123
+Role: STUDENT
 
 FullName: Anik Saha
 Email: anik@gmail.com
 Password: anik123
+Role: STUDENT
 
 FullName: Pramananda Sarkar
 Email: pramananda@gmail.com
 Password: pramananda123
+Role: STUDENT
 
 FullName: A.H.M Towfique Mahmud
 Email: ahm@gmail.com
 Password: ahm123
+Role: STUDENT
 
 FullName: Anup Halder Joy
 Email: anup@gmail.com
 Password: anup123
+Role: STUDENT
 
 FullName: Kowshik Saha Kabya
 Email: kowshik@gmail.com
 Password: kowshik123
+Role: STUDENT
 
 FullName: Adnan Ibney Faruq
 Email: adnan@gmail.com
 Password: adnan123
+Role: STUDENT
 
 FullName: Ahmmad Nur Swapnil Abs
 Email: ahmmad@gmail.com
 Password: ahmmad123
+Role: STUDENT
 
 FullName: Abrar Jahin Sarker
 Email: abrar@gmail.com
 Password: abrar123
+Role: STUDENT
 
 FullName: Al Muhit Muhtadi
 Email: amm@gmail.com
 Password: al123
+Role: STUDENT
 
 FullName: Tanvir Hossain
 Email: tanvir@gmail.com
 Password: tanvir123
+Role: STUDENT
 
 FullName: Adibah Mahmud
 Email: adibah@gmail.com
 Password: adibah123
+Role: STUDENT
 
 FullName: Turjoy Dey Abs
 Email: turjoy@gmail.com
 Password: turjoy123
+Role: STUDENT
 
 FullName: Munzer Mahmood
 Email: munzer@gmail.com
 Password: munzer123
+Role: STUDENT
 
 FullName: Jarin Tasneem
 Email: jarin@gmail.com
 Password: jarin123
+Role: STUDENT
 
 FullName: Mostafa Rifat Tazwar
 Email: mostafa@gmail.com
 Password: mostafa123
+Role: STUDENT
 
 FullName: Afzal Hossan
 Email: afzal@gmail.com
 Password: afzal123
+Role: STUDENT
 
 FullName: Ekramul Haque Amin
 Email: ekramul@gmail.com
 Password: ekramul123
+Role: STUDENT
 
 FullName: Jaber Ahmed Deedar
 Email: jaber@gmail.com
 Password: jaber123
+Role: STUDENT
 
 FullName: Asif Karim Abs
 Email: asif@gmail.com
 Password: asif123
+Role: STUDENT
 
 FullName: Swastika Pandit
 Email: swastika@gmail.com
 Password: swastika123
+Role: STUDENT
 
 FullName: Fairuz Mubashwera
 Email: fairuz@gmail.com
 Password: fairuz123
+Role: STUDENT
 
 FullName: Soumik Bhattacharjee
 Email: soumik@gmail.com
 Password: soumik123
+Role: STUDENT
 
 FullName: Somik Dasgupta
 Email: somik@gmail.com
 Password: somik123
+Role: STUDENT
 
 FullName: Gourab Biswas Abs
 Email: gourab@gmail.com
 Password: gourab123
+Role: STUDENT
 
 FullName: Tawhid Muhammad Mubashwir
 Email: tawhid@gmail.com
 Password: tawhid123
+Role: STUDENT
 
 FullName: Zia Ul Hassan Abdullah
 Email: zia@gmail.com
 Password: zia123
+Role: STUDENT
 
 FullName: Musa Tur Farazi
 Email: musa@gmail.com
 Password: musa123
+Role: STUDENT
 
 FullName: Reduanul Islam Imon Abs
 Email: reduanul@gmail.com
 Password: reduanul123
+Role: STUDENT
 
 FullName: Mahamudul Hasan Fahim Abs
 Email: mahamudul@gmail.com
 Password: mahamudul123
+Role: STUDENT
 
 FullName: Prithu Anan
 Email: prithu@gmail.com
 Password: prithu123
+Role: STUDENT
 
 FullName: Tusher Bhomik
 Email: tusher@gmail.com
 Password: tusher123
+Role: STUDENT
 
 FullName: Akanta Das
 Email: akanta@gmail.com
 Password: akanta123
+Role: STUDENT
 
 FullName: Sheikh Rahat Mahmud
 Email: sheikh@gmail.com
 Password: sheikh123
+Role: STUDENT
 
 FullName: Oitijhya Hoque
 Email: oitijhya@gmail.com
 Password: oitijhya123
+Role: STUDENT
 
 FullName: Nabila Tabassum Abs
 Email: nabila@gmail.com
 Password: nabila123
+Role: STUDENT
 
 FullName: Tausif Rashid
 Email: tausif@gmail.com
 Password: tausif123
+Role: STUDENT
 
 FullName: Awesh Islam Abs
 Email: awesh@gmail.com
 Password: awesh123
+Role: STUDENT
 
 FullName: Azmal Karim
 Email: azmal@gmail.com
 Password: azmal123
+Role: STUDENT
 
 FullName: Tasinul Islam Ahon
 Email: tasinul@gmail.com
 Password: tasinul123
+Role: STUDENT
 
 FullName: Shabab Mosharraf
 Email: shabab@gmail.com
 Password: shabab123
+Role: STUDENT
 
 FullName: Sabbir Alam Saad Abs
 Email: sabbir@gmail.com
 Password: sabbir123
+Role: STUDENT
 
 FullName: Farriha Afnan
 Email: farriha@gmail.com
 Password: farriha123
+Role: STUDENT
 
 FullName: Rafiqul Islam Rayan
 Email: rafiqul@gmail.com
 Password: rafiqul123
+Role: STUDENT
 
 FullName: Abid Hasan Khondaker
 Email: abid@gmail.com
 Password: abid123
+Role: STUDENT
 
 FullName: Tahsin Kabir Mazumder
 Email: tahsin@gmail.com
 Password: tahsin123
+Role: STUDENT
 
 FullName: Abdullah Faiyaz Abs
 Email: abdullah@gmail.com
 Password: abdullah123
+Role: STUDENT
 
 FullName: Souvik Mandol
 Email: souvik@gmail.com
 Password: souvik123
+Role: STUDENT
 
 FullName: Sagor Chanda
 Email: sagor@gmail.com
 Password: sagor123
+Role: STUDENT
 
 FullName: Dipanta Kumar Roy Nobo
 Email: dipanta@gmail.com
 Password: dipanta123
+Role: STUDENT
 
 FullName: Moyen Uddin
 Email: moyen@gmail.com
 Password: moyen123
+Role: STUDENT
 
 FullName: S. M. Kausar Parvej
 Email: smkp@gmail.com
 Password: s123
+Role: STUDENT
 
 FullName: Sadatul Islam Sadi
 Email: sadatul@gmail.com
 Password: sadatul123
+Role: STUDENT
 
 FullName: M. M. Nayem
 Email: mmn@gmail.com
 Password: m123
+Role: STUDENT
 
 FullName: Ananya Shahrin Promi
 Email: ananya@gmail.com
 Password: ananya123
+Role: STUDENT
 
 FullName: Mohammad Ninad Mahmud
 Email: mohammad@gmail.com
 Password: mohammad123
+Role: STUDENT
 
 FullName: Kazi Jayed Haider
 Email: kazi@gmail.com
 Password: kazi123
+Role: STUDENT
 
 FullName: Mst. Fahmida Sultana Naznin
 Email: mst@gmail.com
 Password: mst123
+Role: STUDENT
 
 FullName: Suhaeb Bin Matin Abs
 Email: suhaeb@gmail.com
 Password: suhaeb123
+Role: STUDENT
 
 FullName: Iftekhar Sanwar Talukdar
 Email: iftekhar@gmail.com
 Password: iftekhar123
+Role: STUDENT
 
 FullName: Wahid Al Azad Navid
 Email: wahid@gmail.com
 Password: wahid123
+Role: STUDENT
 
 FullName: Tawkir Aziz Rahman
 Email: tawkir@gmail.com
 Password: tawkir123
+Role: STUDENT
 
 FullName: Waseem Mustak Zisan
 Email: waseem@gmail.com
 Password: waseem123
+Role: STUDENT
 
 FullName: Shahad Shahriar Rahman
 Email: shahad@gmail.com
 Password: shahad123
+Role: STUDENT
 
 FullName: Shahriar Ahmed Seam Abs
 Email: shahriar@gmail.com
 Password: shahriar123
+Role: STUDENT
 
 FullName: Tamim Hasan Saad
 Email: tamim@gmail.com
 Password: tamim123
+Role: STUDENT
 
 FullName: Habiba Rafique
 Email: habiba@gmail.com
 Password: habiba123
+Role: STUDENT
 
 FullName: Munim Thahmid Abs
 Email: munim@gmail.com
 Password: munim123
+Role: STUDENT
 
 FullName: Maisha Maksura Abs
 Email: maisha@gmail.com
 Password: maisha123
+Role: STUDENT
 
 FullName: Istiak Ahmmed Rifti
 Email: istiak@gmail.com
 Password: istiak123
+Role: STUDENT
 
 FullName: Md.Tashdiqur Rahman
 Email: mdtashdiqur@gmail.com
 Password: mdtashdiqur123
+Role: STUDENT
 
 FullName: H. M. Shadman Tabib
 Email: hmst@gmail.com
 Password: h123
+Role: STUDENT
 
 FullName: Mushfiqur Rahman
 Email: mushfiqur@gmail.com
 Password: mushfiqur123
+Role: STUDENT
 
 FullName: Noushin Tabassum Aoishy
 Email: noushin@gmail.com
 Password: noushin123
+Role: STUDENT
 
 FullName: Sadnam Faiyaz
 Email: sadnam@gmail.com
 Password: sadnam123
+Role: STUDENT
 
 FullName: Arnab Dey
 Email: arnab@gmail.com
 Password: arnab123
+Role: STUDENT
 
 FullName: Fuad Ahmed Udoy
 Email: fuad@gmail.com
 Password: fuad123
+Role: STUDENT
 
 FullName: Sadia Afrin Sithi
 Email: sadia@gmail.com
 Password: sadia123
+Role: STUDENT

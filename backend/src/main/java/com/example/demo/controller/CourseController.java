@@ -3,9 +3,11 @@ package com.example.demo.controller;
 import com.example.demo.model.*;
 import com.example.demo.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -18,8 +20,13 @@ public class CourseController {
     
     // CREATE a new course (Admin only)
     @PostMapping
-    public Course createCourse(@RequestBody Course course) {
-        return courseService.createCourse(course);
+    public ResponseEntity<?> createCourse(@RequestBody Course course) {
+        try {
+            Course createdCourse = courseService.createCourse(course);
+            return ResponseEntity.ok(createdCourse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
     
     // GET all courses (Public endpoint for listing)
@@ -36,8 +43,13 @@ public class CourseController {
     
     // UPDATE course (Admin only)
     @PutMapping("/{courseId}")
-    public Course updateCourse(@PathVariable Long courseId, @RequestBody Course course) {
-        return courseService.updateCourse(courseId, course);
+    public ResponseEntity<?> updateCourse(@PathVariable Long courseId, @RequestBody Course course) {
+        try {
+            Course updatedCourse = courseService.updateCourse(courseId, course);
+            return ResponseEntity.ok(updatedCourse);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
     
     // DELETE course (Admin only)
@@ -52,6 +64,12 @@ public class CourseController {
     @PostMapping("/assign")
     public String assignTeacher(@RequestParam Long courseId, @RequestParam Long teacherId) {
         return courseService.assignTeacherToCourse(courseId, teacherId);
+    }
+
+    // ADMIN removes teacher from course
+    @PostMapping("/remove-teacher")
+    public String removeTeacher(@RequestParam Long courseId) {
+        return courseService.removeTeacherFromCourse(courseId);
     }
 
     // STUDENT sends enrollment request
@@ -87,4 +105,22 @@ public class CourseController {
     public List<Course> getAssigned(@PathVariable Long teacherId) {
         return courseService.getAssignedCourses(teacherId);
     }
+
+    // ADMIN: get all enrollments for a course
+    @GetMapping("/{courseId}/enrollments")
+    public List<CourseEnrollment> getCourseEnrollments(@PathVariable Long courseId) {
+        return courseService.getAllEnrollments(courseId);
+    }
+
+    // STUDENT: retake course
+    @PostMapping("/retake")
+    public ResponseEntity<?> retakeCourse(@RequestParam Long courseId, @RequestParam Long studentId) {
+        try {
+            String result = courseService.retakeCourse(courseId, studentId);
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
 }

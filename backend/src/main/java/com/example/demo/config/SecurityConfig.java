@@ -40,6 +40,13 @@ public class SecurityConfig {
                 // 4.2 Admin-only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/courses/assign").hasRole("ADMIN")
+                .requestMatchers("/api/courses/remove-teacher").hasRole("ADMIN")
+                
+                // Multiple teachers management - Admin only
+                .requestMatchers("/api/courses/add-teacher").hasRole("ADMIN")
+                .requestMatchers("/api/courses/remove-teacher-by-id").hasRole("ADMIN")
+                .requestMatchers("/api/courses/update-teacher-role").hasRole("ADMIN")
+                .requestMatchers("/api/courses/*/teachers").hasRole("ADMIN")
                 
                 // Course CRUD - Admin only for create/update/delete
                 .requestMatchers(HttpMethod.POST, "/api/courses").hasRole("ADMIN")

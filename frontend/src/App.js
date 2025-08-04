@@ -8,7 +8,6 @@ import Login from './components/Login';
 import Signup from './components/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
-import HomePage from './components/HomePage';
 import AboutPage from './components/AboutPage';
 
 function App() {
@@ -49,15 +48,6 @@ function App() {
             <>
               <Header />
               <Signup />
-            </>
-          }
-        />
-        <Route
-          path="/home"
-          element={
-            <>
-              <Header />
-              <HomePage />
             </>
           }
         />

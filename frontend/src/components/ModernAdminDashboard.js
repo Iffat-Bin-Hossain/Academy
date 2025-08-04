@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
+import CourseManagement from './CourseManagement';
 
 const ModernAdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -17,11 +18,26 @@ const ModernAdminDashboard = () => {
   const [messageType, setMessageType] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [newCourse, setNewCourse] = useState({
     title: '',
     courseCode: '',
     description: ''
   });
+  const [editCourse, setEditCourse] = useState({
+    title: '',
+    courseCode: '',
+    description: ''
+  });
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [courseSearchTerm, setCourseSearchTerm] = useState('');
+  const [modalError, setModalError] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [editModalError, setEditModalError] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showCourseManagement, setShowCourseManagement] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
 
   useEffect(() => {
     // Get user info from token
@@ -45,20 +61,22 @@ const ModernAdminDashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [pendingResponse, coursesResponse] = await Promise.all([
+      const [pendingResponse, coursesResponse, allUsersResponse] = await Promise.all([
         axios.get('/admin/pending'),
-        axios.get('/courses')
+        axios.get('/courses'),
+        axios.get('/admin/users')
       ]);
       
       console.log('Pending users:', pendingResponse.data);
       console.log('Courses:', coursesResponse.data);
+      console.log('All users:', allUsersResponse.data);
       
       setPendingUsers(pendingResponse.data);
       setCourses(coursesResponse.data);
       
       // Calculate stats
       setStats({
-        totalUsers: pendingResponse.data.length + 10, // Approximate approved users
+        totalUsers: allUsersResponse.data.length, // Actual total user count
         pendingUsers: pendingResponse.data.length,
         totalCourses: coursesResponse.data.length,
         totalEnrollments: coursesResponse.data.reduce((acc, course) => acc + (course.enrollments || 0), 0)
@@ -110,9 +128,12 @@ const ModernAdminDashboard = () => {
 
   const createCourse = async () => {
     if (!newCourse.title || !newCourse.courseCode || !newCourse.description) {
-      showMessage('Please fill in all required fields', 'error');
+      setModalError('Please fill in all required fields');
       return;
     }
+
+    setIsCreating(true);
+    setModalError('');
 
     try {
       const response = await axios.post('/courses', newCourse);
@@ -120,16 +141,79 @@ const ModernAdminDashboard = () => {
       showMessage('Course created successfully!', 'success');
       setShowCreateModal(false);
       setNewCourse({ title: '', courseCode: '', description: '' });
+      setModalError('');
       fetchData();
     } catch (error) {
       console.error('Error creating course:', error);
-      if (error.response) {
-        console.error('Error status:', error.response.status);
-        console.error('Error data:', error.response.data);
-        showMessage(`Failed to create course: ${error.response.data.error || error.response.statusText}`, 'error');
-      } else {
-        showMessage('Failed to create course: Network error', 'error');
+      let errorMessage = 'Failed to create course';
+      
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response && error.response.statusText) {
+        errorMessage = `Failed to create course: ${error.response.statusText}`;
+      } else if (error.message) {
+        errorMessage = `Network error: ${error.message}`;
       }
+      
+      setModalError(errorMessage);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const openEditModal = (course) => {
+    setSelectedCourse(course);
+    setEditCourse({
+      title: course.title,
+      courseCode: course.courseCode,
+      description: course.description
+    });
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setSelectedCourse(null);
+    setEditCourse({ title: '', courseCode: '', description: '' });
+    setEditModalError('');
+  };
+
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    setNewCourse({ title: '', courseCode: '', description: '' });
+    setModalError('');
+  };
+
+  const updateCourse = async () => {
+    if (!editCourse.title || !editCourse.courseCode || !editCourse.description) {
+      setEditModalError('Please fill in all required fields');
+      return;
+    }
+
+    setIsUpdating(true);
+    setEditModalError('');
+
+    try {
+      const response = await axios.put(`/courses/${selectedCourse.id}`, editCourse);
+      console.log('Update response:', response.data);
+      showMessage('Course updated successfully!', 'success');
+      closeEditModal();
+      fetchData();
+    } catch (error) {
+      console.error('Error updating course:', error);
+      let errorMessage = 'Failed to update course';
+      
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response && error.response.statusText) {
+        errorMessage = `Failed to update course: ${error.response.statusText}`;
+      } else if (error.message) {
+        errorMessage = `Network error: ${error.message}`;
+      }
+      
+      setEditModalError(errorMessage);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -185,15 +269,81 @@ const ModernAdminDashboard = () => {
     window.location.href = '/login';
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const openCourseManagement = (courseId) => {
+    setSelectedCourseId(courseId);
+    setShowCourseManagement(true);
   };
+
+  const closeCourseManagement = () => {
+    setShowCourseManagement(false);
+    setSelectedCourseId(null);
+    // Refresh data when coming back from course management
+    fetchData();
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
+      return 'Invalid Date';
+    }
+  };
+
+  // Filter functions for search
+  const filteredPendingUsers = pendingUsers.filter(user => {
+    if (!userSearchTerm) return true;
+    const searchLower = userSearchTerm.toLowerCase();
+    return (
+      user.name?.toLowerCase().includes(searchLower) ||
+      user.email?.toLowerCase().includes(searchLower) ||
+      user.role?.toLowerCase().includes(searchLower) ||
+      formatDate(user.createdAt).toLowerCase().includes(searchLower)
+    );
+  });
+
+  const filteredCourses = courses.filter(course => {
+    if (!courseSearchTerm) return true;
+    const searchLower = courseSearchTerm.toLowerCase();
+    
+    // Create search fields array to avoid duplicates
+    const searchFields = [
+      course.title?.toLowerCase() || '',
+      course.courseCode?.toLowerCase() || '',
+      course.description?.toLowerCase() || '',
+      course.assignedTeacher?.name?.toLowerCase() || '',
+      course.id?.toString() || '',
+      course.createdAt ? formatDate(course.createdAt).toLowerCase() : ''
+    ];
+    
+    // Check if any field contains the search term
+    return searchFields.some(field => field.includes(searchLower));
+  });
+
+  // Handle tab change and clear search
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    // Clear search terms when switching tabs
+    if (tabId !== 'users') setUserSearchTerm('');
+    if (tabId !== 'courses') setCourseSearchTerm('');
+  };
+
+  // Show Course Management view if selected
+  if (showCourseManagement && selectedCourseId) {
+    return (
+      <CourseManagement 
+        courseId={selectedCourseId}
+        onBack={closeCourseManagement}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -232,7 +382,7 @@ const ModernAdminDashboard = () => {
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
                 style={{ textTransform: 'none', letterSpacing: 'normal' }}
               >
@@ -281,14 +431,14 @@ const ModernAdminDashboard = () => {
               <div className="grid grid-cols-2">
                 <button 
                   className="btn btn-primary btn-lg"
-                  onClick={() => setActiveTab('users')}
+                  onClick={() => handleTabChange('users')}
                 >
                   <span style={{ marginRight: '0.5rem' }}>👥</span>
                   Review Pending Users ({stats.pendingUsers})
                 </button>
                 <button 
                   className="btn btn-secondary btn-lg"
-                  onClick={() => setActiveTab('courses')}
+                  onClick={() => handleTabChange('courses')}
                 >
                   <span style={{ marginRight: '0.5rem' }}>📚</span>
                   Manage Courses
@@ -303,17 +453,41 @@ const ModernAdminDashboard = () => {
       {activeTab === 'users' && (
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">Pending User Approvals</h3>
-            <p className="card-subtitle">
-              {pendingUsers.length} users waiting for approval
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <h3 className="card-title">Pending User Approvals</h3>
+                <p className="card-subtitle">
+                  {filteredPendingUsers.length} of {pendingUsers.length} users {userSearchTerm && '(filtered)'}
+                </p>
+              </div>
+              <div style={{ minWidth: '300px' }}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="🔍 Search users by name, email, role..."
+                  value={userSearchTerm}
+                  onChange={(e) => setUserSearchTerm(e.target.value)}
+                  style={{ fontSize: '0.875rem' }}
+                />
+              </div>
+            </div>
           </div>
           <div className="card-body">
-            {pendingUsers.length === 0 ? (
+            {filteredPendingUsers.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🎉</span>
-                <h4>No pending approvals!</h4>
-                <p>All user registration requests have been processed.</p>
+                {pendingUsers.length === 0 ? (
+                  <>
+                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🎉</span>
+                    <h4>No pending approvals!</h4>
+                    <p>All user registration requests have been processed.</p>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+                    <h4>No users found</h4>
+                    <p>No users match your search criteria. Try different keywords.</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="table-container">
@@ -328,7 +502,7 @@ const ModernAdminDashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingUsers.map(user => (
+                    {filteredPendingUsers.map(user => (
                       <tr key={user.id}>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -364,18 +538,18 @@ const ModernAdminDashboard = () => {
                         </td>
                         <td>{formatDate(user.createdAt)}</td>
                         <td>
-                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', gap: '0.3rem' }}>
                             <button
                               onClick={() => approveUser(user.id)}
-                              className="btn btn-success btn-sm"
+                              className="btn btn-success btn-xxs"
                             >
-                              ✓ Approve
+                              ✓
                             </button>
                             <button
                               onClick={() => rejectUser(user.id)}
-                              className="btn btn-danger btn-sm"
+                              className="btn btn-danger btn-xxs"
                             >
-                              ✗ Reject
+                              ✗
                             </button>
                           </div>
                         </td>
@@ -393,50 +567,94 @@ const ModernAdminDashboard = () => {
       {activeTab === 'courses' && (
         <div className="card">
           <div className="card-header">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>
                 <h3 className="card-title">Course Management</h3>
                 <p className="card-subtitle">
-                  {courses.length} courses in the system
+                  {filteredCourses.length} of {courses.length} courses {courseSearchTerm && '(filtered)'}
                 </p>
               </div>
-              <button 
-                className="btn btn-primary"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <span style={{ marginRight: '0.5rem' }}>➕</span>
-                Create New Course
-              </button>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="🔍 Search courses by title, code, ID, description..."
+                  value={courseSearchTerm}
+                  onChange={(e) => setCourseSearchTerm(e.target.value)}
+                  style={{ fontSize: '0.875rem', minWidth: '300px' }}
+                />
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => setShowCreateModal(true)}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  <span style={{ marginRight: '0.5rem' }}>➕</span>
+                  Create New Course
+                </button>
+              </div>
             </div>
           </div>
           <div className="card-body">
-            {courses.length === 0 ? (
+            {filteredCourses.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📚</span>
-                <h4>No courses yet</h4>
-                <p>Click "Create New Course" to add your first course.</p>
+                {courses.length === 0 ? (
+                  <>
+                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📚</span>
+                    <h4>No courses yet</h4>
+                    <p>Click "Create New Course" to add your first course.</p>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+                    <h4>No courses found</h4>
+                    <p>No courses match your search criteria. Try different keywords.</p>
+                  </>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1">
-                {courses.map(course => (
+                {filteredCourses.map(course => (
                   <div key={course.id} className="card">
                     <div className="card-body">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <h4 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>
-                            {course.title}
-                          </h4>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                            <h4 style={{ margin: '0', color: '#1e293b' }}>
+                              {course.title}
+                            </h4>
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: '#3b82f6',
+                              color: 'white',
+                              border: '1px solid #2563eb'
+                            }}>
+                              {course.courseCode}
+                            </span>
+                          </div>
                           <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
                             {course.description}
                           </p>
                           <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                            <span>📅 Created: {formatDate(course.createdAt)}</span>
-                            <span>👨‍🏫 Teacher: {course.teacherName || 'Unknown'}</span>
+                            <span>📅 Created: {course.createdAt ? formatDate(course.createdAt) : 'Unknown'}</span>
+                            <span>👨‍🏫 Teacher: {course.assignedTeacher ? course.assignedTeacher.name : 'Not Assigned'}</span>
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button className="btn btn-secondary btn-sm">
-                            👁️ View
+                          <button 
+                            className="btn btn-primary btn-sm"
+                            onClick={() => openCourseManagement(course.id)}
+                            title="Manage course details, teachers, and enrollments"
+                          >
+                            ⚙️ Manage
+                          </button>
+                          <button 
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => openEditModal(course)}
+                          >
+                            ✏️ Edit
                           </button>
                           <button 
                             className="btn btn-danger btn-sm"
@@ -474,19 +692,34 @@ const ModernAdminDashboard = () => {
 
       {/* Course Creation Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+        <div className="modal-overlay" onClick={closeCreateModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Create New Course</h3>
               <button 
                 className="modal-close"
-                onClick={() => setShowCreateModal(false)}
+                onClick={closeCreateModal}
                 aria-label="Close modal"
               >
                 ✕
               </button>
             </div>
             <div className="modal-body">
+              {/* Error message inside modal */}
+              {modalError && (
+                <div className="alert alert-error" style={{ 
+                  marginBottom: '1rem',
+                  padding: '0.75rem 1rem',
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#dc2626',
+                  fontSize: '0.875rem'
+                }}>
+                  <strong>⚠️ Error:</strong> {modalError}
+                </div>
+              )}
+              
               <form onSubmit={(e) => { e.preventDefault(); createCourse(); }}>
                 <div className="form-group">
                   <label htmlFor="courseTitle">Course Title *</label>
@@ -509,9 +742,15 @@ const ModernAdminDashboard = () => {
                     className="form-control"
                     placeholder="e.g., CS101, MATH201"
                     value={newCourse.courseCode}
-                    onChange={(e) => setNewCourse({ ...newCourse, courseCode: e.target.value })}
+                    onChange={(e) => {
+                      setNewCourse({ ...newCourse, courseCode: e.target.value });
+                      if (modalError) setModalError(''); // Clear error when user types
+                    }}
                     required
                   />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    Course code must be unique. Examples: CS101, MATH201, PHY301
+                  </small>
                 </div>
                 
                 <div className="form-group">
@@ -531,16 +770,136 @@ const ModernAdminDashboard = () => {
                   <button 
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => setShowCreateModal(false)}
+                    onClick={closeCreateModal}
+                    disabled={isCreating}
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit"
                     className="btn btn-primary"
+                    disabled={isCreating}
                   >
-                    <span style={{ marginRight: '0.5rem' }}>➕</span>
-                    Create Course
+                    {isCreating ? (
+                      <>
+                        <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ marginRight: '0.5rem' }}>➕</span>
+                        Create Course
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Course Edit Modal */}
+      {showEditModal && selectedCourse && (
+        <div className="modal-overlay" onClick={closeEditModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Edit Course</h3>
+              <button 
+                className="modal-close"
+                onClick={closeEditModal}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              {/* Error message inside edit modal */}
+              {editModalError && (
+                <div className="alert alert-error" style={{ 
+                  marginBottom: '1rem',
+                  padding: '0.75rem 1rem',
+                  backgroundColor: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#dc2626',
+                  fontSize: '0.875rem'
+                }}>
+                  <strong>⚠️ Error:</strong> {editModalError}
+                </div>
+              )}
+              
+              <form onSubmit={(e) => { e.preventDefault(); updateCourse(); }}>
+                <div className="form-group">
+                  <label htmlFor="editCourseTitle">Course Title *</label>
+                  <input
+                    id="editCourseTitle"
+                    type="text"
+                    className="form-control"
+                    placeholder="Enter course title"
+                    value={editCourse.title}
+                    onChange={(e) => setEditCourse({ ...editCourse, title: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="editCourseCode">Course Code *</label>
+                  <input
+                    id="editCourseCode"
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g., CS101, MATH201"
+                    value={editCourse.courseCode}
+                    onChange={(e) => {
+                      setEditCourse({ ...editCourse, courseCode: e.target.value });
+                      if (editModalError) setEditModalError(''); // Clear error when user types
+                    }}
+                    required
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    Course code must be unique. Examples: CS101, MATH201, PHY301
+                  </small>
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="editCourseDescription">Description *</label>
+                  <textarea
+                    id="editCourseDescription"
+                    className="form-control"
+                    placeholder="Enter course description"
+                    rows="4"
+                    value={editCourse.description}
+                    onChange={(e) => setEditCourse({ ...editCourse, description: e.target.value })}
+                    required
+                  />
+                </div>
+                
+                <div className="modal-actions">
+                  <button 
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={closeEditModal}
+                    disabled={isUpdating}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? (
+                      <>
+                        <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                        Updating...
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ marginRight: '0.5rem' }}>💾</span>
+                        Update Course
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

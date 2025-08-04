@@ -1,0 +1,154 @@
+Full Name: Tanzima Hashem
+email: tanzima.teacher@gmail.com
+password: tanzima123
+Role: Teacher
+
+Full Name: Masroor Ali
+email: masroor.teacher@gmail.com
+password: masroor123
+Role: Teacher
+
+Full Name: Monirul Islam
+email: monirul.teacher@gmail.com
+password: monirul123
+Role: Teacher
+
+Full Name: Mostofa Akbar
+email: mostofa.teacher@gmail.com
+password: mostofa123
+Role: Teacher
+
+Full Name: Mahfuzul Islam
+email: mahfuzul.teacher@gmail.com
+password: mahfuzul123
+Role: Teacher
+
+Full Name: Ashikur Rahman
+email: ashikur.teacher@gmail.com
+password: ashikur123
+Role: Teacher
+
+Full Name: Mahmuda Naznin
+email: mahmuda.teacher@gmail.com
+password: mahmuda123
+Role: Teacher
+
+Full Name: Anindya Iqbal
+email: anindya.teacher@gmail.com
+password: anindya123
+Role: Teacher
+
+Full Name: Rifat Shahriyar
+email: rifat.teacher@gmail.com
+password: rifat123
+Role: Teacher
+
+Full Name: Abdullah Adnan
+email: abdullah.teacher@gmail.com
+password: abdullah123
+Role: Teacher
+
+Full Name: Saifur Rahman
+email: saifur.teacher@gmail.com
+password: saifur123
+Role: Teacher
+
+Full Name: Shamsuzzoha Bayzid
+email: shamsuzzoha.teacher@gmail.com
+password: shamsuzzoha123
+Role: Teacher
+
+Full Name: Abu Wasif
+email: abu.teacher@gmail.com
+password: abu123
+Role: Teacher
+
+Full Name: Sukarna Barua
+email: sukarna.teacher@gmail.com
+password: sukarna123
+Role: Teacher
+
+Full Name: Khaled Mahmud Shahriar
+email: khaled.teacher@gmail.com
+password: khaled123
+Role: Teacher
+
+Full Name: Atif Hasan Rahman
+email: atif.teacher@gmail.com
+password: atif123
+Role: Teacher
+
+Full Name: Rezwana Reaz
+email: rezwana.teacher@gmail.com
+password: rezwana123
+Role: Teacher
+
+Full Name: Ashraful Islam
+email: ashraful.teacher@gmail.com
+password: ashraful123
+Role: Teacher
+
+Full Name: Mehedi Hasan
+email: mehedi.teacher@gmail.com
+password: mehedi123
+Role: Teacher
+
+Full Name: Abdur Rashid Tushar
+email: abdur.teacher@gmail.com
+password: abdur123
+Role: Teacher
+
+Full Name: Sheikh Azizul Hakim
+email: sheikh.teacher@gmail.com
+password: sheikh123
+Role: Teacher
+
+Full Name: Kowshic Roy
+email: kowshic.teacher@gmail.com
+password: kowshic123
+Role: Teacher
+
+Full Name: Saem Hasan
+email: saem.teacher@gmail.com
+password: saem123
+Role: Teacher
+
+Full Name: Emamul Haque Pranta
+email: emamul.teacher@gmail.com
+password: emamul123
+Role: Teacher
+
+Full Name: Ishrat Jahan
+email: ishrat.teacher@gmail.com
+password: ishrat123
+Role: Teacher
+
+Full Name: Nurul Muttakin
+email: nurul.teacher@gmail.com
+password: nurul123
+Role: Teacher
+
+Full Name: Junaed Younus Khan
+email: junaed.teacher@gmail.com
+password: junaed123
+Role: Teacher
+
+Full Name: Ahmed Mahir Sultan Rumi
+email: ahmed.teacher@gmail.com
+password: ahmed123
+Role: Teacher
+
+Full Name: Rabib Jahin Ibn Momin
+email: rabib.teacher@gmail.com
+password: rabib123
+Role: Teacher
+
+Full Name: Abdur Rafi
+email: abdur.teacher@gmail.com
+password: abdur123
+Role: Teacher
+
+Full Name: Anwarul Bashir Shuaib
+email: anwarul.teacher@gmail.com
+password: anwarul123
+Role: Teacher

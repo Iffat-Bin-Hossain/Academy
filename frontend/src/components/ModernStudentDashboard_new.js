@@ -22,10 +22,6 @@ const ModernStudentDashboard = () => {
   const [enrolledSearchTerm, setEnrolledSearchTerm] = useState('');
   const [pendingSearchTerm, setPendingSearchTerm] = useState('');
   const [availableSearchTerm, setAvailableSearchTerm] = useState('');
-  
-  // Retake modal states
-  const [showRetakeModal, setShowRetakeModal] = useState(false);
-  const [retakeCourseData, setRetakeCourseData] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -111,38 +107,30 @@ const ModernStudentDashboard = () => {
     }
   };
 
-  const retakeCourse = (courseId, courseTitle) => {
-    setRetakeCourseData({ id: courseId, title: courseTitle });
-    setShowRetakeModal(true);
-  };
+  const retakeCourse = async (courseId) => {
+    if (!window.confirm('Are you sure you want to retake this course? This will mark you as retaking and require teacher approval.')) {
+      return;
+    }
 
-  const confirmRetake = async () => {
-    if (!retakeCourseData || !user || !user.id) {
-      showMessage('Unable to process retake request', 'error');
+    if (!user || !user.id) {
+      showMessage('User information not available', 'error');
       return;
     }
 
     try {
       await axios.post(`/courses/retake`, null, {
         params: {
-          courseId: retakeCourseData.id,
+          courseId: courseId,
           studentId: user.id
         }
       });
       
       showMessage('Course retake request submitted successfully!', 'success');
-      setShowRetakeModal(false);
-      setRetakeCourseData(null);
       fetchData(); // Refresh data to update status
     } catch (error) {
       console.error('Error retaking course:', error);
       showMessage(error.response?.data?.error || 'Failed to submit retake request', 'error');
     }
-  };
-
-  const cancelRetake = () => {
-    setShowRetakeModal(false);
-    setRetakeCourseData(null);
   };
 
   const handleLogout = () => {
@@ -494,7 +482,7 @@ const ModernStudentDashboard = () => {
                             {enrollment.status === 'APPROVED' && (
                               <button 
                                 className="btn btn-warning btn-sm"
-                                onClick={() => retakeCourse(enrollment.course.id, enrollment.course.title)}
+                                onClick={() => retakeCourse(enrollment.course.id)}
                               >
                                 🔄 Retake
                               </button>
@@ -585,7 +573,7 @@ const ModernStudentDashboard = () => {
                               {enrollment.course.description}
                             </p>
                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                              <span>📅 Applied: {enrollment.enrolledAt ? formatDate(enrollment.enrolledAt) : formatDate(enrollment.course.createdAt)}</span>
+                              <span>📅 Applied: {formatDate(enrollment.course.createdAt)}</span>
                               <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
                             </div>
                           </div>
@@ -721,125 +709,6 @@ const ModernStudentDashboard = () => {
           </div>
         </div>
       )}
-
-      {/* Retake Confirmation Modal */}
-      {showRetakeModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '90%',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
-            animation: 'fadeIn 0.3s ease-out'
-          }}>
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                backgroundColor: '#fef3c7',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 1rem',
-                fontSize: '24px'
-              }}>
-                🔄
-              </div>
-              <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>
-                Retake Course Confirmation
-              </h3>
-              <p style={{ margin: 0, color: '#64748b' }}>
-                Are you sure you want to retake this course?
-              </p>
-            </div>
-            
-            <div style={{
-              backgroundColor: '#f8fafc',
-              padding: '1rem',
-              borderRadius: '8px',
-              marginBottom: '1.5rem',
-              border: '1px solid #e2e8f0'
-            }}>
-              <h4 style={{ margin: '0 0 0.5rem 0', color: '#1e293b', fontSize: '1rem' }}>
-                📚 {retakeCourseData?.title}
-              </h4>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                This will mark you as "retaking" and require teacher approval. Your previous progress will be maintained.
-              </p>
-            </div>
-
-            <div style={{
-              backgroundColor: '#fef9e7',
-              border: '1px solid #fde047',
-              borderRadius: '8px',
-              padding: '1rem',
-              marginBottom: '1.5rem'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                <span style={{ color: '#f59e0b', fontSize: '1.25rem' }}>⚠️</span>
-                <div>
-                  <h5 style={{ margin: '0 0 0.25rem 0', color: '#92400e', fontSize: '0.875rem' }}>
-                    Important Notice:
-                  </h5>
-                  <p style={{ margin: 0, fontSize: '0.75rem', color: '#92400e' }}>
-                    • You will appear in red on the teacher's dashboard<br/>
-                    • Teacher needs to approve your retake request<br/>
-                    • This action cannot be undone easily
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <button
-                className="btn btn-secondary"
-                onClick={cancelRetake}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  borderRadius: '8px',
-                  border: '1px solid #d1d5db',
-                  backgroundColor: '#f9fafb',
-                  color: '#374151'
-                }}
-              >
-                ❌ Cancel
-              </button>
-              <button
-                className="btn btn-warning"
-                onClick={confirmRetake}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  borderRadius: '8px',
-                  border: '1px solid #f59e0b',
-                  backgroundColor: '#f59e0b',
-                  color: 'white'
-                }}
-              >
-                🔄 Yes, Retake Course
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </Layout>
   );
 };

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollment, Long> {
+    List<CourseEnrollment> findByStudent(User student);
     List<CourseEnrollment> findByStudentAndStatus(User student, EnrollmentStatus status);
     List<CourseEnrollment> findByCourseAndStatus(Course course, EnrollmentStatus status);
     List<CourseEnrollment> findByCourse(Course course);

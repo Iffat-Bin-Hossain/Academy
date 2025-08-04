@@ -2,6 +2,7 @@ package com.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -25,4 +26,10 @@ public class CourseEnrollment {
 
     @ManyToOne
     private User actionBy; // who approved/rejected
+    
+    @Column(name = "enrolled_at")
+    private LocalDateTime enrolledAt; // when student requested enrollment
+    
+    @Column(name = "decision_at")
+    private LocalDateTime decisionAt; // when teacher approved/rejected
 }

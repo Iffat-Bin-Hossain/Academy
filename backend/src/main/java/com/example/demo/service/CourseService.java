@@ -4,6 +4,7 @@ import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 
 import java.util.List;
 
@@ -18,6 +19,10 @@ public class CourseService {
     // ============ BASIC CRUD OPERATIONS ============
     
     public Course createCourse(Course course) {
+        // Check if course code already exists
+        if (courseRepo.existsByCourseCode(course.getCourseCode())) {
+            throw new RuntimeException("Course with same code exists already");
+        }
         return courseRepo.save(course);
     }
     
@@ -32,6 +37,14 @@ public class CourseService {
     
     public Course updateCourse(Long courseId, Course updatedCourse) {
         Course existingCourse = getCourseById(courseId);
+        
+        // Check if the course code is being changed and if it conflicts with existing courses
+        if (!existingCourse.getCourseCode().equals(updatedCourse.getCourseCode())) {
+            if (courseRepo.existsByCourseCode(updatedCourse.getCourseCode())) {
+                throw new RuntimeException("Course with same code exists already");
+            }
+        }
+        
         existingCourse.setCourseCode(updatedCourse.getCourseCode());
         existingCourse.setTitle(updatedCourse.getTitle());
         existingCourse.setDescription(updatedCourse.getDescription());
@@ -65,6 +78,16 @@ public class CourseService {
         return "✅ Teacher assigned to course";
     }
 
+    // ADMIN removes teacher from course
+    public String removeTeacherFromCourse(Long courseId) {
+        Course course = courseRepo.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        course.setAssignedTeacher(null);
+        courseRepo.save(course);
+        return "✅ Teacher removed from course";
+    }
+
     // STUDENT requests to enroll
     public String requestEnrollment(Long courseId, Long studentId) {
         Course course = courseRepo.findById(courseId)
@@ -80,6 +103,7 @@ public class CourseService {
                 .course(course)
                 .student(student)
                 .status(EnrollmentStatus.PENDING)
+                .enrolledAt(LocalDateTime.now())
                 .build();
 
         enrollmentRepo.save(enrollment);
@@ -108,20 +132,51 @@ public class CourseService {
 
         enrollment.setStatus(approve ? EnrollmentStatus.APPROVED : EnrollmentStatus.REJECTED);
         enrollment.setActionBy(teacher);
+        enrollment.setDecisionAt(LocalDateTime.now());
         enrollmentRepo.save(enrollment);
 
         return approve ? "✅ Enrollment approved" : "❌ Enrollment rejected";
     }
 
-    // STUDENT: view approved courses
+    // STUDENT: view all enrollments (approved, pending, retaking)
     public List<CourseEnrollment> getMyCourses(Long studentId) {
         User student = userRepo.findById(studentId).orElseThrow();
-        return enrollmentRepo.findByStudentAndStatus(student, EnrollmentStatus.APPROVED);
+        return enrollmentRepo.findByStudent(student);
     }
 
     // TEACHER: view assigned courses
     public List<Course> getAssignedCourses(Long teacherId) {
         User teacher = userRepo.findById(teacherId).orElseThrow();
         return courseRepo.findByAssignedTeacher(teacher);
+    }
+
+    // ADMIN: get all enrollments for a course
+    public List<CourseEnrollment> getAllEnrollments(Long courseId) {
+        Course course = courseRepo.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        return enrollmentRepo.findByCourse(course);
+    }
+
+    // STUDENT: retake course
+    public String retakeCourse(Long courseId, Long studentId) {
+        Course course = courseRepo.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+        User student = userRepo.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Find existing enrollment
+        CourseEnrollment existingEnrollment = enrollmentRepo.findByStudentAndCourse(student, course)
+                .orElseThrow(() -> new RuntimeException("No existing enrollment found for this course"));
+
+        // Only allow retake if student was previously approved
+        if (existingEnrollment.getStatus() != EnrollmentStatus.APPROVED) {
+            throw new RuntimeException("Can only retake courses that were previously approved");
+        }
+
+        // Update status to RETAKING
+        existingEnrollment.setStatus(EnrollmentStatus.RETAKING);
+        enrollmentRepo.save(existingEnrollment);
+
+        return "Course retake request submitted successfully";
     }
 }

@@ -11,46 +11,56 @@ const ModernTeacherDashboard = () => {
     activeAssignments: 0
   });
   const [courses, setCourses] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    // Get user info from token
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-          name: payload.sub,
-          role: 'TEACHER',
-          email: payload.sub
-        });
-      } catch (error) {
-        console.error('Error parsing token:', error);
-      }
-    }
-    
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      
+      // First get current user info
+      const userResponse = await axios.get('/user/me');
+      const currentUser = userResponse.data;
+      
+      setUser({
+        id: currentUser.id,
+        name: currentUser.name,
+        role: currentUser.role,
+        email: currentUser.email
+      });
+      
+      // Then fetch courses assigned to this teacher
       const [coursesResponse] = await Promise.all([
-        axios.get('/courses')
+        axios.get(`/courses/teacher/${currentUser.id}`)
       ]);
       
       setCourses(coursesResponse.data);
       
       // Calculate stats
-      const totalEnrollments = coursesResponse.data.reduce((acc, course) => acc + (course.enrollments || 0), 0);
+      const allEnrollments = coursesResponse.data.length > 0 ? 
+        (await Promise.all(coursesResponse.data.map(course => 
+          axios.get(`/courses/${course.id}/enrollments`)
+        ))).flatMap(response => response.data) : [];
+      
+      setEnrollments(allEnrollments);
+      
+      // Count unique students and approved enrollments
+      const approvedEnrollments = allEnrollments.filter(e => e.status === 'APPROVED');
+      const uniqueStudents = new Set(approvedEnrollments.map(e => e.student?.id)).size;
+      
       setStats({
         totalCourses: coursesResponse.data.length,
-        totalStudents: totalEnrollments, // Approximate
-        totalEnrollments: totalEnrollments,
+        totalStudents: uniqueStudents,
+        totalEnrollments: allEnrollments.length,
         activeAssignments: coursesResponse.data.length * 2 // Mock data
       });
     } catch (error) {
@@ -85,6 +95,56 @@ const ModernTeacherDashboard = () => {
     });
   };
 
+  const approveEnrollment = async (enrollmentId) => {
+    if (!user || !user.id) {
+      showMessage('User information not available', 'error');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/courses/decide', null, {
+        params: {
+          enrollmentId: enrollmentId,
+          approve: true,
+          teacherId: user.id
+        }
+      });
+      
+      showMessage(response.data, 'success');
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error approving enrollment:', error);
+      showMessage(error.response?.data || 'Failed to approve enrollment', 'error');
+    }
+  };
+
+  const rejectEnrollment = async (enrollmentId) => {
+    if (!window.confirm('Are you sure you want to reject this enrollment request?')) {
+      return;
+    }
+
+    if (!user || !user.id) {
+      showMessage('User information not available', 'error');
+      return;
+    }
+
+    try {
+      const response = await axios.post('/courses/decide', null, {
+        params: {
+          enrollmentId: enrollmentId,
+          approve: false,
+          teacherId: user.id
+        }
+      });
+      
+      showMessage(response.data, 'success');
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error rejecting enrollment:', error);
+      showMessage(error.response?.data || 'Failed to reject enrollment', 'error');
+    }
+  };
+
   if (loading) {
     return (
       <Layout user={user} onLogout={handleLogout}>
@@ -116,8 +176,7 @@ const ModernTeacherDashboard = () => {
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'courses', label: 'My Courses', icon: '📚' },
-              { id: 'students', label: 'Students', icon: '👨‍🎓' },
+              { id: 'courses', label: 'My Courses & Students', icon: '�' },
               { id: 'assignments', label: 'Assignments', icon: '📝' }
             ].map(tab => (
               <button
@@ -174,14 +233,7 @@ const ModernTeacherDashboard = () => {
                   onClick={() => setActiveTab('courses')}
                 >
                   <span style={{ marginRight: '0.5rem' }}>📚</span>
-                  View My Courses
-                </button>
-                <button 
-                  className="btn btn-secondary btn-lg"
-                  onClick={() => setActiveTab('students')}
-                >
-                  <span style={{ marginRight: '0.5rem' }}>👨‍🎓</span>
-                  Manage Students
+                  View My Courses & Students
                 </button>
               </div>
             </div>
@@ -194,10 +246,35 @@ const ModernTeacherDashboard = () => {
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
-              <h3 style={{ margin: 0, color: '#1e293b' }}>Courses Assigned to Me</h3>
+              <h3 style={{ margin: 0, color: '#1e293b' }}>My Courses & Students</h3>
               <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
                 {courses.length} course{courses.length !== 1 ? 's' : ''} assigned by administration
               </p>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="card" style={{ marginBottom: '2rem' }}>
+            <div className="card-body" style={{ padding: '1rem' }}>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  placeholder="🔍 Search courses by name, code, or student name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1rem',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                />
+              </div>
             </div>
           </div>
 
@@ -216,54 +293,160 @@ const ModernTeacherDashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1">
-              {courses.map(course => (
-                <div key={course.id} className="card">
-                  <div className="card-body">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>
-                          {course.title}
-                        </h4>
-                        <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
-                          {course.description}
-                        </p>
-                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                          <span>📅 Created: {formatDate(course.createdAt)}</span>
-                          <span>👨‍🎓 Students: {course.enrollments || 0}</span>
+              {courses
+                .filter(course => {
+                  if (!searchTerm) return true;
+                  const searchLower = searchTerm.toLowerCase();
+                  
+                  // Search in course title and code
+                  const courseMatch = course.title.toLowerCase().includes(searchLower) || 
+                                    course.courseCode.toLowerCase().includes(searchLower);
+                  
+                  // Search in student names for this course
+                  const studentMatch = enrollments.some(enrollment => 
+                    enrollment.course?.id === course.id && 
+                    enrollment.student?.name.toLowerCase().includes(searchLower)
+                  );
+                  
+                  return courseMatch || studentMatch;
+                })
+                .map(course => {
+                  const courseEnrollments = enrollments.filter(e => e.course?.id === course.id);
+                  const approvedCount = courseEnrollments.filter(e => e.status === 'APPROVED').length;
+                  const pendingCount = courseEnrollments.filter(e => e.status === 'PENDING').length;
+                  const retakingCount = courseEnrollments.filter(e => e.status === 'RETAKING').length;
+
+                  return (
+                    <div key={course.id} className="card">
+                      <div className="card-body">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                              <h4 style={{ margin: '0', color: '#1e293b' }}>
+                                {course.title}
+                              </h4>
+                              <span style={{
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '6px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: '#3b82f6',
+                                color: 'white',
+                                border: '1px solid #2563eb'
+                              }}>
+                                {course.courseCode}
+                              </span>
+                            </div>
+                            <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
+                              {course.description}
+                            </p>
+                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                              <span>📅 Created: {formatDate(course.createdAt)}</span>
+                              <span>👨‍🎓 Active: {approvedCount}</span>
+                              {pendingCount > 0 && <span style={{ color: '#f59e0b' }}>⏳ Pending: {pendingCount}</span>}
+                              {retakingCount > 0 && <span style={{ color: '#ef4444' }}>🔄 Retaking: {retakingCount}</span>}
+                            </div>
+
+                            {/* Student List for this course */}
+                            {courseEnrollments.length > 0 && (
+                              <div style={{ 
+                                marginTop: '1rem', 
+                                padding: '1rem', 
+                                backgroundColor: '#f8fafc', 
+                                borderRadius: '8px',
+                                border: '1px solid #e2e8f0'
+                              }}>
+                                <h5 style={{ margin: '0 0 0.75rem 0', color: '#1e293b', fontSize: '0.875rem', fontWeight: '600' }}>
+                                  📋 Enrolled Students ({courseEnrollments.length})
+                                </h5>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  {courseEnrollments.map(enrollment => (
+                                    <div key={enrollment.id} style={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      padding: '0.5rem',
+                                      backgroundColor: enrollment.status === 'RETAKING' ? '#fef2f2' : 'white',
+                                      borderRadius: '6px',
+                                      border: `1px solid ${enrollment.status === 'RETAKING' ? '#fecaca' : '#e5e7eb'}`,
+                                      fontSize: '0.875rem'
+                                    }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <span style={{ 
+                                          color: enrollment.status === 'RETAKING' ? '#dc2626' : '#1e293b',
+                                          fontWeight: '500'
+                                        }}>
+                                          {enrollment.student.name}
+                                        </span>
+                                        <span style={{
+                                          padding: '0.125rem 0.5rem',
+                                          borderRadius: '12px',
+                                          fontSize: '0.75rem',
+                                          fontWeight: '600',
+                                          background: enrollment.status === 'RETAKING' ? '#fecaca' : 
+                                                     enrollment.status === 'PENDING' ? '#fef3c7' : 
+                                                     enrollment.status === 'APPROVED' ? '#dcfce7' : '#fee2e2',
+                                          color: enrollment.status === 'RETAKING' ? '#dc2626' : 
+                                                enrollment.status === 'PENDING' ? '#92400e' : 
+                                                enrollment.status === 'APPROVED' ? '#166534' : '#dc2626'
+                                        }}>
+                                          {enrollment.status}
+                                        </span>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                        {enrollment.status === 'PENDING' && (
+                                          <>
+                                            <button 
+                                              className="btn btn-success btn-sm"
+                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                              onClick={() => approveEnrollment(enrollment.id)}
+                                            >
+                                              ✅
+                                            </button>
+                                            <button 
+                                              className="btn btn-danger btn-sm"
+                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                              onClick={() => rejectEnrollment(enrollment.id)}
+                                            >
+                                              ❌
+                                            </button>
+                                          </>
+                                        )}
+                                        {enrollment.status === 'RETAKING' && (
+                                          <>
+                                            <button 
+                                              className="btn btn-success btn-sm"
+                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                              onClick={() => approveEnrollment(enrollment.id)}
+                                              title="Approve retake request"
+                                            >
+                                              ✅ Allow Retake
+                                            </button>
+                                            <button 
+                                              className="btn btn-danger btn-sm"
+                                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                                              onClick={() => rejectEnrollment(enrollment.id)}
+                                              title="Reject retake request"
+                                            >
+                                              ❌ Deny Retake
+                                            </button>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                        <button className="btn btn-primary btn-sm">
-                          👁️ View Details
-                        </button>
-                        <button className="btn btn-secondary btn-sm">
-                          👨‍🎓 Manage Students
-                        </button>
-                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
             </div>
           )}
         </>
-      )}
-
-      {/* Students Tab */}
-      {activeTab === 'students' && (
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">My Students</h3>
-            <p className="card-subtitle">Students enrolled in your courses</p>
-          </div>
-          <div className="card-body">
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>👨‍🎓</span>
-              <h4>Student Management</h4>
-              <p>Student enrollment and management features will be available here.</p>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Assignments Tab */}
