@@ -60,6 +60,8 @@ npm start
 - Database console available at: http://localhost:5432
 - Database name: `academydb`
 - Username: `academyuser`, Password: `academy123`
+- **Enrollment Status Management**: Proper enum handling for PENDING, APPROVED, REJECTED, RETAKING
+- **Timestamp Tracking**: enrolledAt and decisionAt fields for audit trails
 - H2 fallback available for development testing
 
 ## 📱 Complete Feature Set
@@ -81,36 +83,51 @@ npm start
 - **Data Export**: User and course data management
 
 ### 👨‍🏫 Teacher Dashboard Features
-- **Course Assignment**: View courses assigned by administrators
-- **Student Enrollment**: Approve/reject student enrollment requests
-- **Class Management**: Monitor enrolled students per course
-- **Enrollment Statistics**: Track pending and approved enrollments
-- **Course Details**: Detailed view of assigned courses
-- **Student Communication**: Interface for student interactions
+- **Unified Course & Student Management**: Single interface combining course and student management
+- **Smart Search System**: Search courses by name/code and students by name across all courses
+- **Real-time Student Statistics**: Live counts of Active, Pending, and Retaking students per course
+- **Inline Student Management**: Approve/reject enrollment requests directly from course cards
+- **Retake Request Management**: Teachers can approve or deny student retake requests
+- **Course Assignment View**: See all courses assigned by administrators
+- **Student Status Tracking**: Visual indicators for PENDING (yellow), APPROVED (green), RETAKING (red), REJECTED (red)
+- **Enrollment Decision Making**: Approve/reject initial enrollment and retake requests
+- **Live Data Updates**: Real-time refresh of enrollment data after decisions
 
 ### 👨‍🎓 Student Dashboard Features
-- **Course Browsing**: Explore available courses with detailed information
-- **Course Enrollment**: Request enrollment in desired courses
-- **My Courses**: View enrolled courses and track progress
-- **Enrollment Status**: Monitor pending, approved, and rejected requests
-- **Course Unenrollment**: Option to withdraw from courses
-- **Academic Progress**: Track learning journey and achievements
+- **Unified Course & Enrollment Interface**: 3-tab consolidated dashboard (Overview, My Courses, Profile)
+- **Smart Search & Filter System**: Search courses by title, code, or teacher name with real-time filtering
+- **Course Enrollment Workflow**: Request enrollment with teacher approval system
+- **My Courses Management**: View all courses with status-based organization
+- **Retake Course System**: Custom modal-based retake request with teacher approval
+- **Enrollment Status Tracking**: Visual status indicators (PENDING, APPROVED, REJECTED, RETAKING)
+- **Course Progress View**: Track enrollment history and current status
+- **Interactive Course Cards**: Detailed course information with enrollment actions
+- **Real-time Updates**: Live status updates without page refresh
+- **Professional UI**: Modern design with color-coded status system
 
 ### 📚 Course Management System
-- **Course Creation**: Admin can create courses with detailed information
-- **Course Assignment**: Admin assigns courses to specific teachers
-- **Enrollment Workflow**: Student request → Teacher approval → Course access
-- **Course Deletion**: Safe deletion with enrollment cleanup
-- **Course Updates**: Modify course details and descriptions
-- **Search & Filter**: Find courses by title, code, or teacher
+- **Admin Course Creation**: Create courses with title, code, description, and teacher assignment
+- **Teacher Assignment System**: Admin assigns specific teachers to courses
+- **Advanced Enrollment Workflow**: 
+  - Student enrollment requests → Teacher approval → Course access
+  - Retake system: Student retake request → Teacher approval/denial
+- **Enrollment Status Management**: PENDING, APPROVED, REJECTED, RETAKING status tracking
+- **Course-Student Relationship**: Complete enrollment tracking with timestamps
+- **Search & Discovery**: Students can search and filter available courses
+- **Real-time Enrollment Data**: Live updates of student counts and status changes
+- **Database Constraint Management**: Proper handling of enrollment status transitions
 
 ### 🎯 Advanced Features
-- **Real-time Updates**: Dynamic content refresh without page reload
-- **Error Handling**: Comprehensive error messages and user feedback
-- **Loading States**: Smooth loading indicators and transitions
-- **Form Validation**: Client and server-side input validation
-- **Responsive Design**: Mobile-optimized interface
-- **Toast Notifications**: Success and error message system
+- **Real-time Search Systems**: Instant filtering across courses and students
+- **Custom Modal Systems**: Professional retake confirmation dialogs replacing browser alerts
+- **Status-based Visual Design**: Color-coded enrollment statuses with proper UI feedback
+- **Unified Dashboard Design**: Consolidated interfaces reducing complexity
+- **Dynamic Statistics**: Live-updating counts and metrics across all dashboards
+- **Database Constraint Handling**: Proper PostgreSQL enum management for enrollment statuses
+- **Responsive Layout Design**: Mobile-optimized interfaces with modern grid systems
+- **Professional UI Components**: Glass morphism effects, gradient backgrounds, modern typography
+- **Error Handling & Feedback**: Comprehensive user notifications and error management
+- **Token-based Security**: JWT authentication with role-based access control
 
 ### 🔑 Default Credentials (Auto-generated)
 ```
@@ -134,11 +151,25 @@ academy/
 │   │   └── com/example/demo/
 │   │       ├── config/         # Security, CORS, JWT configuration
 │   │       ├── controller/     # REST API endpoints
+│   │       │   ├── AuthController.java     # Authentication endpoints
+│   │       │   ├── CourseController.java   # Course & enrollment management
+│   │       │   ├── AdminController.java    # Admin-specific operations
+│   │       │   └── UserController.java     # User profile management
 │   │       ├── model/          # JPA entities and DTOs
+│   │       │   ├── User.java              # User entity with roles
+│   │       │   ├── Course.java            # Course entity
+│   │       │   ├── CourseEnrollment.java  # Enrollment with status tracking
+│   │       │   └── EnrollmentStatus.java  # Enum: PENDING, APPROVED, REJECTED, RETAKING
 │   │       ├── repository/     # Data access layer
+│   │       │   ├── UserRepository.java
+│   │       │   ├── CourseRepository.java
+│   │       │   └── CourseEnrollmentRepository.java
 │   │       └── service/        # Business logic layer
+│   │           ├── AuthService.java       # Authentication logic
+│   │           ├── CourseService.java     # Course & enrollment business logic
+│   │           └── AdminService.java      # Admin operations
 │   ├── src/main/resources/
-│   │   └── application.properties  # Database and server config
+│   │   └── application.properties  # PostgreSQL and server config
 │   └── build.gradle           # Dependencies and build config
 ├── frontend/                  # React SPA
 │   ├── src/
@@ -146,14 +177,21 @@ academy/
 │   │   │   ├── Login.js       # Authentication component
 │   │   │   ├── Signup.js      # User registration
 │   │   │   ├── ModernAdminDashboard.js    # Admin interface
-│   │   │   ├── ModernTeacherDashboard.js  # Teacher interface
-│   │   │   ├── ModernStudentDashboard.js  # Student interface
-│   │   │   └── Layout.js      # Common layout wrapper
+│   │   │   ├── ModernTeacherDashboard.js  # Unified teacher interface with search
+│   │   │   ├── ModernStudentDashboard.js  # 3-tab student interface with retake system
+│   │   │   ├── Layout.js      # Common layout wrapper
+│   │   │   └── ProtectedRoute.js  # Route protection component
 │   │   ├── api/
-│   │   │   └── axiosInstance.js  # HTTP client configuration
-│   │   └── App.js             # Main application component
+│   │   │   └── axiosInstance.js  # HTTP client with JWT interceptors
+│   │   ├── utils/
+│   │   │   └── auth.js        # Authentication utilities
+│   │   └── App.js             # Main application with routing
 │   ├── public/                # Static assets
 │   └── package.json           # Dependencies and scripts
+├── data/                      # Sample data files
+│   ├── courses.txt           # Sample course data
+│   ├── student.txt           # Sample student data
+│   └── teacher.txt           # Sample teacher data
 ├── README.md                  # Project documentation
 └── .gitignore                # Version control exclusions
 ```
@@ -180,9 +218,12 @@ academy/
 ### Enrollment System
 - `POST /api/courses/enroll` - Request course enrollment (STUDENT)
 - `GET /api/courses/{id}/pending` - Get pending enrollments (TEACHER)
-- `POST /api/courses/decide` - Approve/reject enrollment (TEACHER)
-- `GET /api/courses/student/{id}` - Get student's enrolled courses
+- `POST /api/courses/decide` - Approve/reject enrollment requests (TEACHER)
+- `GET /api/courses/student/{id}` - Get student's enrolled courses with all statuses
 - `GET /api/courses/teacher/{id}` - Get teacher's assigned courses
+- `GET /api/courses/{id}/enrollments` - Get all enrollments for a specific course
+- `POST /api/courses/retake` - Submit retake request (STUDENT)
+- `GET /api/user/me` - Get current user information for dashboard personalization
 
 ## 🛡️ Security Implementation
 
@@ -230,14 +271,19 @@ academy/
 - **Responsive Testing**: Mobile and desktop layouts
 
 ### Manual Testing Performed
-- ✅ **User Registration & Approval Workflow**
-- ✅ **JWT Authentication & Role-based Access**
+- ✅ **User Registration & Admin Approval Workflow**
+- ✅ **JWT Authentication & Role-based Access Control**
 - ✅ **Course CRUD Operations** (Create, Read, Update, Delete)
-- ✅ **Student Enrollment & Teacher Approval Process**
-- ✅ **Admin Dashboard Management Features**
-- ✅ **Error Handling & User Feedback**
-- ✅ **Database Relationship Integrity**
-- ✅ **Foreign Key Constraint Handling**
+- ✅ **Complete Student Enrollment & Teacher Approval Process**
+- ✅ **Retake System Implementation** (Student request → Teacher approval/denial)
+- ✅ **Advanced Search Functionality** (Course/student search across dashboards)
+- ✅ **Unified Dashboard Interfaces** (3-tab student, integrated teacher dashboard)
+- ✅ **Custom Modal Systems** (Professional retake confirmation dialogs)
+- ✅ **Real-time Status Updates** (Live enrollment statistics and status changes)
+- ✅ **Database Constraint Management** (PostgreSQL enum handling for enrollment statuses)
+- ✅ **Responsive UI Design** (Mobile-optimized layouts with modern styling)
+- ✅ **Error Handling & User Feedback** (Comprehensive notification systems)
+- ✅ **Token-based Security** (JWT interceptors and protected routes)
 
 ## 🚀 Deployment Guide
 
@@ -340,14 +386,16 @@ npm start
 ## 📈 Future Enhancements
 
 ### Planned Features
-- [ ] **File Upload System**: Document and image uploads for courses
-- [ ] **Real-time Notifications**: WebSocket integration for live updates
-- [ ] **Assignment System**: Homework submission and grading
-- [ ] **Calendar Integration**: Course schedules and deadlines
-- [ ] **Email Notifications**: Automated email alerts for enrollment status
-- [ ] **Report Generation**: PDF reports for admin analytics
-- [ ] **Mobile App**: React Native mobile application
-- [ ] **Multi-language Support**: Internationalization (i18n)
+- [ ] **Assignment & Grading System**: Homework submission, grading, and feedback
+- [ ] **Real-time Notifications**: WebSocket integration for live enrollment updates
+- [ ] **Email Notification System**: Automated emails for enrollment status changes
+- [ ] **Advanced Analytics Dashboard**: Detailed reports and statistics for admins
+- [ ] **File Upload System**: Document and image uploads for courses and assignments
+- [ ] **Calendar Integration**: Course schedules, deadlines, and academic calendar
+- [ ] **Student Progress Tracking**: Comprehensive academic progress monitoring
+- [ ] **Mobile App**: React Native mobile application for iOS/Android
+- [ ] **Multi-language Support**: Internationalization (i18n) for global accessibility
+- [ ] **Advanced User Profiles**: Extended profile management with avatars and preferences
 
 ### Technical Improvements
 - [ ] **Microservices Architecture**: Split into user, course, and notification services
