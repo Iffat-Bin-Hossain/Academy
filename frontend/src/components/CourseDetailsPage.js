@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
+import AssignmentManagement from './AssignmentManagement';
 
 const CourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -14,6 +15,7 @@ const CourseDetailsPage = () => {
   const [messageType, setMessageType] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('students');
 
   useEffect(() => {
     fetchData();
@@ -283,7 +285,30 @@ const CourseDetailsPage = () => {
         </div>
       </div>
 
-      {/* Enrolled Students Section */}
+      {/* Navigation Tabs */}
+      <div className="card" style={{ marginBottom: '2rem' }}>
+        <div className="card-header">
+          <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
+            {[
+              { id: 'students', label: 'Students', icon: '👥' },
+              { id: 'assignments', label: 'Assignments', icon: '📝' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                style={{ textTransform: 'none', letterSpacing: 'normal' }}
+              >
+                <span style={{ marginRight: '0.5rem' }}>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Students Tab */}
+      {activeTab === 'students' && (
       <div className="card">
         <div className="card-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -524,6 +549,17 @@ const CourseDetailsPage = () => {
           )}
         </div>
       </div>
+      )}
+
+      {/* Assignments Tab */}
+      {activeTab === 'assignments' && (
+        <AssignmentManagement 
+          user={user}
+          courses={course ? [course] : []}
+          onShowMessage={showMessage}
+        />
+      )}
+
     </Layout>
   );
 };

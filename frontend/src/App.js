@@ -64,24 +64,34 @@ function App() {
           }
         />
         <Route
-          path="/teacher/*"
+          path="/teacher"
           element={
             <ProtectedRoute roleRequired="TEACHER">
-              <Routes>
-                <Route path="/" element={<ModernTeacherDashboard />} />
-                <Route path="/:courseCode" element={<CourseDetailsPage />} />
-              </Routes>
+              <ModernTeacherDashboard />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/student/*"
+          path="/teacher/:courseCode"
+          element={
+            <ProtectedRoute roleRequired="TEACHER">
+              <CourseDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student"
           element={
             <ProtectedRoute roleRequired="STUDENT">
-              <Routes>
-                <Route path="/" element={<ModernStudentDashboard />} />
-                <Route path="/:courseCode" element={<StudentCourseDetailsPage />} />
-              </Routes>
+              <ModernStudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/:courseCode"
+          element={
+            <ProtectedRoute roleRequired="STUDENT">
+              <StudentCourseDetailsPage />
             </ProtectedRoute>
           }
         />

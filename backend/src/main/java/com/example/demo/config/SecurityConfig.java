@@ -66,7 +66,18 @@ public class SecurityConfig {
                 .requestMatchers("/api/courses/decide").hasRole("TEACHER")
                 .requestMatchers("/api/courses/*/pending").hasRole("TEACHER")
 
-                // 4.5 Any other route requires authentication
+                // 4.5 Assignment endpoints
+                // Teachers can create, update, delete their own assignments
+                .requestMatchers(HttpMethod.POST, "/api/assignments").hasRole("TEACHER")
+                .requestMatchers(HttpMethod.PUT, "/api/assignments/*").hasRole("TEACHER")
+                .requestMatchers(HttpMethod.DELETE, "/api/assignments/*").hasRole("TEACHER")
+                .requestMatchers("/api/assignments/teacher/**").hasRole("TEACHER")
+                
+                // Students and teachers can view assignments
+                .requestMatchers(HttpMethod.GET, "/api/assignments/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/courses/*/assignments").authenticated()
+
+                // 4.6 Any other route requires authentication
                 .anyRequest().authenticated()
             )
 

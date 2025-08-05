@@ -16,6 +16,7 @@ const ModernStudentDashboard = () => {
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
   const [availableCourses, setAvailableCourses] = useState([]);
+  const [allAssignments, setAllAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
@@ -25,6 +26,7 @@ const ModernStudentDashboard = () => {
   const [enrolledSearchTerm, setEnrolledSearchTerm] = useState('');
   const [pendingSearchTerm, setPendingSearchTerm] = useState('');
   const [availableSearchTerm, setAvailableSearchTerm] = useState('');
+  const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
   
   // Retake modal states
   const [showRetakeModal, setShowRetakeModal] = useState(false);
@@ -68,12 +70,41 @@ const ModernStudentDashboard = () => {
       setPendingCourses(pending);
       setAvailableCourses(available);
       
+      // Fetch assignments for all enrolled courses
+      let allCourseAssignments = [];
+      let upcomingDeadlines = 0;
+      
+      for (const enrollment of enrolled) {
+        try {
+          const assignmentsResponse = await axios.get(`/assignments/course/${enrollment.course.id}`);
+          const courseAssignments = assignmentsResponse.data.map(assignment => ({
+            ...assignment,
+            courseName: enrollment.course.title,
+            courseCode: enrollment.course.courseCode,
+            enrollmentStatus: enrollment.status
+          }));
+          allCourseAssignments = [...allCourseAssignments, ...courseAssignments];
+          
+          // Count upcoming deadlines (within next 7 days)
+          const upcoming = courseAssignments.filter(assignment => {
+            const deadline = new Date(assignment.deadline);
+            const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+            return deadline <= nextWeek && deadline > new Date();
+          });
+          upcomingDeadlines += upcoming.length;
+        } catch (assignmentError) {
+          console.error(`Error fetching assignments for course ${enrollment.course.courseCode}:`, assignmentError);
+        }
+      }
+      
+      setAllAssignments(allCourseAssignments);
+      
       // Calculate stats
       setStats({
         enrolledCourses: enrolled.length,
         availableCourses: available.length,
-        completedAssignments: enrolled.length * 3, // Mock data
-        upcomingDeadlines: enrolled.length * 1 // Mock data
+        completedAssignments: 0, // TODO: Implement submission tracking
+        upcomingDeadlines: upcomingDeadlines
       });
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -166,6 +197,19 @@ const ModernStudentDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  const getFilteredAssignments = () => {
+    if (!assignmentSearchTerm) return allAssignments.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+    
+    const searchLower = assignmentSearchTerm.toLowerCase();
+    return allAssignments.filter(assignment => 
+      assignment.title.toLowerCase().includes(searchLower) ||
+      assignment.content?.toLowerCase().includes(searchLower) ||
+      assignment.courseName.toLowerCase().includes(searchLower) ||
+      assignment.courseCode.toLowerCase().includes(searchLower) ||
+      assignment.assignmentType.toLowerCase().includes(searchLower)
+    ).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
   };
 
   const formatDate = (dateString) => {
@@ -730,15 +774,186 @@ const ModernStudentDashboard = () => {
       {activeTab === 'assignments' && (
         <div className="card">
           <div className="card-header">
-            <h3 className="card-title">My Assignments</h3>
-            <p className="card-subtitle">Track your coursework and deadlines</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 className="card-title">My Assignments</h3>
+                <p className="card-subtitle">Track your coursework and deadlines</p>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Search assignments..."
+                    value={assignmentSearchTerm}
+                    onChange={(e) => setAssignmentSearchTerm(e.target.value)}
+                    style={{
+                      padding: '0.5rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem'
+                    }}
+                  />
+                  {assignmentSearchTerm && (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setAssignmentSearchTerm('')}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <span style={{ 
+                  padding: '0.5rem 1rem', 
+                  backgroundColor: '#f3f4f6', 
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  color: '#374151'
+                }}>
+                  {getFilteredAssignments().length} assignments
+                </span>
+              </div>
+            </div>
           </div>
           <div className="card-body">
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
-              <h4>Assignments & Submissions</h4>
-              <p>Assignment tracking and submission features will be available here.</p>
-            </div>
+            {allAssignments.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+                <h4>No assignments yet</h4>
+                <p>No assignments have been posted in your enrolled courses.</p>
+              </div>
+            ) : getFilteredAssignments().length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+                <h4>No matching assignments</h4>
+                <p>No assignments match your search criteria "{assignmentSearchTerm}".</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {getFilteredAssignments().map(assignment => {
+                  const isOverdue = new Date(assignment.deadline) < new Date();
+                  const isNearDue = new Date(assignment.deadline) < new Date(Date.now() + 86400000 * 3); // 3 days
+                  const canSubmitLate = assignment.lateSubmissionDeadline && new Date(assignment.lateSubmissionDeadline) > new Date();
+                  
+                  return (
+                    <div key={`${assignment.id}-${assignment.courseCode}`} className="card" style={{ 
+                      border: '1px solid #e2e8f0',
+                      borderLeft: `4px solid ${isOverdue ? '#ef4444' : isNearDue ? '#f59e0b' : '#3b82f6'}`
+                    }}>
+                      <div className="card-body">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                              <h5 style={{ margin: 0, color: '#1e293b' }}>{assignment.title}</h5>
+                              <span style={{
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: assignment.assignmentType === 'EXAM' ? '#fecaca' : 
+                                          assignment.assignmentType === 'PROJECT' ? '#ddd6fe' :
+                                          assignment.assignmentType === 'QUIZ' ? '#fed7aa' :
+                                          assignment.assignmentType === 'LAB' ? '#bbf7d0' : '#e5e7eb',
+                                color: assignment.assignmentType === 'EXAM' ? '#dc2626' : 
+                                      assignment.assignmentType === 'PROJECT' ? '#7c3aed' :
+                                      assignment.assignmentType === 'QUIZ' ? '#ea580c' :
+                                      assignment.assignmentType === 'LAB' ? '#059669' : '#374151'
+                              }}>
+                                {assignment.assignmentType}
+                              </span>
+                            </div>
+                            
+                            <div style={{ marginBottom: '0.5rem' }}>
+                              <span style={{
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: '#f0f9ff',
+                                color: '#0369a1',
+                                cursor: 'pointer'
+                              }}
+                              onClick={() => navigate(`/student/${assignment.courseCode}`)}
+                              >
+                                📚 {assignment.courseName} ({assignment.courseCode})
+                              </span>
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                📅 Due: {formatDate(assignment.deadline)}
+                                {isOverdue && <span style={{ color: '#ef4444', fontWeight: '600' }}>(OVERDUE)</span>}
+                                {!isOverdue && isNearDue && <span style={{ color: '#f59e0b', fontWeight: '600' }}>(DUE SOON)</span>}
+                              </span>
+                              <span>📊 Max Marks: {assignment.maxMarks}</span>
+                              {assignment.lateSubmissionDeadline && (
+                                <span style={{ color: canSubmitLate ? '#059669' : '#ef4444' }}>
+                                  📋 Late Until: {formatDate(assignment.lateSubmissionDeadline)}
+                                </span>
+                              )}
+                            </div>
+                            
+                            {assignment.content && (
+                              <p style={{ margin: '0 0 1rem 0', color: '#374151', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                                {assignment.content.length > 150 ? assignment.content.substring(0, 150) + '...' : assignment.content}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '1rem', minWidth: '140px' }}>
+                            <button 
+                              className="btn btn-primary btn-sm"
+                              style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                              onClick={() => navigate(`/student/${assignment.courseCode}`)}
+                            >
+                              📋 View in Course
+                            </button>
+                            <button 
+                              className={`btn btn-sm ${isOverdue && !canSubmitLate ? 'btn-secondary' : 'btn-success'}`}
+                              style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                              disabled={isOverdue && !canSubmitLate}
+                            >
+                              {isOverdue && !canSubmitLate ? '⏰ Closed' : 
+                               isOverdue && canSubmitLate ? '📤 Submit Late' : 
+                               '📤 Submit'}
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Status indicators */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem' }}>
+                            <span style={{
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '12px',
+                              background: '#f0f9ff',
+                              color: '#0369a1',
+                              fontWeight: '600'
+                            }}>
+                              📊 Not Submitted
+                            </span>
+                            {isNearDue && !isOverdue && (
+                              <span style={{
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '12px',
+                                background: '#fffbeb',
+                                color: '#d97706',
+                                fontWeight: '600'
+                              }}>
+                                ⏰ Due Soon
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            Posted: {formatDate(assignment.createdAt)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       )}

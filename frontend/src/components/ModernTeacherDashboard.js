@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
+import AssignmentManagement from './AssignmentManagement';
 
 const ModernTeacherDashboard = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({
     totalCourses: 0,
@@ -328,7 +331,7 @@ const ModernTeacherDashboard = () => {
                       borderRadius: '12px',
                       overflow: 'hidden'
                     }}
-                    onClick={() => window.location.href = `/teacher/${course.courseCode}`}
+                    onClick={() => navigate(`/teacher/${course.courseCode}`)}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-4px)';
                       e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
@@ -431,19 +434,11 @@ const ModernTeacherDashboard = () => {
 
       {/* Assignments Tab */}
       {activeTab === 'assignments' && (
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Assignments</h3>
-            <p className="card-subtitle">Create and manage course assignments</p>
-          </div>
-          <div className="card-body">
-            <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
-              <h4>Assignment Management</h4>
-              <p>Assignment creation and grading features will be available here.</p>
-            </div>
-          </div>
-        </div>
+        <AssignmentManagement 
+          user={user}
+          courses={courses}
+          onShowMessage={showMessage}
+        />
       )}
 
     </Layout>

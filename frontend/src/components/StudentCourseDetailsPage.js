@@ -57,10 +57,31 @@ const StudentCourseDetailsPage = () => {
 
       setCourse(foundCourse);
 
-      // Fetch course content (using mock data for now since API endpoints might not exist)
-      // In a real application, these would be separate API calls
+      // Fetch course content
       try {
-        // Mock announcements - replace with actual API call
+        // Fetch real assignments for this course
+        let realAssignments = [];
+        try {
+          const assignmentsResponse = await axios.get(`/assignments/course/${foundCourse.id}`);
+          realAssignments = assignmentsResponse.data.map(assignment => ({
+            id: assignment.id,
+            title: assignment.title,
+            content: assignment.content,
+            instructions: assignment.instructions,
+            maxMarks: assignment.maxMarks,
+            deadline: assignment.deadline,
+            lateSubmissionDeadline: assignment.lateSubmissionDeadline,
+            assignmentType: assignment.assignmentType,
+            createdAt: assignment.createdAt,
+            status: 'ACTIVE' // Default status for students
+          }));
+          console.log(`Fetched ${realAssignments.length} assignments for course ${foundCourse.courseCode}`);
+        } catch (assignmentError) {
+          console.error('Error fetching assignments:', assignmentError);
+          realAssignments = [];
+        }
+
+        // Mock announcements - replace with actual API call when available
         const mockAnnouncements = [
           {
             id: 1,
@@ -69,38 +90,21 @@ const StudentCourseDetailsPage = () => {
             createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
             author: foundCourse.assignedTeacher?.name || 'Course Instructor',
             type: 'ANNOUNCEMENT'
-          },
-          {
-            id: 2,
-            title: 'Assignment 1 Posted',
-            content: 'The first assignment has been posted. Please check the assignments section for details.',
-            createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-            author: foundCourse.assignedTeacher?.name || 'Course Instructor',
-            type: 'ANNOUNCEMENT'
           }
         ];
 
-        // Mock assignments
-        const mockAssignments = [
-          {
-            id: 1,
-            title: 'Assignment 1: Introduction to ' + foundCourse.title,
-            description: 'Complete the introductory exercises and submit your responses.',
-            dueDate: new Date(Date.now() + 86400000 * 7).toISOString(), // 7 days from now
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-            status: 'ACTIVE',
-            maxPoints: 100
-          },
-          {
+        // If there are assignments, add an announcement about them
+        if (realAssignments.length > 0) {
+          const latestAssignment = realAssignments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+          mockAnnouncements.unshift({
             id: 2,
-            title: 'Assignment 2: Advanced Topics',
-            description: 'Work on the advanced problems provided in the course materials.',
-            dueDate: new Date(Date.now() + 86400000 * 14).toISOString(), // 14 days from now
-            createdAt: new Date(Date.now() - 86400000 * 0.5).toISOString(),
-            status: 'ACTIVE',
-            maxPoints: 150
-          }
-        ];
+            title: `New Assignment: ${latestAssignment.title}`,
+            content: `A new assignment "${latestAssignment.title}" has been posted. Please check the assignments section for details.`,
+            createdAt: latestAssignment.createdAt,
+            author: foundCourse.assignedTeacher?.name || 'Course Instructor',
+            type: 'ANNOUNCEMENT'
+          });
+        }
 
         // Mock resources
         const mockResources = [
@@ -134,7 +138,7 @@ const StudentCourseDetailsPage = () => {
         ];
 
         setAnnouncements(mockAnnouncements);
-        setAssignments(mockAssignments);
+        setAssignments(realAssignments);
         setResources(mockResources);
 
       } catch (contentError) {
@@ -405,7 +409,7 @@ const StudentCourseDetailsPage = () => {
           {/* Assignments Tab */}
           {activeTab === 'assignments' && (
             <div>
-              {getFilteredContent(sortByCreationTime(assignments)).length === 0 ? (
+              {getFilteredContent(sortByCreationTime(assignments), ['title', 'content', 'instructions']).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                   <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
                   <h4>No assignments found</h4>
@@ -418,42 +422,134 @@ const StudentCourseDetailsPage = () => {
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {getFilteredContent(sortByCreationTime(assignments)).map(assignment => (
-                    <div key={assignment.id} className="card" style={{ border: '1px solid #e2e8f0' }}>
-                      <div className="card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                          <div style={{ flex: 1 }}>
-                            <h5 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>{assignment.title}</h5>
-                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-                              <span>📅 Due: {formatDate(assignment.dueDate)}</span>
-                              <span>📊 Points: {assignment.maxPoints}</span>
+                  {getFilteredContent(sortByCreationTime(assignments), ['title', 'content', 'instructions']).map(assignment => {
+                    const isOverdue = new Date(assignment.deadline) < new Date();
+                    const isNearDue = new Date(assignment.deadline) < new Date(Date.now() + 86400000 * 3); // 3 days
+                    const canSubmitLate = assignment.lateSubmissionDeadline && new Date(assignment.lateSubmissionDeadline) > new Date();
+                    
+                    return (
+                      <div key={assignment.id} className="card" style={{ 
+                        border: '1px solid #e2e8f0',
+                        borderLeft: `4px solid ${isOverdue ? '#ef4444' : isNearDue ? '#f59e0b' : '#3b82f6'}`
+                      }}>
+                        <div className="card-body">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                <h5 style={{ margin: 0, color: '#1e293b' }}>{assignment.title}</h5>
+                                <span style={{
+                                  padding: '0.25rem 0.75rem',
+                                  borderRadius: '12px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  background: assignment.assignmentType === 'EXAM' ? '#fecaca' : 
+                                            assignment.assignmentType === 'PROJECT' ? '#ddd6fe' :
+                                            assignment.assignmentType === 'QUIZ' ? '#fed7aa' :
+                                            assignment.assignmentType === 'LAB' ? '#bbf7d0' : '#e5e7eb',
+                                  color: assignment.assignmentType === 'EXAM' ? '#dc2626' : 
+                                        assignment.assignmentType === 'PROJECT' ? '#7c3aed' :
+                                        assignment.assignmentType === 'QUIZ' ? '#ea580c' :
+                                        assignment.assignmentType === 'LAB' ? '#059669' : '#374151'
+                                }}>
+                                  {assignment.assignmentType}
+                                </span>
+                              </div>
+                              
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  📅 Due: {formatDate(assignment.deadline)}
+                                  {isOverdue && <span style={{ color: '#ef4444', fontWeight: '600' }}>(OVERDUE)</span>}
+                                  {!isOverdue && isNearDue && <span style={{ color: '#f59e0b', fontWeight: '600' }}>(DUE SOON)</span>}
+                                </span>
+                                <span>📊 Max Marks: {assignment.maxMarks}</span>
+                                {assignment.lateSubmissionDeadline && (
+                                  <span style={{ color: canSubmitLate ? '#059669' : '#ef4444' }}>
+                                    📋 Late Until: {formatDate(assignment.lateSubmissionDeadline)}
+                                  </span>
+                                )}
+                                <span style={{ color: '#64748b' }}>
+                                  📝 Posted: {formatDate(assignment.createdAt)}
+                                </span>
+                              </div>
+                              
+                              {assignment.content && (
+                                <div style={{ marginBottom: '1rem' }}>
+                                  <h6 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>Description:</h6>
+                                  <p style={{ margin: 0, color: '#374151', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                                    {assignment.content}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {assignment.instructions && (
+                                <div style={{ marginBottom: '1rem' }}>
+                                  <h6 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>Instructions:</h6>
+                                  <p style={{ margin: 0, color: '#374151', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                                    {assignment.instructions}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '1rem', minWidth: '120px' }}>
+                              <button 
+                                className="btn btn-primary btn-sm"
+                                style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                              >
+                                📋 View Details
+                              </button>
+                              <button 
+                                className={`btn btn-sm ${isOverdue && !canSubmitLate ? 'btn-secondary' : 'btn-success'}`}
+                                style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                                disabled={isOverdue && !canSubmitLate}
+                              >
+                                {isOverdue && !canSubmitLate ? '⏰ Closed' : 
+                                 isOverdue && canSubmitLate ? '📤 Submit Late' : 
+                                 '📤 Submit'}
+                              </button>
+                              {assignment.assignmentType === 'EXAM' && (
+                                <button 
+                                  className="btn btn-warning btn-sm"
+                                  style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                                >
+                                  🎯 Take Exam
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Status indicators */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9' }}>
+                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem' }}>
                               <span style={{
                                 padding: '0.25rem 0.75rem',
                                 borderRadius: '12px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: assignment.status === 'ACTIVE' ? '#dcfce7' : '#fef3c7',
-                                color: assignment.status === 'ACTIVE' ? '#166534' : '#92400e'
+                                background: '#f0f9ff',
+                                color: '#0369a1',
+                                fontWeight: '600'
                               }}>
-                                {assignment.status}
+                                � Not Submitted
                               </span>
+                              {isNearDue && !isOverdue && (
+                                <span style={{
+                                  padding: '0.25rem 0.75rem',
+                                  borderRadius: '12px',
+                                  background: '#fffbeb',
+                                  color: '#d97706',
+                                  fontWeight: '600'
+                                }}>
+                                  ⏰ Due Soon
+                                </span>
+                              )}
                             </div>
-                            <p style={{ margin: 0, color: '#374151' }}>
-                              {assignment.description}
-                            </p>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button className="btn btn-primary btn-sm">
-                              📋 View Details
-                            </button>
-                            <button className="btn btn-success btn-sm">
-                              📤 Submit
-                            </button>
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              Assignment ID: {assignment.id}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

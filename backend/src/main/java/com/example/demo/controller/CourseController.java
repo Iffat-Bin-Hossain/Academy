@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.*;
 import com.example.demo.service.CourseService;
+import com.example.demo.service.AssignmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
+    private final AssignmentService assignmentService;
 
     // ============ BASIC CRUD ENDPOINTS ============
     
@@ -117,6 +119,76 @@ public class CourseController {
     public ResponseEntity<?> retakeCourse(@RequestParam Long courseId, @RequestParam Long studentId) {
         try {
             String result = courseService.retakeCourse(courseId, studentId);
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ============ ASSIGNMENT MANAGEMENT ============
+
+    /**
+     * Create a new assignment for a specific course
+     * POST /api/courses/{courseId}/assignments
+     */
+    @PostMapping("/{courseId}/assignments")
+    public ResponseEntity<?> createCourseAssignment(
+            @PathVariable Long courseId,
+            @RequestBody AssignmentCreateRequest request,
+            @RequestParam Long teacherId) {
+        try {
+            // Set the courseId from the path parameter
+            request.setCourseId(courseId);
+            AssignmentResponse assignment = assignmentService.createAssignment(request, teacherId);
+            return ResponseEntity.ok(assignment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Get all assignments for a course
+     * GET /api/courses/{courseId}/assignments
+     */
+    @GetMapping("/{courseId}/assignments")
+    public ResponseEntity<?> getCourseAssignments(@PathVariable Long courseId) {
+        try {
+            List<AssignmentResponse> assignments = assignmentService.getAssignmentsForCourse(courseId);
+            return ResponseEntity.ok(assignments);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Update an assignment within a course context
+     * PUT /api/courses/{courseId}/assignments/{assignmentId}
+     */
+    @PutMapping("/{courseId}/assignments/{assignmentId}")
+    public ResponseEntity<?> updateCourseAssignment(
+            @PathVariable Long courseId,
+            @PathVariable Long assignmentId,
+            @RequestBody AssignmentUpdateRequest request,
+            @RequestParam Long teacherId) {
+        try {
+            AssignmentResponse assignment = assignmentService.updateAssignment(assignmentId, request, teacherId);
+            return ResponseEntity.ok(assignment);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Delete an assignment within a course context
+     * DELETE /api/courses/{courseId}/assignments/{assignmentId}
+     */
+    @DeleteMapping("/{courseId}/assignments/{assignmentId}")
+    public ResponseEntity<?> deleteCourseAssignment(
+            @PathVariable Long courseId,
+            @PathVariable Long assignmentId,
+            @RequestParam Long teacherId) {
+        try {
+            String result = assignmentService.deleteAssignment(assignmentId, teacherId);
             return ResponseEntity.ok(Map.of("message", result));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
