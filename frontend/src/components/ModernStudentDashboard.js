@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
+import { useTabSync } from '../utils/useTabSync';
 
 const ModernStudentDashboard = () => {
   const navigate = useNavigate();
@@ -81,6 +82,21 @@ const ModernStudentDashboard = () => {
       setLoading(false);
     }
   };
+
+  // Cross-tab synchronization
+  const handleDataUpdate = useCallback((detail) => {
+    console.log('Data updated in another tab, refreshing...', detail);
+    fetchData();
+  }, []);
+
+  const handleTokenChange = useCallback((newToken) => {
+    if (newToken) {
+      window.location.reload();
+    }
+  }, []);
+
+  // Use tab sync hook
+  useTabSync(handleDataUpdate, handleTokenChange);
 
   const showMessage = (text, type = 'info') => {
     setMessage(text);

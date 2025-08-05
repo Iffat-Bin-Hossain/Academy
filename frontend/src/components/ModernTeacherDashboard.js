@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
+import { useTabSync } from '../utils/useTabSync';
 
 const ModernTeacherDashboard = () => {
   const [user, setUser] = useState(null);
@@ -69,7 +70,24 @@ const ModernTeacherDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };  const showMessage = (text, type = 'info') => {
+  };
+
+  // Cross-tab synchronization
+  const handleDataUpdate = useCallback((detail) => {
+    console.log('Data updated in another tab, refreshing...', detail);
+    fetchData();
+  }, []);
+
+  const handleTokenChange = useCallback((newToken) => {
+    if (newToken) {
+      window.location.reload();
+    }
+  }, []);
+
+  // Use tab sync hook
+  useTabSync(handleDataUpdate, handleTokenChange);
+  
+  const showMessage = (text, type = 'info') => {
     setMessage(text);
     setMessageType(type);
     setTimeout(() => {

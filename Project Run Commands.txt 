@@ -1,6 +1,32 @@
+----------------------------------------
+----------------------------------------
+Without Dockerization
+----------------------------------------
+----------------------------------------
+
 Backend: 
  cd backend && ./gradle-8.5/bin/gradle bootRun
 
 
 Frontend:
  cd frontend && npm start
+
+
+----------------------------------------
+----------------------------------------
+ Without Dockerization
+----------------------------------------
+----------------------------------------
+
+
+# Start the entire Academy project
+./run-docker.sh start
+
+# Stop all services  
+./run-docker.sh stop
+
+# View live logs
+./run-docker.sh logs
+
+# Clean restart
+./run-docker.sh restart

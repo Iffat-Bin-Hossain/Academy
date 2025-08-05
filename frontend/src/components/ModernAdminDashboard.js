@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import CourseManagement from './CourseManagement';
+import { useTabSync } from '../utils/useTabSync';
 
 const ModernAdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -94,6 +95,23 @@ const ModernAdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  // Cross-tab synchronization
+  const handleDataUpdate = useCallback((detail) => {
+    console.log('Data updated in another tab, refreshing...', detail);
+    fetchData();
+  }, []);
+
+  const handleTokenChange = useCallback((newToken) => {
+    if (newToken) {
+      // Token updated in another tab, refresh page
+      window.location.reload();
+    }
+    // Token removal is handled by the hook itself
+  }, []);
+
+  // Use tab sync hook
+  useTabSync(handleDataUpdate, handleTokenChange);
 
   const showMessage = (text, type = 'info') => {
     setMessage(text);
