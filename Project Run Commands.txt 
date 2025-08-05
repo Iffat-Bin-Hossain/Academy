@@ -1,0 +1,6 @@
+Backend: 
+ cd backend && ./gradle-8.5/bin/gradle bootRun
+
+
+Frontend:
+ cd frontend && npm start

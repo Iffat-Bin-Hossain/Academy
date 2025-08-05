@@ -1,0 +1,11 @@
+Use the psql command with the credentials from your configuration:
+psql -h localhost -p 5432 -U academyuser -d academydb
+
+
+
+Connect:
+\c academydb
+
+
+List all tables in the current database:
+\dt
