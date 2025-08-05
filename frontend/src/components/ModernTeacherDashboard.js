@@ -61,11 +61,33 @@ const ModernTeacherDashboard = () => {
       const approvedEnrollments = allEnrollments.filter(e => e.status === 'APPROVED');
       const uniqueStudents = new Set(approvedEnrollments.map(e => e.student?.id)).size;
       
+      // Fetch actual assignment count for this teacher
+      let totalAssignments = 0;
+      try {
+        const assignmentStatsResponse = await axios.get(`/assignments/teacher/${currentUser.id}/stats`);
+        totalAssignments = assignmentStatsResponse.data.totalAssignments;
+      } catch (assignmentError) {
+        console.warn('Could not fetch assignment stats, using fallback count:', assignmentError);
+        // Fallback: Count assignments from all courses
+        try {
+          const assignmentPromises = coursesResponse.data.map(course => 
+            axios.get(`/assignments/course/${course.id}`)
+              .then(response => response.data?.length || 0)
+              .catch(() => 0)
+          );
+          const assignmentCounts = await Promise.all(assignmentPromises);
+          totalAssignments = assignmentCounts.reduce((sum, count) => sum + count, 0);
+        } catch (fallbackError) {
+          console.error('Error in fallback assignment count:', fallbackError);
+          totalAssignments = 0;
+        }
+      }
+      
       setStats({
         totalCourses: coursesResponse.data.length,
         totalStudents: uniqueStudents,
         totalEnrollments: allEnrollments.length,
-        activeAssignments: coursesResponse.data.length * 2 // Mock data
+        activeAssignments: totalAssignments
       });
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -105,7 +127,10 @@ const ModernTeacherDashboard = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    if (!dateString) return 'Not set';
+    // Display date exactly as stored without any timezone conversion
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

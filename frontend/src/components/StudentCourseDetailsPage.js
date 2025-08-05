@@ -172,6 +172,7 @@ const StudentCourseDetailsPage = () => {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'Not set';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

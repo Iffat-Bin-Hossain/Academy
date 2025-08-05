@@ -27,6 +27,26 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     fetchAssignments();
   }, [courses, selectedCourse]);
 
+  // Helper function to format date for datetime-local input (no timezone conversion)
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    // Simply format the date without any timezone adjustments
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Helper function to convert datetime-local input to ISO string (no timezone conversion)
+  const convertInputDateToISO = (inputDateString) => {
+    if (!inputDateString) return null;
+    // Keep the exact datetime as entered
+    return new Date(inputDateString).toISOString();
+  };
+
   const fetchAssignments = async () => {
     try {
       setLoading(true);
@@ -73,6 +93,17 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       return;
     }
 
+    // Validate that late submission deadline is after main deadline
+    if (assignmentForm.lateSubmissionDeadline && assignmentForm.deadline) {
+      const mainDeadline = new Date(assignmentForm.deadline);
+      const lateDeadline = new Date(assignmentForm.lateSubmissionDeadline);
+      
+      if (lateDeadline <= mainDeadline) {
+        onShowMessage('Late submission deadline must be after the main deadline', 'error');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const deadline = new Date(assignmentForm.deadline);
@@ -85,8 +116,10 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
         content: assignmentForm.content,
         maxMarks: parseInt(assignmentForm.maxMarks),
         courseId: parseInt(assignmentForm.courseId),
-        deadline: deadline.toISOString(),
-        lateSubmissionDeadline: lateDeadline.toISOString(),
+        deadline: convertInputDateToISO(assignmentForm.deadline),
+        lateSubmissionDeadline: assignmentForm.lateSubmissionDeadline ? 
+          convertInputDateToISO(assignmentForm.lateSubmissionDeadline) : 
+          lateDeadline.toISOString(),
         instructions: assignmentForm.instructions || '',
         assignmentType: assignmentForm.assignmentType
       };
@@ -114,6 +147,17 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       return;
     }
 
+    // Validate that late submission deadline is after main deadline
+    if (assignmentForm.lateSubmissionDeadline && assignmentForm.deadline) {
+      const mainDeadline = new Date(assignmentForm.deadline);
+      const lateDeadline = new Date(assignmentForm.lateSubmissionDeadline);
+      
+      if (lateDeadline <= mainDeadline) {
+        onShowMessage('Late submission deadline must be after the main deadline', 'error');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       const deadline = new Date(assignmentForm.deadline);
@@ -125,8 +169,10 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
         title: assignmentForm.title,
         content: assignmentForm.content,
         maxMarks: parseInt(assignmentForm.maxMarks),
-        deadline: deadline.toISOString(),
-        lateSubmissionDeadline: lateDeadline.toISOString(),
+        deadline: convertInputDateToISO(assignmentForm.deadline),
+        lateSubmissionDeadline: assignmentForm.lateSubmissionDeadline ? 
+          convertInputDateToISO(assignmentForm.lateSubmissionDeadline) : 
+          lateDeadline.toISOString(),
         instructions: assignmentForm.instructions || '',
         assignmentType: assignmentForm.assignmentType
       };
@@ -168,8 +214,8 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       content: assignment.content,
       maxMarks: assignment.maxMarks.toString(),
       courseId: assignment.courseId?.toString() || '',
-      deadline: assignment.deadline ? new Date(assignment.deadline).toISOString().slice(0, 16) : '',
-      lateSubmissionDeadline: assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline).toISOString().slice(0, 16) : '',
+      deadline: formatDateForInput(assignment.deadline),
+      lateSubmissionDeadline: formatDateForInput(assignment.lateSubmissionDeadline),
       instructions: assignment.instructions || '',
       assignmentType: assignment.assignmentType || 'HOMEWORK'
     });
@@ -191,7 +237,9 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // Display date exactly as stored without any timezone conversion
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
