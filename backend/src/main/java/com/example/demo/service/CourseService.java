@@ -15,6 +15,8 @@ public class CourseService {
     private final CourseRepository courseRepo;
     private final CourseEnrollmentRepository enrollmentRepo;
     private final UserRepository userRepo;
+    private final AssignmentRepository assignmentRepo;
+    private final CourseTeacherRepository courseTeacherRepo;
 
     // ============ BASIC CRUD OPERATIONS ============
     
@@ -55,13 +57,24 @@ public class CourseService {
     public String deleteCourse(Long courseId) {
         Course course = getCourseById(courseId);
         
-        // First, delete all enrollments for this course to avoid foreign key constraint violations
+        // Delete all related entities to avoid foreign key constraint violations
+        
+        // 1. Delete all enrollments for this course
         List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
         enrollmentRepo.deleteAll(enrollments);
         
-        // Now delete the course
+        // 2. Delete ALL assignments for this course (both active and inactive)
+        // This prevents foreign key constraint violations
+        List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
+        assignmentRepo.deleteAll(allAssignments);
+        
+        // 3. Delete all course-teacher assignments
+        List<CourseTeacher> courseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
+        courseTeacherRepo.deleteAll(courseTeachers);
+        
+        // 4. Finally, delete the course itself
         courseRepo.delete(course);
-        return "✅ Course deleted successfully";
+        return "✅ Course deleted successfully with all related data";
     }
 
     // ============ ENROLLMENT MANAGEMENT ============
@@ -178,5 +191,32 @@ public class CourseService {
         enrollmentRepo.save(existingEnrollment);
 
         return "Course retake request submitted successfully";
+    }
+
+    // ADMIN: Clear all courses and related data
+    public String clearAllCourses() {
+        List<Course> allCourses = courseRepo.findAll();
+        
+        for (Course course : allCourses) {
+            // Delete all related entities for each course
+            
+            // 1. Delete all enrollments for this course
+            List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
+            enrollmentRepo.deleteAll(enrollments);
+            
+            // 2. Delete ALL assignments for this course (both active and inactive)
+            // We need to use a different method that gets ALL assignments, not just active ones
+            List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
+            assignmentRepo.deleteAll(allAssignments);
+            
+            // 3. Delete all course-teacher assignments
+            List<CourseTeacher> courseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
+            courseTeacherRepo.deleteAll(courseTeachers);
+        }
+        
+        // 4. Finally, delete all courses
+        courseRepo.deleteAll(allCourses);
+        
+        return "✅ All courses and related data cleared successfully. Total courses removed: " + allCourses.size();
     }
 }

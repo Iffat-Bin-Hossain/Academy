@@ -2,6 +2,7 @@ package com.example.demo.config;
 
 import com.example.demo.model.Role;
 import com.example.demo.model.User;
+import com.example.demo.model.UserStatus;
 import com.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,8 @@ public class AdminUserInitializer implements CommandLineRunner {
                     .email("admin@academy.com")
                     .password(passwordEncoder.encode("admin123"))
                     .role(Role.ADMIN)
-                    .isApproved(true)
+                    .status(UserStatus.ACTIVE) // Admin is always ACTIVE
+                    .isApproved(true) // Keep for backward compatibility
                     .build();
             
             userRepository.save(admin);

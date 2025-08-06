@@ -28,6 +28,11 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UserStatus status = UserStatus.PENDING;
+
+    // Keeping for backward compatibility during migration
     private boolean isApproved;
 
     @CreationTimestamp

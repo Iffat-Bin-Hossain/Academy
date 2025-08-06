@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import CourseManagement from './CourseManagement';
+import UserManagement from './UserManagement';
 import { useTabSync } from '../utils/useTabSync';
 
 const ModernAdminDashboard = () => {
@@ -282,6 +283,38 @@ const ModernAdminDashboard = () => {
     }
   };
 
+  const clearAllCourses = async () => {
+    if (!window.confirm(`⚠️ WARNING: This will permanently delete ALL ${courses.length} courses and their related data (enrollments, assignments, etc.). This action cannot be undone. Are you absolutely sure?`)) {
+      return;
+    }
+
+    if (!window.confirm('This is your final confirmation. Type YES to proceed with deleting ALL courses.') || 
+        !prompt('Type "DELETE ALL" to confirm (case sensitive):') === 'DELETE ALL') {
+      showMessage('Course deletion cancelled', 'info');
+      return;
+    }
+
+    try {
+      const response = await axios.delete('/courses/clear-all');
+      console.log('Clear all courses response:', response.data);
+      showMessage(response.data.message || 'All courses cleared successfully!', 'success');
+      fetchData(); // Refresh the data
+    } catch (error) {
+      console.error('Error clearing all courses:', error);
+      let errorMessage = 'Failed to clear courses';
+      
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response && error.response.statusText) {
+        errorMessage = `Failed to clear courses: ${error.response.statusText}`;
+      } else if (error.message) {
+        errorMessage = `Network error: ${error.message}`;
+      }
+      
+      showMessage(errorMessage, 'error');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
@@ -394,7 +427,7 @@ const ModernAdminDashboard = () => {
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'users', label: 'Pending Users', icon: '👥' },
+              { id: 'users', label: 'User Management', icon: '👥' },
               { id: 'courses', label: 'Courses', icon: '📚' },
               { id: 'settings', label: 'Settings', icon: '⚙️' }
             ].map(tab => (
@@ -467,118 +500,9 @@ const ModernAdminDashboard = () => {
         </>
       )}
 
-      {/* Pending Users Tab */}
+      {/* User Management Tab */}
       {activeTab === 'users' && (
-        <div className="card">
-          <div className="card-header">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <div>
-                <h3 className="card-title">Pending User Approvals</h3>
-                <p className="card-subtitle">
-                  {filteredPendingUsers.length} of {pendingUsers.length} users {userSearchTerm && '(filtered)'}
-                </p>
-              </div>
-              <div style={{ minWidth: '300px' }}>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="🔍 Search users by name, email, role..."
-                  value={userSearchTerm}
-                  onChange={(e) => setUserSearchTerm(e.target.value)}
-                  style={{ fontSize: '0.875rem' }}
-                />
-              </div>
-            </div>
-          </div>
-          <div className="card-body">
-            {filteredPendingUsers.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                {pendingUsers.length === 0 ? (
-                  <>
-                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🎉</span>
-                    <h4>No pending approvals!</h4>
-                    <p>All user registration requests have been processed.</p>
-                  </>
-                ) : (
-                  <>
-                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
-                    <h4>No users found</h4>
-                    <p>No users match your search criteria. Try different keywords.</p>
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className="table-container">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Role</th>
-                      <th>Registered</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredPendingUsers.map(user => (
-                      <tr key={user.id}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #3b82f6, #60a5fa)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white',
-                              fontWeight: '700'
-                            }}>
-                              {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                            </div>
-                            <strong>{user.name}</strong>
-                          </div>
-                        </td>
-                        <td>{user.email}</td>
-                        <td>
-                          <span style={{
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '12px',
-                            fontSize: '0.75rem',
-                            fontWeight: '600',
-                            textTransform: 'uppercase',
-                            background: user.role === 'TEACHER' ? '#dbeafe' : '#f0f9ff',
-                            color: user.role === 'TEACHER' ? '#1e40af' : '#0369a1'
-                          }}>
-                            {user.role}
-                          </span>
-                        </td>
-                        <td>{formatDate(user.createdAt)}</td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '0.3rem' }}>
-                            <button
-                              onClick={() => approveUser(user.id)}
-                              className="btn btn-success btn-xxs"
-                            >
-                              ✓
-                            </button>
-                            <button
-                              onClick={() => rejectUser(user.id)}
-                              className="btn btn-danger btn-xxs"
-                            >
-                              ✗
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
+        <UserManagement />
       )}
 
       {/* Courses Tab */}
@@ -608,6 +532,15 @@ const ModernAdminDashboard = () => {
                 >
                   <span style={{ marginRight: '0.5rem' }}>➕</span>
                   Create New Course
+                </button>
+                <button 
+                  className="btn btn-danger"
+                  onClick={clearAllCourses}
+                  style={{ whiteSpace: 'nowrap' }}
+                  disabled={courses.length === 0}
+                >
+                  <span style={{ marginRight: '0.5rem' }}>🗑️</span>
+                  Clear All Courses
                 </button>
               </div>
             </div>

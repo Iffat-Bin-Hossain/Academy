@@ -28,8 +28,12 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        // 3) Check admin approval
-        if (!user.isApproved()) {
+        // 3) Check user status
+        if (user.getStatus() == UserStatus.DISABLED) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Your account has been disabled by the administrator.");
+        }
+        
+        if (user.getStatus() == UserStatus.PENDING || !user.isApproved()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin approval pending");
         }
 

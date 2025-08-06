@@ -56,13 +56,14 @@ public class UserService {
             throw new IllegalArgumentException("You cannot sign up as ADMIN.");
         }
 
-        // Create user with approval = false (waiting for admin approval)
+        // Create user with PENDING status (waiting for admin approval)
         User user = User.builder()
                 .name(request.getName().trim())
                 .email(request.getEmail().trim().toLowerCase())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
-                .isApproved(false) // Set to false - user needs admin approval
+                .status(UserStatus.PENDING) // Set to PENDING - user needs admin approval
+                .isApproved(false) // Keep for backward compatibility
                 .build();
 
         userRepo.save(user);

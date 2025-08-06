@@ -60,6 +60,17 @@ public class CourseController {
         return courseService.deleteCourse(courseId);
     }
 
+    // ADMIN: Clear all courses and related data
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<?> clearAllCourses() {
+        try {
+            String result = courseService.clearAllCourses();
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Failed to clear courses: " + e.getMessage()));
+        }
+    }
+
     // ============ ENROLLMENT MANAGEMENT ============
 
     // ADMIN assigns teacher
