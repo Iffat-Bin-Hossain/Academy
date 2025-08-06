@@ -140,6 +140,11 @@ npm start
 - **Assignment Management**: Create, edit, and delete assignments with file attachments
 - **File Upload System**: Support for PDF, DOC, TXT, ZIP, Images, and Code files (Max 50MB each)
 - **Assignment File Downloads**: Persistent file storage with download functionality
+- **Student Submission Management**: View all student submissions for assignments with status tracking
+- **Submission Status Monitoring**: Color-coded indicators for On-Time (green), Late (red), and Overdue submissions
+- **Submission Download System**: Download student-submitted ZIP files for evaluation
+- **Submission Statistics**: Real-time counts of total, on-time, and late submissions per assignment
+- **Assignment Deadline Enforcement**: Automatic deadline validation preventing late submissions when not allowed
 - **Smart Search System**: Search courses by name/code and students by name across all courses
 - **Real-time Student Statistics**: Live counts of Active, Pending, and Retaking students per course
 - **Inline Student Management**: Approve/reject enrollment requests directly from course cards
@@ -156,6 +161,11 @@ npm start
 - **My Courses Management**: View all courses with status-based organization
 - **Assignment View**: Access and download assignment files from enrolled courses
 - **Assignment File Downloads**: Download PDF, DOC, TXT, ZIP, Images, and Code files
+- **Assignment Submission System**: Upload ZIP files for assignment submissions with deadline validation
+- **Submission Status Tracking**: Visual indicators for On-Time (green), Late (red), and Overdue submissions
+- **Deadline Management**: Automatic deadline checking with late submission prevention
+- **ZIP-Only File Restriction**: Enforced ZIP file format for all assignment submissions (50MB max)
+- **Submission History**: View all submitted assignments with status and timestamps
 - **Retake Course System**: Custom modal-based retake request with teacher approval
 - **Enrollment Status Tracking**: Visual status indicators (PENDING, APPROVED, REJECTED, RETAKING)
 - **Course Progress View**: Track enrollment history and current status
@@ -178,7 +188,12 @@ npm start
 ### 🎯 Advanced Features
 - **Real-time Search Systems**: Instant filtering across courses and students
 - **Assignment Management System**: Complete file upload/download with persistent storage
+- **Student Submission System**: ZIP-only file uploads with deadline validation and status tracking
+- **Submission Status Management**: Automatic On-Time/Late/Overdue status calculation with color coding
+- **Teacher Submission Review**: Complete submission viewing, downloading, and evaluation interface
 - **File Upload Security**: Validation for file types, size limits (50MB), and proper storage
+- **ZIP File Enforcement**: Students can only submit ZIP files for assignment submissions
+- **Deadline Validation**: Automatic prevention of submissions after deadlines (unless late submissions allowed)
 - **Persistent File Storage**: Docker volume-based storage that survives container restarts
 - **Teacher-Specific Assignment Filtering**: Teachers see only their own assignments
 - **Custom Modal Systems**: Professional retake confirmation dialogs replacing browser alerts
@@ -221,26 +236,35 @@ academy/
 │   │       │   ├── CourseController.java   # Course & enrollment management
 │   │       │   ├── AdminController.java    # Admin-specific operations
 │   │       │   ├── UserController.java     # User profile management
-│   │       │   └── AssignmentController.java # Assignment & file management
+│   │       │   ├── AssignmentController.java # Assignment & file management
+│   │       │   └── StudentSubmissionController.java # Student submission management
 │   │       ├── model/          # JPA entities and DTOs
 │   │       │   ├── User.java              # User entity with roles
 │   │       │   ├── Course.java            # Course entity
 │   │       │   ├── CourseEnrollment.java  # Enrollment with status tracking
 │   │       │   ├── Assignment.java        # Assignment entity
 │   │       │   ├── AssignmentFile.java    # File attachment entity
+│   │       │   ├── StudentSubmission.java # Student submission entity
+│   │       │   ├── SubmissionFile.java    # Submission file attachment entity
+│   │       │   ├── StudentSubmissionRequest.java # Submission request DTO
+│   │       │   ├── StudentSubmissionResponse.java # Submission response DTO
+│   │       │   ├── SubmissionFileResponse.java # Submission file response DTO
 │   │       │   └── EnrollmentStatus.java  # Enum: PENDING, APPROVED, REJECTED, RETAKING
 │   │       ├── repository/     # Data access layer
 │   │       │   ├── UserRepository.java
 │   │       │   ├── CourseRepository.java
 │   │       │   ├── CourseEnrollmentRepository.java
 │   │       │   ├── AssignmentRepository.java
-│   │       │   └── AssignmentFileRepository.java
+│   │       │   ├── AssignmentFileRepository.java
+│   │       │   ├── StudentSubmissionRepository.java
+│   │       │   └── SubmissionFileRepository.java
 │   │       └── service/        # Business logic layer
 │   │           ├── AuthService.java          # Authentication logic
 │   │           ├── CourseService.java        # Course & enrollment business logic
 │   │           ├── AdminService.java         # Admin operations
 │   │           ├── AssignmentService.java    # Assignment management
-│   │           └── AssignmentFileService.java # File upload/download logic
+│   │           ├── AssignmentFileService.java # File upload/download logic
+│   │           └── StudentSubmissionService.java # Submission management with ZIP validation
 │   ├── src/main/resources/
 │   │   └── application.properties  # PostgreSQL and server config
 │   └── build.gradle           # Dependencies and build config
@@ -253,8 +277,9 @@ academy/
 │   │   │   ├── Signup.js      # User registration
 │   │   │   ├── ModernAdminDashboard.js    # Admin interface
 │   │   │   ├── ModernTeacherDashboard.js  # Unified teacher interface with search
-│   │   │   ├── ModernStudentDashboard.js  # 3-tab student interface with retake system
-│   │   │   ├── AssignmentManagement.js    # Teacher assignment management with file upload
+│   │   │   ├── ModernStudentDashboard.js  # 3-tab student interface with submission system
+│   │   │   ├── StudentCourseDetailsPage.js # Student course view with submission modal
+│   │   │   ├── AssignmentManagement.js    # Teacher assignment management with submission viewing
 │   │   │   ├── Layout.js      # Common layout wrapper
 │   │   │   └── ProtectedRoute.js  # Route protection component
 │   │   ├── api/
@@ -316,6 +341,14 @@ academy/
 - `DELETE /api/assignments/files/{fileId}` - Delete assignment file (TEACHER)
 - `POST /api/assignments/{id}/url` - Add URL attachment to assignment (TEACHER)
 - `PUT /api/assignments/{id}/files` - Update assignment files during editing (TEACHER)
+
+### Student Submission System
+- `POST /api/submissions` - Submit assignment with ZIP file upload (STUDENT)
+- `GET /api/submissions/assignment/{assignmentId}` - Get all submissions for assignment (TEACHER)
+- `GET /api/submissions/student/{studentId}` - Get student's submission history (STUDENT)
+- `GET /api/submissions/{submissionId}/status` - Check if student has submitted assignment
+- `GET /api/submissions/files/{fileId}/download` - Download student submission file (TEACHER)
+- `GET /api/submissions/assignment/{assignmentId}/stats` - Get submission statistics (TEACHER)
 
 ## 🛡️ Security Implementation
 
@@ -379,6 +412,11 @@ academy/
 - ✅ **Assignment Management System** (Create, edit, delete assignments with teacher filtering)
 - ✅ **File Upload System** (Multiple file types, size validation, persistent storage)
 - ✅ **File Download System** (Persistent downloads that survive Docker restarts)
+- ✅ **Student Submission System** (ZIP-only uploads with deadline validation)
+- ✅ **Submission Status Tracking** (On-Time/Late/Overdue with color coding)
+- ✅ **Teacher Submission Review** (View all submissions, download files, statistics)
+- ✅ **Deadline Enforcement** (Automatic prevention of late submissions when not allowed)
+- ✅ **Submission File Downloads** (Teachers can download student ZIP files for evaluation)
 - ✅ **Docker Containerization** (Multi-container setup with persistent volumes)
 - ✅ **Teacher-Specific Data Filtering** (Teachers see only their own assignments and courses)
 - ✅ **Volume Persistence Testing** (File storage survives container restarts)
@@ -600,7 +638,9 @@ npm start
 - [x] **File Upload & Download System**: Persistent file storage with multi-format support ✅
 - [x] **Teacher-Specific Assignment Filtering**: Role-based data isolation ✅
 - [x] **Docker Containerization**: Full multi-container deployment ✅
-- [ ] **Student Assignment Submission**: File upload system for student homework submissions
+- [x] **Student Assignment Submission**: ZIP-only file upload system with deadline validation ✅
+- [x] **Submission Status Tracking**: On-Time/Late/Overdue status with color coding ✅
+- [x] **Teacher Submission Review**: Complete submission viewing and downloading interface ✅
 - [ ] **Grading System**: Assignment grading, scoring, and feedback
 - [ ] **Real-time Notifications**: WebSocket integration for live enrollment updates
 - [ ] **Email Notification System**: Automated emails for enrollment status changes
@@ -636,11 +676,14 @@ npm start
 - ✅ **Complete Authentication System** with JWT and role-based access control
 - ✅ **Full CRUD Operations** for users, courses, enrollments, and assignments
 - ✅ **Advanced File Management** with persistent storage and download functionality
+- ✅ **Student Submission System** with ZIP-only validation and deadline enforcement
+- ✅ **Teacher Submission Review** with complete evaluation interface and file downloads
+- ✅ **Submission Status Tracking** with automatic On-Time/Late/Overdue calculation
 - ✅ **Teacher-Specific Data Filtering** ensuring proper data isolation
 - ✅ **Docker Containerization** with multi-container orchestration
 - ✅ **Production-Ready Database** with PostgreSQL and persistent volumes
 - ✅ **Responsive Modern UI** with professional design and user experience
-- ✅ **Comprehensive Testing** covering all major user workflows
+- ✅ **Comprehensive Testing** covering all major user workflows including submissions
 
 ### Docker Implementation Highlights
 - **Multi-Container Setup**: Separate containers for database, backend, and frontend
