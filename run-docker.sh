@@ -30,7 +30,7 @@ print_error() {
 
 # Check if Docker is running
 check_docker() {
-    if ! sudo docker info > /dev/null 2>&1; then
+    if ! docker info > /dev/null 2>&1; then
         print_error "Docker is not running. Please start Docker and try again."
         exit 1
     fi
@@ -56,14 +56,14 @@ main() {
     
     # Build and run
     print_status "Building and starting all services..."
-    sudo docker-compose up --build -d
+    docker-compose up --build -d
     
     # Wait a moment for services to start
     sleep 5
     
     # Check service status
     print_status "Checking service status..."
-    sudo docker-compose ps
+    docker-compose ps
     
     print_success "Academy Project is running!"
     print_status "Access points:"
@@ -86,25 +86,26 @@ case "${1:-}" in
         ;;
     "stop"|"down")
         print_status "Stopping Academy Project..."
-        sudo docker-compose down
+        docker-compose down
         print_success "Academy Project stopped"
         ;;
     "restart")
         print_status "Restarting Academy Project..."
-        sudo docker-compose down
-        sudo docker-compose up --build -d
+        docker-compose down
+        docker-compose up --build -d
         print_success "Academy Project restarted"
         ;;
     "logs")
-        sudo docker-compose logs -f
+        docker-compose logs -f
         ;;
     "clean")
         print_warning "This will remove all containers, networks, and volumes!"
+        print_warning "⚠️  WARNING: This will DELETE all your data including database and uploaded files!"
         read -p "Are you sure? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sudo docker-compose down -v
-            sudo docker system prune -f
+            docker-compose down -v
+            docker system prune -f
             print_success "Cleanup completed"
         else
             print_status "Cleanup cancelled"

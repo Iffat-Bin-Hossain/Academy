@@ -17,6 +17,9 @@ COPY src src
 # Build the application using your Gradle 8.5
 RUN ./gradle-8.5/bin/gradle clean build -x test
 
+# Create upload directory with proper permissions
+RUN mkdir -p /app/data/uploads && chmod 755 /app/data/uploads
+
 # Expose port 8080
 EXPOSE 8080
 

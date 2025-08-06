@@ -13,6 +13,9 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.core.io.FileSystemResource;
+
+import jakarta.annotation.PostConstruct;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -35,7 +38,7 @@ public class AssignmentFileService {
     private final AssignmentFileRepository assignmentFileRepository;
     private final AssignmentRepository assignmentRepository;
 
-    @Value("${app.upload.dir:#{systemProperties['java.io.tmpdir']}/academy/uploads}")
+    @Value("${app.upload.dir:/app/data/uploads}")
     private String uploadDir;
 
     private static final long MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -44,6 +47,18 @@ public class AssignmentFileService {
             ".jpg", ".jpeg", ".png", ".gif", ".bmp",
             ".java", ".py", ".js", ".html", ".css", ".cpp", ".c", ".cs"
     );
+
+    @PostConstruct
+    public void initializeUploadDirectory() {
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            Files.createDirectories(uploadPath);
+            log.info("Upload directory initialized at: {}", uploadPath.toAbsolutePath());
+        } catch (IOException e) {
+            log.error("Failed to create upload directory: {}", uploadDir, e);
+            throw new RuntimeException("Failed to initialize file upload directory", e);
+        }
+    }
 
     /**
      * Upload files for an assignment
@@ -190,11 +205,19 @@ public class AssignmentFileService {
         }
 
         Path filePath = Paths.get(assignmentFile.getFilePath());
-        Resource resource = new UrlResource(filePath.toUri());
+        log.debug("Attempting to download file from path: {}", filePath.toAbsolutePath());
+        
+        // Use FileSystemResource for better file system integration
+        Resource resource = new FileSystemResource(filePath);
 
         if (resource.exists() && resource.isReadable()) {
+            log.debug("File found and readable: {}", assignmentFile.getOriginalFilename());
             return resource;
         } else {
+            log.error("File not found or not readable. Path: {}, Exists: {}, Readable: {}", 
+                     filePath.toAbsolutePath(), 
+                     Files.exists(filePath), 
+                     Files.isReadable(filePath));
             throw new RuntimeException("File not found or not readable: " + assignmentFile.getOriginalFilename());
         }
     }
@@ -218,7 +241,17 @@ public class AssignmentFileService {
         if (assignmentFile.getAttachmentType() == AssignmentFile.AttachmentType.FILE && 
             assignmentFile.getFilePath() != null) {
             Path filePath = Paths.get(assignmentFile.getFilePath());
-            Files.deleteIfExists(filePath);
+            try {
+                boolean deleted = Files.deleteIfExists(filePath);
+                if (deleted) {
+                    log.info("Physical file deleted: {}", filePath.toAbsolutePath());
+                } else {
+                    log.warn("Physical file not found for deletion: {}", filePath.toAbsolutePath());
+                }
+            } catch (IOException e) {
+                log.error("Failed to delete physical file: {}", filePath.toAbsolutePath(), e);
+                // Continue with database deletion even if physical file deletion fails
+            }
         }
 
         // Delete database record
@@ -240,8 +273,21 @@ public class AssignmentFileService {
         String storedFilename = UUID.randomUUID().toString() + fileExtension;
         Path filePath = uploadPath.resolve(storedFilename);
 
+        log.debug("Saving file: {} -> {} at path: {}", originalFilename, storedFilename, filePath.toAbsolutePath());
+
+        // Ensure directory exists
+        Files.createDirectories(uploadPath);
+
         // Save file to disk
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        // Verify file was actually saved
+        if (!Files.exists(filePath)) {
+            throw new IOException("Failed to save file to disk: " + filePath);
+        }
+
+        log.info("File successfully saved: {} (size: {} bytes) at {}", 
+                originalFilename, file.getSize(), filePath.toAbsolutePath());
 
         // Save file info to database
         AssignmentFile assignmentFile = AssignmentFile.builder()

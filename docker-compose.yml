@@ -33,8 +33,11 @@ services:
       - SPRING_DATASOURCE_PASSWORD=academy123
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SERVER_PORT=8080
+      - UPLOAD_DIR=/app/data/uploads
     ports:
       - "8080:8080"
+    volumes:
+      - academy_uploads:/app/data/uploads
     depends_on:
       database:
         condition: service_healthy
@@ -60,6 +63,7 @@ services:
 
 volumes:
   postgres_data:
+  academy_uploads:
 
 networks:
   academy_network:
