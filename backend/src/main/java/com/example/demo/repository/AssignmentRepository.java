@@ -39,6 +39,17 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findUpcomingDeadlines(@Param("currentTime") LocalDateTime currentTime, 
                                           @Param("futureTime") LocalDateTime futureTime);
     
+    // Find overdue assignments by teacher
+    @Query("SELECT a FROM Assignment a WHERE a.deadline < :currentTime AND a.isActive = true AND a.createdBy.id = :teacherId")
+    List<Assignment> findOverdueAssignmentsByTeacher(@Param("currentTime") LocalDateTime currentTime, 
+                                                    @Param("teacherId") Long teacherId);
+    
+    // Find upcoming assignments by teacher (within next 24 hours)
+    @Query("SELECT a FROM Assignment a WHERE a.deadline BETWEEN :currentTime AND :futureTime AND a.isActive = true AND a.createdBy.id = :teacherId")
+    List<Assignment> findUpcomingDeadlinesByTeacher(@Param("currentTime") LocalDateTime currentTime, 
+                                                   @Param("futureTime") LocalDateTime futureTime,
+                                                   @Param("teacherId") Long teacherId);
+    
     // Count active assignments for a course
     long countByCourseAndIsActiveTrue(Course course);
     

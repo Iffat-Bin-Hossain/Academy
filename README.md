@@ -1,4 +1,4 @@
-# Academy Platform
+# Academy
 
 A comprehensive full-stack web application for academy management with complete user authentication, role-based dashboards, course management, and enrollment system.
 

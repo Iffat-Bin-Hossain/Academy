@@ -21,6 +21,7 @@ public class AssignmentService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
+    private final AssignmentFileRepository assignmentFileRepository;
 
     /**
      * Create a new assignment for a course
@@ -272,17 +273,12 @@ public class AssignmentService {
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
         long totalAssignments = assignmentRepository.countByCreatedByAndIsActiveTrue(teacher);
-        List<Assignment> overdueAssignments = assignmentRepository.findOverdueAssignments(LocalDateTime.now())
-                .stream()
-                .filter(a -> a.getCreatedBy().getId().equals(teacherId))
-                .collect(Collectors.toList());
-
+        
         LocalDateTime now = LocalDateTime.now();
+        List<Assignment> overdueAssignments = assignmentRepository.findOverdueAssignmentsByTeacher(now, teacherId);
+
         LocalDateTime tomorrow = now.plusHours(24);
-        List<Assignment> upcomingAssignments = assignmentRepository.findUpcomingDeadlines(now, tomorrow)
-                .stream()
-                .filter(a -> a.getCreatedBy().getId().equals(teacherId))
-                .collect(Collectors.toList());
+        List<Assignment> upcomingAssignments = assignmentRepository.findUpcomingDeadlinesByTeacher(now, tomorrow, teacherId);
 
         return AssignmentStats.builder()
                 .totalAssignments(totalAssignments)
@@ -326,6 +322,21 @@ public class AssignmentService {
         boolean canSubmitLate = assignment.getLateSubmissionDeadline() != null && 
                                assignment.getLateSubmissionDeadline().isAfter(now);
 
+        // Get file attachments
+        List<AssignmentFile> files = assignmentFileRepository.findByAssignmentOrderByUploadedAtDesc(assignment);
+        List<AssignmentFileResponse> attachments = files.stream()
+                .map(file -> AssignmentFileResponse.builder()
+                        .id(file.getId())
+                        .assignmentId(file.getAssignment().getId())
+                        .originalFilename(file.getOriginalFilename())
+                        .contentType(file.getContentType())
+                        .fileSize(file.getFileSize())
+                        .uploadedAt(file.getUploadedAt())
+                        .uploadedBy(file.getUploadedBy())
+                        .downloadUrl("/api/assignments/files/" + file.getId() + "/download")
+                        .build())
+                .collect(Collectors.toList());
+
         return AssignmentResponse.builder()
                 .id(assignment.getId())
                 .title(assignment.getTitle())
@@ -345,6 +356,7 @@ public class AssignmentService {
                 .isActive(assignment.getIsActive())
                 .isOverdue(isOverdue)
                 .canSubmitLate(canSubmitLate)
+                .attachments(attachments)
                 .build();
     }
 

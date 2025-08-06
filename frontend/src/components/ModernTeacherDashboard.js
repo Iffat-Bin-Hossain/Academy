@@ -61,25 +61,31 @@ const ModernTeacherDashboard = () => {
       const approvedEnrollments = allEnrollments.filter(e => e.status === 'APPROVED');
       const uniqueStudents = new Set(approvedEnrollments.map(e => e.student?.id)).size;
       
-      // Fetch actual assignment count for this teacher
-      let totalAssignments = 0;
+      // Fetch assignment statistics for this teacher
+      let assignmentStats = {
+        totalAssignments: 0,
+        overdueAssignments: 0,
+        upcomingDeadlines: 0
+      };
+      
       try {
         const assignmentStatsResponse = await axios.get(`/assignments/teacher/${currentUser.id}/stats`);
-        totalAssignments = assignmentStatsResponse.data.totalAssignments;
+        assignmentStats = assignmentStatsResponse.data;
+        console.log('Fetched assignment stats:', assignmentStats);
       } catch (assignmentError) {
         console.warn('Could not fetch assignment stats, using fallback count:', assignmentError);
-        // Fallback: Count assignments from all courses
+        // Fallback: Count assignments from all courses using teacher endpoint
         try {
           const assignmentPromises = coursesResponse.data.map(course => 
-            axios.get(`/assignments/course/${course.id}`)
+            axios.get(`/assignments/course/${course.id}/teacher/${currentUser.id}`)
               .then(response => response.data?.length || 0)
               .catch(() => 0)
           );
           const assignmentCounts = await Promise.all(assignmentPromises);
-          totalAssignments = assignmentCounts.reduce((sum, count) => sum + count, 0);
+          assignmentStats.totalAssignments = assignmentCounts.reduce((sum, count) => sum + count, 0);
         } catch (fallbackError) {
           console.error('Error in fallback assignment count:', fallbackError);
-          totalAssignments = 0;
+          assignmentStats.totalAssignments = 0;
         }
       }
       
@@ -87,7 +93,9 @@ const ModernTeacherDashboard = () => {
         totalCourses: coursesResponse.data.length,
         totalStudents: uniqueStudents,
         totalEnrollments: allEnrollments.length,
-        activeAssignments: totalAssignments
+        activeAssignments: assignmentStats.totalAssignments,
+        overdueAssignments: assignmentStats.overdueAssignments,
+        upcomingDeadlines: assignmentStats.upcomingDeadlines
       });
     } catch (error) {
       console.error('Error fetching data:', error);

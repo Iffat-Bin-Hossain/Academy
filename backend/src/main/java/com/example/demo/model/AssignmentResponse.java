@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -29,4 +30,5 @@ public class AssignmentResponse {
     private Boolean isActive;
     private Boolean isOverdue;
     private Boolean canSubmitLate;
+    private List<AssignmentFileResponse> attachments;
 }

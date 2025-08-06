@@ -63,18 +63,45 @@ const StudentCourseDetailsPage = () => {
         let realAssignments = [];
         try {
           const assignmentsResponse = await axios.get(`/assignments/course/${foundCourse.id}`);
-          realAssignments = assignmentsResponse.data.map(assignment => ({
-            id: assignment.id,
-            title: assignment.title,
-            content: assignment.content,
-            instructions: assignment.instructions,
-            maxMarks: assignment.maxMarks,
-            deadline: assignment.deadline,
-            lateSubmissionDeadline: assignment.lateSubmissionDeadline,
-            assignmentType: assignment.assignmentType,
-            createdAt: assignment.createdAt,
-            status: 'ACTIVE' // Default status for students
-          }));
+          
+          // Fetch attachments for each assignment
+          const assignmentsWithAttachments = await Promise.all(
+            assignmentsResponse.data.map(async (assignment) => {
+              try {
+                const attachmentsResponse = await axios.get(`/assignments/${assignment.id}/files`);
+                return {
+                  id: assignment.id,
+                  title: assignment.title,
+                  content: assignment.content,
+                  instructions: assignment.instructions,
+                  maxMarks: assignment.maxMarks,
+                  deadline: assignment.deadline,
+                  lateSubmissionDeadline: assignment.lateSubmissionDeadline,
+                  assignmentType: assignment.assignmentType,
+                  createdAt: assignment.createdAt,
+                  status: 'ACTIVE', // Default status for students
+                  attachments: attachmentsResponse.data || []
+                };
+              } catch (attachmentError) {
+                console.warn(`Could not fetch attachments for assignment ${assignment.id}:`, attachmentError);
+                return {
+                  id: assignment.id,
+                  title: assignment.title,
+                  content: assignment.content,
+                  instructions: assignment.instructions,
+                  maxMarks: assignment.maxMarks,
+                  deadline: assignment.deadline,
+                  lateSubmissionDeadline: assignment.lateSubmissionDeadline,
+                  assignmentType: assignment.assignmentType,
+                  createdAt: assignment.createdAt,
+                  status: 'ACTIVE',
+                  attachments: []
+                };
+              }
+            })
+          );
+          
+          realAssignments = assignmentsWithAttachments;
           console.log(`Fetched ${realAssignments.length} assignments for course ${foundCourse.courseCode}`);
         } catch (assignmentError) {
           console.error('Error fetching assignments:', assignmentError);
@@ -188,6 +215,54 @@ const StudentCourseDetailsPage = () => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (filename) => {
+    if (!filename) return '📄';
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+      case 'pdf': return '📄';
+      case 'doc':
+      case 'docx': return '📝';
+      case 'txt': return '📃';
+      case 'zip':
+      case 'rar': return '📦';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp': return '🖼️';
+      case 'java':
+      case 'py':
+      case 'js':
+      case 'html':
+      case 'css':
+      case 'cpp':
+      case 'c':
+      case 'cs': return '💻';
+      default: return '📄';
+    }
+  };
+
+  const handleFileDownload = async (fileId, filename) => {
+    try {
+      const response = await axios.get(`/assignments/files/${fileId}/download`, {
+        responseType: 'blob',
+      });
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      showMessage('Failed to download file', 'error');
+    }
   };
 
   const getFilteredContent = (content, searchFields = ['title', 'description', 'content']) => {
@@ -488,6 +563,104 @@ const StudentCourseDetailsPage = () => {
                                   <p style={{ margin: 0, color: '#374151', fontSize: '0.875rem', lineHeight: '1.5' }}>
                                     {assignment.instructions}
                                   </p>
+                                </div>
+                              )}
+
+                              {assignment.attachments && assignment.attachments.length > 0 && (
+                                <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+                                  <h6 style={{ margin: '0 0 0.75rem 0', color: '#0c4a6e', fontSize: '0.875rem', fontWeight: '600' }}>
+                                    📎 Attachments ({assignment.attachments.length}):
+                                  </h6>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                    {assignment.attachments.map(file => (
+                                      <div key={file.id} style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '0.5rem',
+                                        background: 'white',
+                                        borderRadius: '4px',
+                                        border: '1px solid #bae6fd'
+                                      }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                          <span style={{ fontSize: '1rem' }}>
+                                            {file.attachmentType === 'URL' ? '🔗' : getFileIcon(file.originalFilename || 'file')}
+                                          </span>
+                                          <div>
+                                            <div style={{ fontSize: '0.875rem', color: '#0c4a6e', fontWeight: '500' }}>
+                                              {file.attachmentType === 'URL' ? (file.urlTitle || 'Link') : file.originalFilename}
+                                            </div>
+                                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                              {file.attachmentType === 'URL' ? 
+                                                file.url.length > 40 ? file.url.substring(0, 40) + '...' : file.url :
+                                                formatFileSize(file.fileSize)
+                                              }
+                                            </div>
+                                            {file.attachmentType === 'URL' && file.urlDescription && (
+                                              <div style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
+                                                {file.urlDescription}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {file.attachmentType === 'URL' ? (
+                                          <button
+                                            type="button"
+                                            onClick={() => window.open(file.url, '_blank', 'noopener,noreferrer')}
+                                            style={{
+                                              padding: '0.25rem 0.75rem',
+                                              border: '1px solid #3b82f6',
+                                              background: '#3b82f6',
+                                              color: 'white',
+                                              borderRadius: '4px',
+                                              fontSize: '0.75rem',
+                                              cursor: 'pointer',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.25rem'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.target.style.background = '#2563eb';
+                                              e.target.style.borderColor = '#2563eb';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.target.style.background = '#3b82f6';
+                                              e.target.style.borderColor = '#3b82f6';
+                                            }}
+                                          >
+                                            🔗 Open
+                                          </button>
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            onClick={() => handleFileDownload(file.id, file.originalFilename)}
+                                            style={{
+                                              padding: '0.25rem 0.75rem',
+                                              border: '1px solid #0ea5e9',
+                                              background: '#0ea5e9',
+                                              color: 'white',
+                                              borderRadius: '4px',
+                                              fontSize: '0.75rem',
+                                              cursor: 'pointer',
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: '0.25rem'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                              e.target.style.background = '#0284c7';
+                                              e.target.style.borderColor = '#0284c7';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                              e.target.style.background = '#0ea5e9';
+                                              e.target.style.borderColor = '#0ea5e9';
+                                            }}
+                                          >
+                                            ⬇️ Download
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>

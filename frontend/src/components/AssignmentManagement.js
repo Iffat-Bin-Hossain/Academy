@@ -11,6 +11,10 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
   const [editingAssignment, setEditingAssignment] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Local message state for modal errors
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalMessageType, setModalMessageType] = useState('');
+  
   // Assignment form data
   const [assignmentForm, setAssignmentForm] = useState({
     title: '',
@@ -23,9 +27,62 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     assignmentType: 'HOMEWORK'
   });
 
+  // File upload state
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // URL attachment state
+  const [urlAttachments, setUrlAttachments] = useState([]);
+  
+  // Edit mode file management state
+  const [existingFiles, setExistingFiles] = useState([]);
+  const [filesToDelete, setFilesToDelete] = useState([]);
+
+  // Date validation state
+  const [dateErrors, setDateErrors] = useState({
+    deadline: '',
+    lateSubmissionDeadline: ''
+  });
+
   useEffect(() => {
     fetchAssignments();
   }, [courses, selectedCourse]);
+
+  // Helper function to show modal messages
+  const showModalMessage = (text, type = 'info') => {
+    setModalMessage(text);
+    setModalMessageType(type);
+    setTimeout(() => {
+      setModalMessage('');
+      setModalMessageType('');
+    }, 5000);
+  };
+
+  // Helper function to clear modal messages
+  const clearModalMessage = () => {
+    setModalMessage('');
+    setModalMessageType('');
+  };
+
+  // Helper functions to close modals and clear messages
+  const closeCreateModal = () => {
+    setShowCreateModal(false);
+    clearModalMessage();
+    resetForm();
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditingAssignment(null);
+    clearModalMessage();
+    resetForm();
+  };
+
+  const openCreateModal = () => {
+    clearModalMessage(); // Clear any existing modal messages
+    resetForm(); // Reset form to default values
+    setShowCreateModal(true);
+  };
 
   // Helper function to format date for datetime-local input (no timezone conversion)
   const formatDateForInput = (dateString) => {
@@ -47,19 +104,168 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     return new Date(inputDateString).toISOString();
   };
 
+  // Date validation functions
+  const validateDeadlineDate = (deadlineValue, lateDeadlineValue = assignmentForm.lateSubmissionDeadline) => {
+    const errors = { ...dateErrors };
+    
+    if (deadlineValue) {
+      const deadlineDate = new Date(deadlineValue);
+      const now = new Date();
+      
+      if (deadlineDate <= now) {
+        errors.deadline = 'Deadline must be in the future';
+      } else {
+        errors.deadline = '';
+      }
+      
+      // Check against late submission deadline
+      if (lateDeadlineValue) {
+        const lateDate = new Date(lateDeadlineValue);
+        if (lateDate <= deadlineDate) {
+          errors.lateSubmissionDeadline = 'Late submission deadline must be after main deadline';
+        } else {
+          errors.lateSubmissionDeadline = '';
+        }
+      }
+    } else {
+      errors.deadline = '';
+    }
+    
+    setDateErrors(errors);
+    return !errors.deadline && !errors.lateSubmissionDeadline;
+  };
+
+  const validateLateDeadlineDate = (lateDeadlineValue, deadlineValue = assignmentForm.deadline) => {
+    const errors = { ...dateErrors };
+    
+    if (lateDeadlineValue && deadlineValue) {
+      const deadlineDate = new Date(deadlineValue);
+      const lateDate = new Date(lateDeadlineValue);
+      
+      if (lateDate <= deadlineDate) {
+        errors.lateSubmissionDeadline = 'Late submission deadline must be after main deadline';
+      } else {
+        errors.lateSubmissionDeadline = '';
+      }
+    } else {
+      errors.lateSubmissionDeadline = '';
+    }
+    
+    setDateErrors(errors);
+    return !errors.deadline && !errors.lateSubmissionDeadline;
+  };
+
+  // File upload functions
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
+  };
+
+  const removeSelectedFile = (index) => {
+    const newFiles = [...selectedFiles];
+    newFiles.splice(index, 1);
+    setSelectedFiles(newFiles);
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const handleFileDownload = async (fileId, filename) => {
+    try {
+      const response = await axios.get(`/assignments/files/${fileId}/download`, {
+        responseType: 'blob',
+      });
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      showModalMessage('Failed to download file', 'error');
+    }
+  };
+
+  // URL attachment functions
+  const addUrlAttachment = () => {
+    setUrlAttachments([...urlAttachments, { url: '', title: '', description: '' }]);
+  };
+
+  const removeUrlAttachment = (index) => {
+    const newUrls = urlAttachments.filter((_, i) => i !== index);
+    setUrlAttachments(newUrls);
+  };
+
+  const updateUrlAttachment = (index, field, value) => {
+    const newUrls = [...urlAttachments];
+    newUrls[index][field] = value;
+    setUrlAttachments(newUrls);
+  };
+
+  // File management functions for edit mode
+  const markFileForDeletion = (fileId) => {
+    if (!filesToDelete.includes(fileId)) {
+      setFilesToDelete([...filesToDelete, fileId]);
+    }
+  };
+
+  const unmarkFileForDeletion = (fileId) => {
+    setFilesToDelete(filesToDelete.filter(id => id !== fileId));
+  };
+
+  const isFileMarkedForDeletion = (fileId) => {
+    return filesToDelete.includes(fileId);
+  };
+
+  const getFileIcon = (filename) => {
+    const extension = filename.split('.').pop().toLowerCase();
+    switch (extension) {
+      case 'pdf': return '📄';
+      case 'doc':
+      case 'docx': return '📝';
+      case 'txt': return '📃';
+      case 'zip':
+      case 'rar': return '📦';
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'bmp': return '🖼️';
+      case 'java':
+      case 'py':
+      case 'js':
+      case 'html':
+      case 'css':
+      case 'cpp':
+      case 'c':
+      case 'cs': return '💻';
+      default: return '📎';
+    }
+  };
+
   const fetchAssignments = async () => {
     try {
       setLoading(true);
       let allAssignments = [];
 
       if (selectedCourse) {
-        // Fetch assignments for specific course
-        const response = await axios.get(`/assignments/course/${selectedCourse}`);
+        // Fetch assignments for specific course (teachers see all assignments)
+        const response = await axios.get(`/assignments/course/${selectedCourse}/teacher/${user.id}`);
         allAssignments = response.data || [];
       } else {
-        // Fetch assignments for all teacher's courses
+        // Fetch assignments for all teacher's courses (teachers see all assignments)
         const promises = courses.map(course => 
-          axios.get(`/assignments/course/${course.id}`)
+          axios.get(`/assignments/course/${course.id}/teacher/${user.id}`)
             .then(response => response.data?.map(assignment => ({
               ...assignment,
               courseName: course.title,
@@ -75,7 +281,26 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
         allAssignments = results.flat();
       }
 
-      setAssignments(allAssignments);
+      // Fetch attachments for each assignment
+      const assignmentsWithAttachments = await Promise.all(
+        allAssignments.map(async (assignment) => {
+          try {
+            const attachmentsResponse = await axios.get(`/assignments/${assignment.id}/files`);
+            return {
+              ...assignment,
+              attachments: attachmentsResponse.data || []
+            };
+          } catch (attachmentError) {
+            console.warn(`Could not fetch attachments for assignment ${assignment.id}:`, attachmentError);
+            return {
+              ...assignment,
+              attachments: []
+            };
+          }
+        })
+      );
+
+      setAssignments(assignmentsWithAttachments);
     } catch (error) {
       console.error('Error fetching assignments:', error);
       onShowMessage('Failed to load assignments', 'error');
@@ -86,22 +311,18 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
 
   const handleCreateAssignment = async (e) => {
     e.preventDefault();
+    clearModalMessage(); // Clear any previous error messages
     
     if (!assignmentForm.title || !assignmentForm.content || !assignmentForm.maxMarks || 
         !assignmentForm.courseId || !assignmentForm.deadline) {
-      onShowMessage('Please fill in all required fields', 'error');
+      showModalMessage('Please fill in all required fields', 'error');
       return;
     }
 
-    // Validate that late submission deadline is after main deadline
-    if (assignmentForm.lateSubmissionDeadline && assignmentForm.deadline) {
-      const mainDeadline = new Date(assignmentForm.deadline);
-      const lateDeadline = new Date(assignmentForm.lateSubmissionDeadline);
-      
-      if (lateDeadline <= mainDeadline) {
-        onShowMessage('Late submission deadline must be after the main deadline', 'error');
-        return;
-      }
+    // Validate dates
+    if (!validateDeadlineDate(assignmentForm.deadline, assignmentForm.lateSubmissionDeadline)) {
+      showModalMessage('Please fix the date validation errors', 'error');
+      return;
     }
 
     setIsSubmitting(true);
@@ -125,14 +346,56 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       };
 
       const response = await axios.post(`/assignments?teacherId=${user.id}`, data);
+      const assignmentId = response.data.id;
+
+      // Upload files if any are selected
+      if (selectedFiles.length > 0) {
+        setIsUploading(true);
+        try {
+          const formData = new FormData();
+          selectedFiles.forEach(file => {
+            formData.append('files', file);
+          });
+
+          await axios.post(`/assignments/${assignmentId}/files?teacherId=${user.id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } catch (uploadError) {
+          console.error('Error uploading files:', uploadError);
+          showModalMessage('Assignment created but some files failed to upload', 'warning');
+        } finally {
+          setIsUploading(false);
+        }
+      }
+
+      // Add URL attachments if any
+      if (urlAttachments.length > 0) {
+        try {
+          for (const urlAttachment of urlAttachments) {
+            if (urlAttachment.url.trim()) {
+              const urlData = new URLSearchParams();
+              urlData.append('url', urlAttachment.url);
+              urlData.append('title', urlAttachment.title || 'Link');
+              urlData.append('description', urlAttachment.description || '');
+              urlData.append('teacherId', user.id);
+
+              await axios.post(`/assignments/${assignmentId}/url`, urlData);
+            }
+          }
+        } catch (urlError) {
+          console.error('Error adding URL attachments:', urlError);
+          showModalMessage('Assignment created but some URLs failed to attach', 'warning');
+        }
+      }
       
       onShowMessage('Assignment created successfully!', 'success');
-      setShowCreateModal(false);
-      resetForm();
+      closeCreateModal();
       fetchAssignments();
     } catch (error) {
       console.error('Error creating assignment:', error);
-      onShowMessage(error.response?.data?.error || 'Failed to create assignment', 'error');
+      showModalMessage(error.response?.data?.error || 'Failed to create assignment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -140,22 +403,18 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
 
   const handleEditAssignment = async (e) => {
     e.preventDefault();
+    clearModalMessage(); // Clear any previous error messages
     
     if (!assignmentForm.title || !assignmentForm.content || !assignmentForm.maxMarks || 
         !assignmentForm.deadline) {
-      onShowMessage('Please fill in all required fields', 'error');
+      showModalMessage('Please fill in all required fields', 'error');
       return;
     }
 
-    // Validate that late submission deadline is after main deadline
-    if (assignmentForm.lateSubmissionDeadline && assignmentForm.deadline) {
-      const mainDeadline = new Date(assignmentForm.deadline);
-      const lateDeadline = new Date(assignmentForm.lateSubmissionDeadline);
-      
-      if (lateDeadline <= mainDeadline) {
-        onShowMessage('Late submission deadline must be after the main deadline', 'error');
-        return;
-      }
+    // Validate dates
+    if (!validateDeadlineDate(assignmentForm.deadline, assignmentForm.lateSubmissionDeadline)) {
+      showModalMessage('Please fix the date validation errors', 'error');
+      return;
     }
 
     setIsSubmitting(true);
@@ -178,15 +437,51 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       };
 
       await axios.put(`/assignments/${editingAssignment.id}?teacherId=${user.id}`, data);
+
+      // Handle file attachments update if there are changes
+      if (selectedFiles.length > 0 || filesToDelete.length > 0 || urlAttachments.length > 0) {
+        try {
+          const formData = new FormData();
+          
+          // Add new files
+          selectedFiles.forEach(file => {
+            formData.append('newFiles', file);
+          });
+
+          // Add files to delete
+          filesToDelete.forEach(fileId => {
+            formData.append('filesToDelete', fileId);
+          });
+
+          // Add URL attachments
+          const validUrls = urlAttachments.filter(url => url.url.trim());
+          if (validUrls.length > 0) {
+            validUrls.forEach(url => {
+              formData.append('urlsToAdd', url.url);
+              formData.append('urlTitles', url.title || 'Link');
+              formData.append('urlDescriptions', url.description || '');
+            });
+          }
+
+          formData.append('teacherId', user.id);
+
+          await axios.put(`/assignments/${editingAssignment.id}/files`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        } catch (fileError) {
+          console.error('Error updating files:', fileError);
+          showModalMessage('Assignment updated but some file changes failed', 'warning');
+        }
+      }
       
       onShowMessage('Assignment updated successfully!', 'success');
-      setShowEditModal(false);
-      setEditingAssignment(null);
-      resetForm();
+      closeEditModal();
       fetchAssignments();
     } catch (error) {
       console.error('Error updating assignment:', error);
-      onShowMessage(error.response?.data?.error || 'Failed to update assignment', 'error');
+      showModalMessage(error.response?.data?.error || 'Failed to update assignment', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -207,7 +502,9 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     }
   };
 
-  const openEditModal = (assignment) => {
+  const openEditModal = async (assignment) => {
+    clearModalMessage(); // Clear any existing modal messages
+    setDateErrors({ deadline: '', lateSubmissionDeadline: '' }); // Clear date errors
     setEditingAssignment(assignment);
     setAssignmentForm({
       title: assignment.title,
@@ -219,6 +516,19 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       instructions: assignment.instructions || '',
       assignmentType: assignment.assignmentType || 'HOMEWORK'
     });
+
+    // Load existing files for editing
+    try {
+      const filesResponse = await axios.get(`/assignments/${assignment.id}/files`);
+      setExistingFiles(filesResponse.data || []);
+      setFilesToDelete([]);
+      setSelectedFiles([]);
+      setUrlAttachments([]);
+    } catch (error) {
+      console.error('Error loading assignment files:', error);
+      setExistingFiles([]);
+    }
+
     setShowEditModal(true);
   };
 
@@ -232,6 +542,14 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       lateSubmissionDeadline: '',
       instructions: '',
       assignmentType: 'HOMEWORK'
+    });
+    setSelectedFiles([]);
+    setUrlAttachments([]);
+    setExistingFiles([]);
+    setFilesToDelete([]);
+    setDateErrors({
+      deadline: '',
+      lateSubmissionDeadline: ''
     });
   };
 
@@ -339,7 +657,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
               />
               <button 
                 className="btn btn-primary"
-                onClick={() => setShowCreateModal(true)}
+                onClick={openCreateModal}
                 style={{ whiteSpace: 'nowrap' }}
               >
                 <span style={{ marginRight: '0.5rem' }}>➕</span>
@@ -437,6 +755,103 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                               </p>
                             </div>
                           )}
+                          {assignment.attachments && assignment.attachments.length > 0 && (
+                            <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+                              <strong style={{ fontSize: '0.875rem', color: '#0c4a6e' }}>
+                                📎 Attachments ({assignment.attachments.length}):
+                              </strong>
+                              <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                {assignment.attachments.map(file => (
+                                  <div key={file.id} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '0.5rem',
+                                    background: 'white',
+                                    borderRadius: '4px',
+                                    border: '1px solid #bae6fd'
+                                  }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      <span style={{ fontSize: '1rem' }}>
+                                        {file.attachmentType === 'URL' ? '🔗' : getFileIcon(file.originalFilename || 'file')}
+                                      </span>
+                                      <div>
+                                        <div style={{ fontSize: '0.875rem', color: '#0c4a6e', fontWeight: '500' }}>
+                                          {file.attachmentType === 'URL' ? (file.urlTitle || 'Link') : file.originalFilename}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                          {file.attachmentType === 'URL' ? 
+                                            file.url.length > 50 ? file.url.substring(0, 50) + '...' : file.url :
+                                            formatFileSize(file.fileSize)
+                                          }
+                                        </div>
+                                        {file.attachmentType === 'URL' && file.urlDescription && (
+                                          <div style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
+                                            {file.urlDescription}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {file.attachmentType === 'URL' ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => window.open(file.url, '_blank', 'noopener,noreferrer')}
+                                        style={{
+                                          padding: '0.25rem 0.75rem',
+                                          border: '1px solid #3b82f6',
+                                          background: '#3b82f6',
+                                          color: 'white',
+                                          borderRadius: '4px',
+                                          fontSize: '0.75rem',
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '0.25rem'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.target.style.background = '#2563eb';
+                                          e.target.style.borderColor = '#2563eb';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.target.style.background = '#3b82f6';
+                                          e.target.style.borderColor = '#3b82f6';
+                                        }}
+                                      >
+                                        🔗 Open Link
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleFileDownload(file.id, file.originalFilename)}
+                                        style={{
+                                          padding: '0.25rem 0.75rem',
+                                          border: '1px solid #0ea5e9',
+                                          background: '#0ea5e9',
+                                          color: 'white',
+                                          borderRadius: '4px',
+                                          fontSize: '0.75rem',
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '0.25rem'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.target.style.background = '#0284c7';
+                                          e.target.style.borderColor = '#0284c7';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.target.style.background = '#0ea5e9';
+                                          e.target.style.borderColor = '#0ea5e9';
+                                        }}
+                                      >
+                                        ⬇️ Download
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                           <button 
@@ -464,13 +879,13 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
 
       {/* Create Assignment Modal */}
       {showCreateModal && (
-        <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+        <div className="modal-overlay" onClick={closeCreateModal}>
           <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Create New Assignment</h3>
               <button 
                 className="modal-close"
-                onClick={() => setShowCreateModal(false)}
+                onClick={closeCreateModal}
                 aria-label="Close modal"
               >
                 ✕
@@ -478,6 +893,12 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
             </div>
             <form onSubmit={handleCreateAssignment}>
               <div className="modal-body">
+                {/* Modal Message Alert */}
+                {modalMessage && (
+                  <div className={`alert alert-${modalMessageType}`} style={{ marginBottom: '1rem' }}>
+                    {modalMessage}
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="course">Course *</label>
                   <select
@@ -560,11 +981,19 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     <input
                       id="deadline"
                       type="datetime-local"
-                      className="form-control"
+                      className={`form-control ${dateErrors.deadline ? 'error' : ''}`}
                       value={assignmentForm.deadline}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, deadline: e.target.value })}
+                      onChange={(e) => {
+                        setAssignmentForm({ ...assignmentForm, deadline: e.target.value });
+                        validateDeadlineDate(e.target.value, assignmentForm.lateSubmissionDeadline);
+                      }}
                       required
                     />
+                    {dateErrors.deadline && (
+                      <small style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                        {dateErrors.deadline}
+                      </small>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -572,10 +1001,18 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     <input
                       id="lateDeadline"
                       type="datetime-local"
-                      className="form-control"
+                      className={`form-control ${dateErrors.lateSubmissionDeadline ? 'error' : ''}`}
                       value={assignmentForm.lateSubmissionDeadline}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, lateSubmissionDeadline: e.target.value })}
+                      onChange={(e) => {
+                        setAssignmentForm({ ...assignmentForm, lateSubmissionDeadline: e.target.value });
+                        validateLateDeadlineDate(e.target.value, assignmentForm.deadline);
+                      }}
                     />
+                    {dateErrors.lateSubmissionDeadline && (
+                      <small style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                        {dateErrors.lateSubmissionDeadline}
+                      </small>
+                    )}
                     <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
                       Optional: Leave empty for 2 days after main deadline
                     </small>
@@ -593,12 +1030,162 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     onChange={(e) => setAssignmentForm({ ...assignmentForm, instructions: e.target.value })}
                   />
                 </div>
+
+                {/* File Upload Section */}
+                <div className="form-group">
+                  <label htmlFor="files">Attach Files (Optional)</label>
+                  <input
+                    id="files"
+                    type="file"
+                    multiple
+                    className="form-control"
+                    onChange={handleFileSelect}
+                    accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif,.bmp,.java,.py,.js,.html,.css,.cpp,.c,.cs"
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Supported files: PDF, DOC, TXT, ZIP, Images, Code files (Max 50MB each)
+                  </small>
+                  
+                  {selectedFiles.length > 0 && (
+                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <h6 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>
+                        Selected Files ({selectedFiles.length}):
+                      </h6>
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          padding: '0.5rem',
+                          background: 'white',
+                          borderRadius: '4px',
+                          marginBottom: '0.5rem',
+                          border: '1px solid #e5e7eb'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1rem' }}>{getFileIcon(file.name)}</span>
+                            <div>
+                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}>
+                                {file.name}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                {formatFileSize(file.size)}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedFile(index)}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              border: 'none',
+                              background: '#fee2e2',
+                              color: '#dc2626',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* URL Attachments Section */}
+                <div className="form-group">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label>URL Attachments (Optional)</label>
+                    <button
+                      type="button"
+                      onClick={addUrlAttachment}
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        background: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + Add URL
+                    </button>
+                  </div>
+                  
+                  {urlAttachments.map((urlAttachment, index) => (
+                    <div key={index} style={{ 
+                      padding: '1rem', 
+                      border: '1px solid #e5e7eb', 
+                      borderRadius: '8px', 
+                      marginBottom: '1rem',
+                      background: '#fafafa'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                          URL #{index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeUrlAttachment(index)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            background: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>URL *</label>
+                        <input
+                          type="url"
+                          className="form-control"
+                          placeholder="https://example.com"
+                          value={urlAttachment.url}
+                          onChange={(e) => updateUrlAttachment(index, 'url', e.target.value)}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Title</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Link title (optional)"
+                          value={urlAttachment.title}
+                          onChange={(e) => updateUrlAttachment(index, 'title', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Description</label>
+                        <textarea
+                          className="form-control"
+                          placeholder="Brief description (optional)"
+                          rows="2"
+                          value={urlAttachment.description}
+                          onChange={(e) => updateUrlAttachment(index, 'description', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="modal-actions">
                 <button 
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={closeCreateModal}
                   disabled={isSubmitting}
                 >
                   Cancel
@@ -606,12 +1193,12 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 <button 
                   type="submit"
                   className="btn btn-primary"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploading}
                 >
-                  {isSubmitting ? (
+                  {isSubmitting || isUploading ? (
                     <>
                       <span style={{ marginRight: '0.5rem' }}>⏳</span>
-                      Creating...
+                      {isUploading ? 'Uploading files...' : 'Creating...'}
                     </>
                   ) : (
                     <>
@@ -628,13 +1215,13 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
 
       {/* Edit Assignment Modal */}
       {showEditModal && editingAssignment && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+        <div className="modal-overlay" onClick={closeEditModal}>
           <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Edit Assignment</h3>
               <button 
                 className="modal-close"
-                onClick={() => setShowEditModal(false)}
+                onClick={closeEditModal}
                 aria-label="Close modal"
               >
                 ✕
@@ -642,6 +1229,12 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
             </div>
             <form onSubmit={handleEditAssignment}>
               <div className="modal-body">
+                {/* Modal Message Alert */}
+                {modalMessage && (
+                  <div className={`alert alert-${modalMessageType}`} style={{ marginBottom: '1rem' }}>
+                    {modalMessage}
+                  </div>
+                )}
                 <div className="form-group">
                   <label htmlFor="editTitle">Assignment Title *</label>
                   <input
@@ -706,11 +1299,19 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     <input
                       id="editDeadline"
                       type="datetime-local"
-                      className="form-control"
+                      className={`form-control ${dateErrors.deadline ? 'error' : ''}`}
                       value={assignmentForm.deadline}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, deadline: e.target.value })}
+                      onChange={(e) => {
+                        setAssignmentForm({ ...assignmentForm, deadline: e.target.value });
+                        validateDeadlineDate(e.target.value, assignmentForm.lateSubmissionDeadline);
+                      }}
                       required
                     />
+                    {dateErrors.deadline && (
+                      <small style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                        {dateErrors.deadline}
+                      </small>
+                    )}
                   </div>
 
                   <div className="form-group">
@@ -718,10 +1319,18 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     <input
                       id="editLateDeadline"
                       type="datetime-local"
-                      className="form-control"
+                      className={`form-control ${dateErrors.lateSubmissionDeadline ? 'error' : ''}`}
                       value={assignmentForm.lateSubmissionDeadline}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, lateSubmissionDeadline: e.target.value })}
+                      onChange={(e) => {
+                        setAssignmentForm({ ...assignmentForm, lateSubmissionDeadline: e.target.value });
+                        validateLateDeadlineDate(e.target.value, assignmentForm.deadline);
+                      }}
                     />
+                    {dateErrors.lateSubmissionDeadline && (
+                      <small style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                        {dateErrors.lateSubmissionDeadline}
+                      </small>
+                    )}
                   </div>
                 </div>
 
@@ -736,12 +1345,273 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     onChange={(e) => setAssignmentForm({ ...assignmentForm, instructions: e.target.value })}
                   />
                 </div>
+
+                {/* Existing Files Management */}
+                {existingFiles.length > 0 && (
+                  <div className="form-group">
+                    <label>Current Attachments</label>
+                    <div style={{ marginTop: '0.5rem' }}>
+                      {existingFiles.map(file => (
+                        <div key={file.id} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0.75rem',
+                          background: isFileMarkedForDeletion(file.id) ? '#fee2e2' : '#f0f9ff',
+                          borderRadius: '8px',
+                          marginBottom: '0.5rem',
+                          border: isFileMarkedForDeletion(file.id) ? '1px solid #dc2626' : '1px solid #0ea5e9',
+                          opacity: isFileMarkedForDeletion(file.id) ? 0.6 : 1
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1rem' }}>
+                              {file.attachmentType === 'URL' ? '🔗' : getFileIcon(file.originalFilename || 'file')}
+                            </span>
+                            <div>
+                              <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                                {file.attachmentType === 'URL' ? (file.urlTitle || 'Link') : file.originalFilename}
+                              </div>
+                              {file.attachmentType === 'URL' ? (
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                  {file.url}
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                  {formatFileSize(file.fileSize)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            {file.attachmentType === 'FILE' && (
+                              <button
+                                type="button"
+                                onClick={() => handleFileDownload(file.id, file.originalFilename)}
+                                style={{
+                                  padding: '0.25rem 0.75rem',
+                                  background: '#10b981',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Download
+                              </button>
+                            )}
+                            {file.attachmentType === 'URL' && (
+                              <button
+                                type="button"
+                                onClick={() => window.open(file.url, '_blank')}
+                                style={{
+                                  padding: '0.25rem 0.75rem',
+                                  background: '#3b82f6',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Open Link
+                              </button>
+                            )}
+                            {isFileMarkedForDeletion(file.id) ? (
+                              <button
+                                type="button"
+                                onClick={() => unmarkFileForDeletion(file.id)}
+                                style={{
+                                  padding: '0.25rem 0.75rem',
+                                  background: '#10b981',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Keep
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => markFileForDeletion(file.id)}
+                                style={{
+                                  padding: '0.25rem 0.75rem',
+                                  background: '#dc2626',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  fontSize: '0.75rem',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add New Files */}
+                <div className="form-group">
+                  <label htmlFor="editFiles">Add New Files (Optional)</label>
+                  <input
+                    id="editFiles"
+                    type="file"
+                    multiple
+                    className="form-control"
+                    onChange={handleFileSelect}
+                    accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif,.bmp,.java,.py,.js,.html,.css,.cpp,.c,.cs"
+                  />
+                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
+                    Supported files: PDF, DOC, TXT, ZIP, Images, Code files (Max 50MB each)
+                  </small>
+                  
+                  {selectedFiles.length > 0 && (
+                    <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <h6 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>
+                        New Files to Upload ({selectedFiles.length}):
+                      </h6>
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'space-between',
+                          padding: '0.5rem',
+                          background: 'white',
+                          borderRadius: '4px',
+                          marginBottom: '0.5rem',
+                          border: '1px solid #e5e7eb'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '1rem' }}>{getFileIcon(file.name)}</span>
+                            <div>
+                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '500' }}>
+                                {file.name}
+                              </div>
+                              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                {formatFileSize(file.size)}
+                              </div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeSelectedFile(index)}
+                            style={{
+                              padding: '0.25rem 0.5rem',
+                              border: 'none',
+                              background: '#fee2e2',
+                              color: '#dc2626',
+                              borderRadius: '4px',
+                              fontSize: '0.75rem',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Add New URL Attachments */}
+                <div className="form-group">
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <label>Add New URL Attachments (Optional)</label>
+                    <button
+                      type="button"
+                      onClick={addUrlAttachment}
+                      style={{
+                        padding: '0.25rem 0.75rem',
+                        background: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      + Add URL
+                    </button>
+                  </div>
+                  
+                  {urlAttachments.map((urlAttachment, index) => (
+                    <div key={index} style={{ 
+                      padding: '1rem', 
+                      border: '1px solid #e5e7eb', 
+                      borderRadius: '8px', 
+                      marginBottom: '1rem',
+                      background: '#fafafa'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                          New URL #{index + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeUrlAttachment(index)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            background: '#dc2626',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '0.75rem',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>URL *</label>
+                        <input
+                          type="url"
+                          className="form-control"
+                          placeholder="https://example.com"
+                          value={urlAttachment.url}
+                          onChange={(e) => updateUrlAttachment(index, 'url', e.target.value)}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Title</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="Link title (optional)"
+                          value={urlAttachment.title}
+                          onChange={(e) => updateUrlAttachment(index, 'title', e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Description</label>
+                        <textarea
+                          className="form-control"
+                          placeholder="Brief description (optional)"
+                          rows="2"
+                          value={urlAttachment.description}
+                          onChange={(e) => updateUrlAttachment(index, 'description', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="modal-actions">
                 <button 
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowEditModal(false)}
+                  onClick={closeEditModal}
                   disabled={isSubmitting}
                 >
                   Cancel
