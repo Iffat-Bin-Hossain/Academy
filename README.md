@@ -1,6 +1,6 @@
 # Academy
 
-A comprehensive full-stack web application for academy management with complete user authentication, role-based dashboards, course management, and enrollment system.
+A comprehensive full-stack web application for academy management with complete user authentication, role-based dashboards, course management, enrollment system, and assignment file upload/download functionality. **Fully Dockerized** for easy deployment and development.
 
 ## 🎨 Design Features
 
@@ -21,6 +21,8 @@ A comprehensive full-stack web application for academy management with complete 
 - **PostgreSQL** - Production database with full ACID compliance
 - **Lombok** - Code generation and boilerplate reduction
 - **Jakarta Validation** - Input validation and constraints
+- **File Upload System** - Persistent file storage with download functionality
+- **Docker** - Containerized deployment
 - **Port**: 8080
 
 ### Frontend  
@@ -30,24 +32,75 @@ A comprehensive full-stack web application for academy management with complete 
 - **JWT Decode** - Token parsing and role extraction
 - **Custom CSS** - Modern styling with CSS Grid and Flexbox
 - **React Icons** - Icon library for UI elements
+- **Docker** - Containerized deployment with Nginx
 - **Port**: 3000
+
+### Infrastructure
+- **Docker Compose** - Multi-container orchestration
+- **PostgreSQL** - Persistent database storage
+- **Docker Volumes** - Persistent file storage for uploads
+- **Nginx** - Production-ready frontend serving
 
 ## 🛠️ Setup & Installation
 
 ### Prerequisites
-- **Java 17+** (OpenJDK recommended)
-- **Node.js 18+** (LTS version)
-- **npm** or **yarn** for package management
+- **Docker** and **Docker Compose** (Latest versions)
 - **Git** for version control
 
-### Backend Setup
+### 🐳 Docker Setup (Recommended)
+
+#### Quick Start
+```bash
+# Clone the repository
+git clone <repository-url>
+cd Academy
+
+# Start all services
+./run-docker.sh start
+
+# Or manually with docker-compose
+docker-compose up --build -d
+```
+
+#### Available Commands
+```bash
+./run-docker.sh start     # Start all services (default)
+./run-docker.sh stop      # Stop all services  
+./run-docker.sh restart   # Restart with rebuild
+./run-docker.sh logs      # View real-time logs
+./run-docker.sh clean     # ⚠️ DANGEROUS: Deletes all data
+./run-docker.sh help      # Show usage
+```
+
+#### Service URLs
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **Database**: localhost:5433 (PostgreSQL)
+
+### 💾 Database Access
+```bash
+# Connect to database inside Docker container
+docker exec -it academy_db psql -U academyuser -d academydb
+
+# Or connect from host
+psql -h localhost -p 5433 -U academyuser -d academydb
+```
+
+### 📁 File Storage
+- **Upload Directory**: `/app/data/uploads` (inside backend container)
+- **Persistent Storage**: Docker volume `academy_uploads`
+- **Supported Files**: PDF, DOC, TXT, ZIP, Images, Code files (Max 50MB each)
+
+### 🔧 Development Setup (Alternative)
+
+#### Backend Setup
 ```bash
 cd backend
 ./gradlew bootRun
 ```
 *The backend will start on http://localhost:8080*
 
-### Frontend Setup
+#### Frontend Setup
 ```bash
 cd frontend
 npm install
@@ -56,13 +109,13 @@ npm start
 *The frontend will start on http://localhost:3000*
 
 ### Database
-- Uses **PostgreSQL** for production data storage
-- Database console available at: http://localhost:5432
+- Uses **PostgreSQL** in Docker container for production data storage
+- **Container**: `academy_db` on port 5433
 - Database name: `academydb`
 - Username: `academyuser`, Password: `academy123`
+- **Persistent Storage**: Docker volume `postgres_data`
 - **Enrollment Status Management**: Proper enum handling for PENDING, APPROVED, REJECTED, RETAKING
 - **Timestamp Tracking**: enrolledAt and decisionAt fields for audit trails
-- H2 fallback available for development testing
 
 ## 📱 Complete Feature Set
 
@@ -84,6 +137,9 @@ npm start
 
 ### 👨‍🏫 Teacher Dashboard Features
 - **Unified Course & Student Management**: Single interface combining course and student management
+- **Assignment Management**: Create, edit, and delete assignments with file attachments
+- **File Upload System**: Support for PDF, DOC, TXT, ZIP, Images, and Code files (Max 50MB each)
+- **Assignment File Downloads**: Persistent file storage with download functionality
 - **Smart Search System**: Search courses by name/code and students by name across all courses
 - **Real-time Student Statistics**: Live counts of Active, Pending, and Retaking students per course
 - **Inline Student Management**: Approve/reject enrollment requests directly from course cards
@@ -98,6 +154,8 @@ npm start
 - **Smart Search & Filter System**: Search courses by title, code, or teacher name with real-time filtering
 - **Course Enrollment Workflow**: Request enrollment with teacher approval system
 - **My Courses Management**: View all courses with status-based organization
+- **Assignment View**: Access and download assignment files from enrolled courses
+- **Assignment File Downloads**: Download PDF, DOC, TXT, ZIP, Images, and Code files
 - **Retake Course System**: Custom modal-based retake request with teacher approval
 - **Enrollment Status Tracking**: Visual status indicators (PENDING, APPROVED, REJECTED, RETAKING)
 - **Course Progress View**: Track enrollment history and current status
@@ -119,6 +177,10 @@ npm start
 
 ### 🎯 Advanced Features
 - **Real-time Search Systems**: Instant filtering across courses and students
+- **Assignment Management System**: Complete file upload/download with persistent storage
+- **File Upload Security**: Validation for file types, size limits (50MB), and proper storage
+- **Persistent File Storage**: Docker volume-based storage that survives container restarts
+- **Teacher-Specific Assignment Filtering**: Teachers see only their own assignments
 - **Custom Modal Systems**: Professional retake confirmation dialogs replacing browser alerts
 - **Status-based Visual Design**: Color-coded enrollment statuses with proper UI feedback
 - **Unified Dashboard Design**: Consolidated interfaces reducing complexity
@@ -128,6 +190,7 @@ npm start
 - **Professional UI Components**: Glass morphism effects, gradient backgrounds, modern typography
 - **Error Handling & Feedback**: Comprehensive user notifications and error management
 - **Token-based Security**: JWT authentication with role-based access control
+- **Docker Integration**: Fully containerized deployment with persistent volumes
 
 ### 🔑 Default Credentials (Auto-generated)
 ```
@@ -146,7 +209,10 @@ Test Accounts:
 
 ```
 academy/
-├── backend/                    # Spring Boot REST API
+├── docker-compose.yml          # Multi-container orchestration
+├── run-docker.sh              # Docker management script
+├── backend/                   # Spring Boot REST API
+│   ├── Dockerfile            # Backend container configuration
 │   ├── src/main/java/
 │   │   └── com/example/demo/
 │   │       ├── config/         # Security, CORS, JWT configuration
@@ -154,24 +220,33 @@ academy/
 │   │       │   ├── AuthController.java     # Authentication endpoints
 │   │       │   ├── CourseController.java   # Course & enrollment management
 │   │       │   ├── AdminController.java    # Admin-specific operations
-│   │       │   └── UserController.java     # User profile management
+│   │       │   ├── UserController.java     # User profile management
+│   │       │   └── AssignmentController.java # Assignment & file management
 │   │       ├── model/          # JPA entities and DTOs
 │   │       │   ├── User.java              # User entity with roles
 │   │       │   ├── Course.java            # Course entity
 │   │       │   ├── CourseEnrollment.java  # Enrollment with status tracking
+│   │       │   ├── Assignment.java        # Assignment entity
+│   │       │   ├── AssignmentFile.java    # File attachment entity
 │   │       │   └── EnrollmentStatus.java  # Enum: PENDING, APPROVED, REJECTED, RETAKING
 │   │       ├── repository/     # Data access layer
 │   │       │   ├── UserRepository.java
 │   │       │   ├── CourseRepository.java
-│   │       │   └── CourseEnrollmentRepository.java
+│   │       │   ├── CourseEnrollmentRepository.java
+│   │       │   ├── AssignmentRepository.java
+│   │       │   └── AssignmentFileRepository.java
 │   │       └── service/        # Business logic layer
-│   │           ├── AuthService.java       # Authentication logic
-│   │           ├── CourseService.java     # Course & enrollment business logic
-│   │           └── AdminService.java      # Admin operations
+│   │           ├── AuthService.java          # Authentication logic
+│   │           ├── CourseService.java        # Course & enrollment business logic
+│   │           ├── AdminService.java         # Admin operations
+│   │           ├── AssignmentService.java    # Assignment management
+│   │           └── AssignmentFileService.java # File upload/download logic
 │   ├── src/main/resources/
 │   │   └── application.properties  # PostgreSQL and server config
 │   └── build.gradle           # Dependencies and build config
 ├── frontend/                  # React SPA
+│   ├── Dockerfile            # Frontend container configuration
+│   ├── nginx.conf            # Nginx configuration for production
 │   ├── src/
 │   │   ├── components/        # React components
 │   │   │   ├── Login.js       # Authentication component
@@ -179,6 +254,7 @@ academy/
 │   │   │   ├── ModernAdminDashboard.js    # Admin interface
 │   │   │   ├── ModernTeacherDashboard.js  # Unified teacher interface with search
 │   │   │   ├── ModernStudentDashboard.js  # 3-tab student interface with retake system
+│   │   │   ├── AssignmentManagement.js    # Teacher assignment management with file upload
 │   │   │   ├── Layout.js      # Common layout wrapper
 │   │   │   └── ProtectedRoute.js  # Route protection component
 │   │   ├── api/
@@ -192,6 +268,8 @@ academy/
 │   ├── courses.txt           # Sample course data
 │   ├── student.txt           # Sample student data
 │   └── teacher.txt           # Sample teacher data
+├── Miscellaneous/
+│   └── DB Commands.txt       # Database management commands
 ├── README.md                  # Project documentation
 └── .gitignore                # Version control exclusions
 ```
@@ -224,6 +302,20 @@ academy/
 - `GET /api/courses/{id}/enrollments` - Get all enrollments for a specific course
 - `POST /api/courses/retake` - Submit retake request (STUDENT)
 - `GET /api/user/me` - Get current user information for dashboard personalization
+
+### Assignment & File Management
+- `POST /api/assignments` - Create new assignment with teacher ID (TEACHER)
+- `GET /api/assignments/teacher/{id}` - Get all assignments for a specific teacher
+- `GET /api/assignments/course/{courseId}/teacher/{teacherId}` - Get course assignments for teacher
+- `GET /api/assignments/teacher/{id}/stats` - Get assignment statistics for teacher dashboard
+- `PUT /api/assignments/{id}` - Update assignment (TEACHER)
+- `DELETE /api/assignments/{id}` - Delete assignment (TEACHER)
+- `POST /api/assignments/{id}/files` - Upload files to assignment (TEACHER)
+- `GET /api/assignments/{id}/files` - Get all files for an assignment
+- `GET /api/assignments/files/{fileId}/download` - Download assignment file
+- `DELETE /api/assignments/files/{fileId}` - Delete assignment file (TEACHER)
+- `POST /api/assignments/{id}/url` - Add URL attachment to assignment (TEACHER)
+- `PUT /api/assignments/{id}/files` - Update assignment files during editing (TEACHER)
 
 ## 🛡️ Security Implementation
 
@@ -284,10 +376,66 @@ academy/
 - ✅ **Responsive UI Design** (Mobile-optimized layouts with modern styling)
 - ✅ **Error Handling & User Feedback** (Comprehensive notification systems)
 - ✅ **Token-based Security** (JWT interceptors and protected routes)
+- ✅ **Assignment Management System** (Create, edit, delete assignments with teacher filtering)
+- ✅ **File Upload System** (Multiple file types, size validation, persistent storage)
+- ✅ **File Download System** (Persistent downloads that survive Docker restarts)
+- ✅ **Docker Containerization** (Multi-container setup with persistent volumes)
+- ✅ **Teacher-Specific Data Filtering** (Teachers see only their own assignments and courses)
+- ✅ **Volume Persistence Testing** (File storage survives container restarts)
 
 ## 🚀 Deployment Guide
 
-### Production Build
+### 🐳 Docker Deployment (Production Ready)
+
+#### Using the Docker Script
+```bash
+# Production deployment
+./run-docker.sh start
+
+# View logs
+./run-docker.sh logs
+
+# Stop services
+./run-docker.sh stop
+```
+
+#### Manual Docker Deployment
+```bash
+# Build and start all services
+docker-compose up --build -d
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+#### Docker Services
+- **Database**: PostgreSQL with persistent volume `postgres_data`
+- **Backend**: Spring Boot API with file storage volume `academy_uploads`
+- **Frontend**: React app served by Nginx
+- **Networking**: Internal Docker network `academy_network`
+
+#### Data Persistence
+- **Database Data**: Stored in `postgres_data` volume (survives container restarts)
+- **Uploaded Files**: Stored in `academy_uploads` volume (persistent file storage)
+- **Container Isolation**: Each service runs in its own container with proper networking
+- **Volume Management**: Docker automatically manages volume lifecycle and permissions
+
+#### Production Features
+- **Health Checks**: Database health monitoring with automatic recovery
+- **Restart Policies**: Automatic container restart on failure
+- **Environment Configuration**: Proper environment variable management
+- **Security**: Network isolation and proper port exposure
+- **Logging**: Centralized logging for all services
+
+### Traditional Deployment
+
+#### Production Build
 ```bash
 # Build Frontend
 cd frontend
@@ -303,14 +451,22 @@ cd ../backend
 ```
 
 ### Deployment Options
-1. **Traditional Server**: Deploy JAR file with static files
-2. **Docker**: Containerized deployment (Dockerfile included)
+1. **Docker Compose** (Recommended): Complete multi-container setup
+2. **Traditional Server**: Deploy JAR file with static files
 3. **Cloud Platforms**: AWS, Heroku, Digital Ocean support
-4. **Database**: Switch to PostgreSQL/MySQL for production
+4. **Kubernetes**: Container orchestration for large-scale deployment
 
 ### Environment Variables
 ```bash
-# Backend Configuration
+# Docker Environment (docker-compose.yml)
+SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/academydb
+SPRING_DATASOURCE_USERNAME=academyuser
+SPRING_DATASOURCE_PASSWORD=academy123
+SPRING_JPA_HIBERNATE_DDL_AUTO=update
+SERVER_PORT=8080
+UPLOAD_DIR=/app/data/uploads
+
+# Production Environment Variables
 SPRING_PROFILES_ACTIVE=production
 DATABASE_URL=jdbc:postgresql://localhost:5432/academy
 DATABASE_USERNAME=academy_user
@@ -319,6 +475,7 @@ JWT_SECRET=your-super-secret-jwt-key
 
 # Frontend Configuration  
 REACT_APP_API_BASE_URL=https://api.yourdomain.com
+REACT_APP_BACKEND_URL=http://backend:8080
 ```
 
 ## 📊 Performance & Scalability
@@ -339,6 +496,64 @@ REACT_APP_API_BASE_URL=https://api.yourdomain.com
 
 ### Common Issues
 
+**Docker containers won't start:**
+```bash
+# Check Docker is running
+docker --version
+docker-compose --version
+
+# Restart all services
+./run-docker.sh restart
+
+# View logs for errors
+./run-docker.sh logs
+```
+
+**Database connection issues:**
+```bash
+# Connect to database container
+docker exec -it academy_db psql -U academyuser -d academydb
+
+# Check container status
+docker-compose ps
+
+# Restart database
+docker-compose restart database
+```
+
+**File upload/download issues:**
+```bash
+# Check volume mount
+docker exec academy_backend ls -la /app/data/uploads/
+
+# Check permissions
+docker exec academy_backend whoami
+```
+
+**Backend build failures:**
+```bash
+# Clean rebuild
+docker-compose build --no-cache backend
+docker-compose up -d backend
+```
+
+**Frontend won't load:**
+```bash
+# Rebuild frontend
+docker-compose build --no-cache frontend
+docker-compose up -d frontend
+```
+
+**Port conflicts:**
+```bash
+# Check if ports are in use
+sudo netstat -tulpn | grep :3000
+sudo netstat -tulpn | grep :8080
+sudo netstat -tulpn | grep :5433
+```
+
+### Legacy Issues (Non-Docker)
+
 **Backend won't start:**
 ```bash
 # Check Java version
@@ -358,11 +573,6 @@ rm -rf node_modules package-lock.json
 npm install
 npm start
 ```
-
-**Database connection issues:**
-- Check H2 console at http://localhost:8080/h2-console
-- Verify JDBC URL: `jdbc:h2:mem:testdb`
-- Username: `sa`, Password: *(empty)*
 
 **CORS errors:**
 - Backend CORS is configured for localhost:3000
@@ -386,11 +596,15 @@ npm start
 ## 📈 Future Enhancements
 
 ### Planned Features
-- [ ] **Assignment & Grading System**: Homework submission, grading, and feedback
+- [x] **Assignment Management System**: Complete CRUD operations for assignments ✅
+- [x] **File Upload & Download System**: Persistent file storage with multi-format support ✅
+- [x] **Teacher-Specific Assignment Filtering**: Role-based data isolation ✅
+- [x] **Docker Containerization**: Full multi-container deployment ✅
+- [ ] **Student Assignment Submission**: File upload system for student homework submissions
+- [ ] **Grading System**: Assignment grading, scoring, and feedback
 - [ ] **Real-time Notifications**: WebSocket integration for live enrollment updates
 - [ ] **Email Notification System**: Automated emails for enrollment status changes
 - [ ] **Advanced Analytics Dashboard**: Detailed reports and statistics for admins
-- [ ] **File Upload System**: Document and image uploads for courses and assignments
 - [ ] **Calendar Integration**: Course schedules, deadlines, and academic calendar
 - [ ] **Student Progress Tracking**: Comprehensive academic progress monitoring
 - [ ] **Mobile App**: React Native mobile application for iOS/Android
@@ -398,27 +612,52 @@ npm start
 - [ ] **Advanced User Profiles**: Extended profile management with avatars and preferences
 
 ### Technical Improvements
+- [x] **Docker Compose Architecture**: Multi-container orchestration with persistent volumes ✅
+- [x] **Persistent File Storage**: Volume-based storage that survives container restarts ✅
+- [x] **Production-Ready Database**: PostgreSQL with proper configuration ✅
+- [x] **Nginx Frontend Serving**: Production-optimized static file serving ✅
 - [ ] **Microservices Architecture**: Split into user, course, and notification services
 - [ ] **GraphQL API**: Alternative to REST for flexible data fetching
 - [ ] **Advanced Caching**: Redis implementation for better performance
 - [ ] **Monitoring**: Application performance monitoring (APM)
 - [ ] **CI/CD Pipeline**: Automated testing and deployment
 - [ ] **Documentation**: Interactive API documentation with Swagger
+- [ ] **Load Balancing**: Multi-instance deployment with load balancer
+- [ ] **Security Enhancements**: SSL/TLS, rate limiting, and advanced security headers
 
 ## 📝 License & Credits
 
 **Project**: Academy Platform - Full-Stack Learning Management System  
 **Purpose**: Educational project demonstrating modern web development practices  
-**Technologies**: Spring Boot, React, JWT, JPA, PostgreSQL Database  
-**Status**: Complete MVP with all core features implemented
+**Technologies**: Spring Boot, React, JWT, JPA, PostgreSQL Database, Docker  
+**Status**: Complete MVP with all core features implemented and fully dockerized
+
+### Key Achievements
+- ✅ **Complete Authentication System** with JWT and role-based access control
+- ✅ **Full CRUD Operations** for users, courses, enrollments, and assignments
+- ✅ **Advanced File Management** with persistent storage and download functionality
+- ✅ **Teacher-Specific Data Filtering** ensuring proper data isolation
+- ✅ **Docker Containerization** with multi-container orchestration
+- ✅ **Production-Ready Database** with PostgreSQL and persistent volumes
+- ✅ **Responsive Modern UI** with professional design and user experience
+- ✅ **Comprehensive Testing** covering all major user workflows
+
+### Docker Implementation Highlights
+- **Multi-Container Setup**: Separate containers for database, backend, and frontend
+- **Persistent Storage**: Docker volumes for database and file storage
+- **Production Configuration**: Nginx for frontend serving, proper networking
+- **Easy Management**: Custom script for simplified container management
+- **Zero-Configuration Setup**: One-command deployment for development and production
 
 ### Acknowledgments
 - Spring Boot Team for the excellent framework
 - React Team for the powerful UI library
+- Docker Team for containerization technology
+- PostgreSQL Team for the robust database system
 - Open source community for various libraries and tools
 - Academia for providing the learning environment
 
 ---
 
 **🎓 Academy Platform** - *Empowering Education Through Technology*  
-*Built with ❤️ for learning and development*
+*Built with ❤️ for learning and development - Now Fully Dockerized! 🐳*

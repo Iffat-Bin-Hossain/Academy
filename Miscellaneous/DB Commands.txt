@@ -1,11 +1,57 @@
-Use the psql command with the credentials from your configuration:
-psql -h localhost -p 5432 -U academyuser -d academydb
+## Database Access Commands for Dockerized Academy Project
 
+### Option 1: Connect from Docker Container (Recommended)
+docker exec -it academy_db psql -U academyuser -d academydb
 
+### Option 2: Connect from Host Machine
+psql -h localhost -p 5433 -U academyuser -d academydb
 
-Connect:
+### Database Credentials:
+- Host: localhost
+- Port: 5433 (Docker mapped port)
+- Database: academydb
+- Username: academyuser
+- Password: academy123
+
+### Common Commands:
+
+Connect to database:
 \c academydb
-
 
 List all tables in the current database:
 \dt
+
+Show table structure:
+\d table_name
+
+View all users:
+SELECT id, name, email, role, approved FROM users;
+
+View all courses:
+SELECT id, title, course_code, description FROM courses;
+
+View enrollment statistics:
+SELECT status, COUNT(*) FROM course_enrollments GROUP BY status;
+
+View assignment files:
+SELECT id, assignment_id, original_filename, file_path, attachment_type FROM assignment_files;
+
+Exit psql:
+\q
+
+### Useful Docker Commands:
+
+Check container status:
+docker-compose ps
+
+View database logs:
+docker logs academy_db
+
+Restart database container:
+docker-compose restart database
+
+Backup database:
+docker exec academy_db pg_dump -U academyuser academydb > backup.sql
+
+Restore database:
+docker exec -i academy_db psql -U academyuser -d academydb < backup.sql
