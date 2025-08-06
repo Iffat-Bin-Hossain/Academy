@@ -16,10 +16,39 @@ const StudentCourseDetailsPage = () => {
   const [messageType, setMessageType] = useState('');
   const [activeTab, setActiveTab] = useState('announcements');
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Submission state
+  const [showSubmissionModal, setShowSubmissionModal] = useState(false);
+  const [submittingAssignment, setSubmittingAssignment] = useState(null);
+  const [submissionText, setSubmissionText] = useState('');
+  const [submissionFile, setSubmissionFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatuses, setSubmissionStatuses] = useState({});
 
   useEffect(() => {
     fetchData();
   }, [courseCode]);
+
+  // Check submission statuses for all assignments
+  useEffect(() => {
+    if (assignments.length > 0 && user) {
+      checkSubmissionStatuses();
+    }
+  }, [assignments, user]);
+
+  const checkSubmissionStatuses = async () => {
+    const statuses = {};
+    for (const assignment of assignments) {
+      try {
+        const response = await axios.get(`/submissions/check?assignmentId=${assignment.id}&studentId=${user.id}`);
+        statuses[assignment.id] = response.data.hasSubmitted;
+      } catch (error) {
+        console.error(`Error checking submission status for assignment ${assignment.id}:`, error);
+        statuses[assignment.id] = false;
+      }
+    }
+    setSubmissionStatuses(statuses);
+  };
 
   const fetchData = async () => {
     try {
@@ -196,6 +225,97 @@ const StudentCourseDetailsPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
+  };
+
+  // Submission functions
+  const openSubmissionModal = (assignment) => {
+    const now = new Date();
+    const deadline = new Date(assignment.deadline);
+    const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
+    
+    // Check if submission is still allowed
+    if (now > deadline && (!lateDeadline || now > lateDeadline)) {
+      showMessage('Submission deadline has passed', 'error');
+      return;
+    }
+
+    // Check if already submitted
+    if (submissionStatuses[assignment.id]) {
+      showMessage('You have already submitted this assignment', 'warning');
+      return;
+    }
+
+    setSubmittingAssignment(assignment);
+    setSubmissionText('');
+    setSubmissionFile(null);
+    setShowSubmissionModal(true);
+  };
+
+  const closeSubmissionModal = () => {
+    setShowSubmissionModal(false);
+    setSubmittingAssignment(null);
+    setSubmissionText('');
+    setSubmissionFile(null);
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Check if it's a ZIP file
+      if (!file.name.toLowerCase().endsWith('.zip')) {
+        showMessage('Only ZIP files are allowed for submission', 'error');
+        e.target.value = '';
+        return;
+      }
+      
+      // Check file size (50MB limit)
+      if (file.size > 50 * 1024 * 1024) {
+        showMessage('File size must be less than 50MB', 'error');
+        e.target.value = '';
+        return;
+      }
+      
+      setSubmissionFile(file);
+    }
+  };
+
+  const submitAssignment = async () => {
+    if (!submissionFile && !submissionText.trim()) {
+      showMessage('Please provide either a file upload or text submission', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append('assignmentId', submittingAssignment.id);
+      formData.append('studentId', user.id);
+      
+      if (submissionText.trim()) {
+        formData.append('submissionText', submissionText.trim());
+      }
+      
+      if (submissionFile) {
+        formData.append('file', submissionFile);
+      }
+
+      await axios.post('/submissions', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      showMessage('Assignment submitted successfully!', 'success');
+      closeSubmissionModal();
+      
+      // Refresh submission statuses
+      checkSubmissionStatuses();
+    } catch (error) {
+      console.error('Error submitting assignment:', error);
+      showMessage(error.response?.data?.error || 'Failed to submit assignment', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatDate = (dateString) => {
@@ -673,11 +793,17 @@ const StudentCourseDetailsPage = () => {
                                 📋 View Details
                               </button>
                               <button 
-                                className={`btn btn-sm ${isOverdue && !canSubmitLate ? 'btn-secondary' : 'btn-success'}`}
+                                className={`btn btn-sm ${
+                                  submissionStatuses[assignment.id] ? 'btn-success' :
+                                  isOverdue && !canSubmitLate ? 'btn-secondary' : 
+                                  isOverdue && canSubmitLate ? 'btn-warning' : 'btn-success'
+                                }`}
                                 style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
                                 disabled={isOverdue && !canSubmitLate}
+                                onClick={() => openSubmissionModal(assignment)}
                               >
-                                {isOverdue && !canSubmitLate ? '⏰ Closed' : 
+                                {submissionStatuses[assignment.id] ? '✅ Submitted' :
+                                 isOverdue && !canSubmitLate ? '⏰ Closed' : 
                                  isOverdue && canSubmitLate ? '📤 Submit Late' : 
                                  '📤 Submit'}
                               </button>
@@ -698,13 +824,17 @@ const StudentCourseDetailsPage = () => {
                               <span style={{
                                 padding: '0.25rem 0.75rem',
                                 borderRadius: '12px',
-                                background: '#f0f9ff',
-                                color: '#0369a1',
+                                background: submissionStatuses[assignment.id] ? 
+                                  (isOverdue ? '#fee2e2' : '#dcfce7') : '#f0f9ff',
+                                color: submissionStatuses[assignment.id] ? 
+                                  (isOverdue ? '#dc2626' : '#16a34a') : '#0369a1',
                                 fontWeight: '600'
                               }}>
-                                � Not Submitted
+                                {submissionStatuses[assignment.id] ? 
+                                  (isOverdue ? '📤 Submitted Late' : '✅ Submitted On Time') : 
+                                  '❌ Not Submitted'}
                               </span>
-                              {isNearDue && !isOverdue && (
+                              {isNearDue && !isOverdue && !submissionStatuses[assignment.id] && (
                                 <span style={{
                                   padding: '0.25rem 0.75rem',
                                   borderRadius: '12px',
@@ -794,6 +924,196 @@ const StudentCourseDetailsPage = () => {
           )}
         </div>
       </div>
+
+      {/* Assignment Submission Modal */}
+      {showSubmissionModal && submittingAssignment && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '90%',
+            maxHeight: '80vh',
+            overflow: 'auto',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ margin: 0, color: '#1e293b' }}>Submit Assignment</h3>
+              <button 
+                onClick={closeSubmissionModal}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                  color: '#64748b'
+                }}
+                disabled={isSubmitting}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>{submittingAssignment.title}</h4>
+              <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                <span style={{ marginRight: '1rem' }}>📅 Due: {formatDate(submittingAssignment.deadline)}</span>
+                <span>📊 Max Marks: {submittingAssignment.maxMarks}</span>
+              </div>
+              {submittingAssignment.lateSubmissionDeadline && (
+                <div style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.5rem' }}>
+                  📋 Late submission allowed until: {formatDate(submittingAssignment.lateSubmissionDeadline)}
+                </div>
+              )}
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                Submission Text (Optional)
+              </label>
+              <textarea
+                value={submissionText}
+                onChange={(e) => setSubmissionText(e.target.value)}
+                placeholder="Enter any additional notes or comments about your submission..."
+                style={{
+                  width: '100%',
+                  minHeight: '100px',
+                  padding: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  resize: 'vertical'
+                }}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151' }}>
+                Upload File <span style={{ color: '#dc2626' }}>*</span>
+              </label>
+              <input
+                type="file"
+                accept=".zip"
+                onChange={handleFileSelect}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem'
+                }}
+                disabled={isSubmitting}
+              />
+              <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
+                📦 Only ZIP files are allowed (Max 50MB)
+              </div>
+              {submissionFile && (
+                <div style={{ 
+                  marginTop: '0.75rem', 
+                  padding: '0.75rem', 
+                  background: '#f0f9ff', 
+                  borderRadius: '6px',
+                  border: '1px solid #3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <span style={{ fontSize: '1.2rem' }}>📦</span>
+                  <div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      {submissionFile.name}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      {(submissionFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Submission time indicator */}
+            <div style={{ 
+              marginBottom: '1.5rem',
+              padding: '1rem',
+              borderRadius: '8px',
+              background: new Date() > new Date(submittingAssignment.deadline) ? '#fef2f2' : '#f0f9ff',
+              border: `1px solid ${new Date() > new Date(submittingAssignment.deadline) ? '#fecaca' : '#bae6fd'}`
+            }}>
+              <div style={{ 
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: new Date() > new Date(submittingAssignment.deadline) ? '#dc2626' : '#0369a1',
+                marginBottom: '0.5rem'
+              }}>
+                {new Date() > new Date(submittingAssignment.deadline) ? 
+                  '⚠️ Late Submission' : 
+                  '✅ On-Time Submission'
+                }
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                {new Date() > new Date(submittingAssignment.deadline) ? 
+                  'This submission will be marked as late.' : 
+                  'You are submitting before the deadline.'
+                }
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={closeSubmissionModal}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '1px solid #d1d5db',
+                  background: 'white',
+                  color: '#374151',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer'
+                }}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitAssignment}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  background: isSubmitting ? '#9ca3af' : '#3b82f6',
+                  color: 'white',
+                  borderRadius: '6px',
+                  fontSize: '0.875rem',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+                disabled={isSubmitting || (!submissionFile && !submissionText.trim())}
+              >
+                {isSubmitting ? (
+                  <>⏳ Submitting...</>
+                ) : (
+                  <>📤 Submit Assignment</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

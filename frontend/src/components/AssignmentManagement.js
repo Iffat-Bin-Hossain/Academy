@@ -44,6 +44,12 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     lateSubmissionDeadline: ''
   });
 
+  // Submission viewing state
+  const [showSubmissionsModal, setShowSubmissionsModal] = useState(false);
+  const [viewingAssignment, setViewingAssignment] = useState(null);
+  const [submissions, setSubmissions] = useState([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(false);
+
   useEffect(() => {
     fetchAssignments();
   }, [courses, selectedCourse]);
@@ -502,6 +508,51 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     }
   };
 
+  // Submission viewing functions
+  const openSubmissionsModal = async (assignment) => {
+    setViewingAssignment(assignment);
+    setLoadingSubmissions(true);
+    setShowSubmissionsModal(true);
+    
+    try {
+      const response = await axios.get(`/submissions/assignment/${assignment.id}?teacherId=${user.id}`);
+      setSubmissions(response.data || []);
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+      onShowMessage('Failed to load submissions', 'error');
+      setSubmissions([]);
+    } finally {
+      setLoadingSubmissions(false);
+    }
+  };
+
+  const closeSubmissionsModal = () => {
+    setShowSubmissionsModal(false);
+    setViewingAssignment(null);
+    setSubmissions([]);
+  };
+
+  const handleSubmissionFileDownload = async (fileId, filename) => {
+    try {
+      const response = await axios.get(`/submissions/files/${fileId}/download`, {
+        responseType: 'blob',
+      });
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading submission file:', error);
+      onShowMessage('Failed to download submission file', 'error');
+    }
+  };
+
   const openEditModal = async (assignment) => {
     clearModalMessage(); // Clear any existing modal messages
     setDateErrors({ deadline: '', lateSubmissionDeadline: '' }); // Clear date errors
@@ -854,6 +905,13 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           )}
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                          <button 
+                            className="btn btn-info btn-sm"
+                            onClick={() => openSubmissionsModal(assignment)}
+                            style={{ fontSize: '0.75rem' }}
+                          >
+                            📋 View Submissions
+                          </button>
                           <button 
                             className="btn btn-secondary btn-sm"
                             onClick={() => openEditModal(assignment)}
@@ -1635,6 +1693,201 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Submissions View Modal */}
+      {showSubmissionsModal && viewingAssignment && (
+        <div className="modal-overlay" onClick={closeSubmissionsModal}>
+          <div className="modal-content" style={{ maxWidth: '1000px', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">
+                Submissions for "{viewingAssignment.title}"
+              </h3>
+              <button 
+                className="modal-close"
+                onClick={closeSubmissionsModal}
+                aria-label="Close modal"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              {loadingSubmissions ? (
+                <div style={{ textAlign: 'center', padding: '2rem' }}>
+                  <div className="spinner"></div>
+                  <p>Loading submissions...</p>
+                </div>
+              ) : submissions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+                  <h4>No submissions yet</h4>
+                  <p>No students have submitted this assignment yet.</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {/* Assignment Info Header */}
+                  <div style={{ 
+                    padding: '1rem', 
+                    background: '#f8fafc', 
+                    borderRadius: '8px', 
+                    border: '1px solid #e2e8f0',
+                    marginBottom: '1rem'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h5 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>
+                          Assignment Details
+                        </h5>
+                        <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                          <span style={{ marginRight: '2rem' }}>📅 Due: {formatDate(viewingAssignment.deadline)}</span>
+                          <span style={{ marginRight: '2rem' }}>📊 Max Marks: {viewingAssignment.maxMarks}</span>
+                          <span>👥 Total Submissions: {submissions.length}</span>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          background: '#dcfce7',
+                          color: '#16a34a',
+                          fontWeight: '600'
+                        }}>
+                          ✅ On Time: {submissions.filter(s => !s.isLate).length}
+                        </span>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          background: '#fee2e2',
+                          color: '#dc2626',
+                          fontWeight: '600'
+                        }}>
+                          ⏰ Late: {submissions.filter(s => s.isLate).length}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submissions List */}
+                  {submissions.map(submission => (
+                    <div key={submission.id} className="card" style={{ 
+                      border: '1px solid #e2e8f0',
+                      borderLeft: `4px solid ${submission.isLate ? '#ef4444' : '#10b981'}`
+                    }}>
+                      <div className="card-body" style={{ padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                              <h5 style={{ margin: 0, color: '#1e293b' }}>
+                                {submission.studentName}
+                              </h5>
+                              <span style={{ fontSize: '0.875rem', color: '#64748b' }}>
+                                ({submission.studentEmail})
+                              </span>
+                              <span style={{
+                                padding: '0.25rem 0.75rem',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: submission.isLate ? '#fee2e2' : '#dcfce7',
+                                color: submission.isLate ? '#dc2626' : '#16a34a'
+                              }}>
+                                {submission.isLate ? '⏰ Late Submission' : '✅ On Time'}
+                              </span>
+                            </div>
+
+                            <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
+                              <span style={{ marginRight: '2rem' }}>
+                                📅 Submitted: {formatDate(submission.submittedAt)}
+                              </span>
+                              <span>📋 Status: {submission.submissionStatus}</span>
+                            </div>
+
+                            {submission.submissionText && (
+                              <div style={{ 
+                                marginBottom: '1rem', 
+                                padding: '1rem', 
+                                background: '#f8fafc', 
+                                borderRadius: '6px',
+                                border: '1px solid #e2e8f0'
+                              }}>
+                                <h6 style={{ margin: '0 0 0.5rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>
+                                  Student Notes:
+                                </h6>
+                                <p style={{ margin: 0, color: '#374151', fontSize: '0.875rem', lineHeight: '1.5' }}>
+                                  {submission.submissionText}
+                                </p>
+                              </div>
+                            )}
+
+                            {submission.files && submission.files.length > 0 && (
+                              <div style={{ marginBottom: '1rem' }}>
+                                <h6 style={{ margin: '0 0 0.75rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>
+                                  📎 Submitted Files ({submission.files.length}):
+                                </h6>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                  {submission.files.map(file => (
+                                    <div key={file.id} style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      padding: '0.75rem',
+                                      background: '#f0f9ff',
+                                      borderRadius: '6px',
+                                      border: '1px solid #0ea5e9'
+                                    }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <span style={{ fontSize: '1.5rem' }}>📦</span>
+                                        <div>
+                                          <div style={{ fontSize: '0.875rem', color: '#0c4a6e', fontWeight: '500' }}>
+                                            {file.originalFilename}
+                                          </div>
+                                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                                            {formatFileSize(file.fileSize)} • Uploaded: {formatDate(file.uploadedAt)}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleSubmissionFileDownload(file.id, file.originalFilename)}
+                                        style={{
+                                          padding: '0.5rem 1rem',
+                                          border: '1px solid #0ea5e9',
+                                          background: '#0ea5e9',
+                                          color: 'white',
+                                          borderRadius: '6px',
+                                          fontSize: '0.875rem',
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '0.5rem'
+                                        }}
+                                      >
+                                        ⬇️ Download
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="modal-actions">
+              <button 
+                type="button"
+                className="btn btn-secondary"
+                onClick={closeSubmissionsModal}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
