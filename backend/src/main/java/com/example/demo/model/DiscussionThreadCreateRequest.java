@@ -8,6 +8,7 @@ public class DiscussionThreadCreateRequest {
     private String description;
     private Long courseId;
     private Long assignmentId; // Optional
-    private String resourceName; // Optional
+    private Long resourceId; // Optional - link to a resource
+    private String resourceName; // Optional - custom resource name
     private Boolean isPinned = false;
 }

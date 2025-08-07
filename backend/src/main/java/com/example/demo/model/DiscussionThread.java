@@ -38,6 +38,10 @@ public class DiscussionThread {
     @JoinColumn(name = "assignment_id", nullable = true)
     private Assignment assignment; // Optional: If thread is related to a specific assignment
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resource_id", nullable = true)
+    private Resource resource; // Optional: If thread is related to a specific resource
+
     @Column(name = "resource_name")
     private String resourceName; // Optional: If thread is related to a specific resource
 

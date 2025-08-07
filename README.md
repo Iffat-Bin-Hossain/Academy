@@ -176,6 +176,28 @@ npm start
 - **Real-time Updates**: Live status updates without page refresh
 - **Professional UI**: Modern design with color-coded status system
 
+### 📚 Resource Management System (FULLY UPDATED!)
+- **Multi-Format File Support**: Upload PDF, DOC, PPT, images, videos, code files, and more (Max 50MB)
+- **Link Resource Management**: Add external URLs with titles and descriptions
+- **Note Creation**: Create rich text notes directly in the platform
+- **Topic & Week Organization**: Categorize resources by topic and week for easy navigation
+- **Tag System**: Tag resources for improved searchability and organization
+- **Visibility Scheduling**: Set show/hide dates for time-based resource availability
+- **Analytics Tracking**: Monitor download counts and view statistics for each resource
+- **Permission-Based Access**: Teachers can upload/edit/delete, students can view/download
+- **Advanced Search & Filtering**: Real-time search by title/description, filter by topic/week/type
+- **Multiple View Modes**: Grid and list views for optimal resource browsing
+- **Modern UI Design**: Contemporary glassmorphism interface with gradient backgrounds
+- **Resource Creator Display**: Shows uploader name on each resource card for transparency
+- **Teacher Assignment Validation**: Enhanced validation ensures only assigned teachers can create resources
+- **Database Persistence**: Full PostgreSQL integration with proper entity relationships
+- **Sort Options**: Sort by newest, oldest, name, or most viewed resources
+- **Filter Summary**: Visual display of active filters and search terms
+- **Empty State Handling**: User-friendly messages for no resources or filtered results
+- **Resource Count Display**: Accurate count display without mock data interference
+- **Enhanced Error Handling**: Comprehensive error messages and user feedback
+- **Docker Integration**: Fully containerized with persistent file storage
+- **API Endpoint Fixes**: Corrected URL/link resource creation with proper teacherId parameter handling
 ### 📚 Course Management System
 - **Admin Course Creation**: Create courses with title, code, description, and teacher assignment
 - **Teacher Assignment System**: Admin assigns specific teachers to courses
@@ -364,6 +386,21 @@ academy/
 - `DELETE /api/assignments/files/{fileId}` - Delete assignment file (TEACHER)
 - `POST /api/assignments/{id}/url` - Add URL attachment to assignment (TEACHER)
 - `PUT /api/assignments/{id}/files` - Update assignment files during editing (TEACHER)
+
+### Resource Management System
+- `POST /api/resources/file` - Upload file resource (PDF, DOC, PPT, images, videos, etc.) with teacherId param (TEACHER)
+- `POST /api/resources/link?teacherId={id}` - Create link resource with URL and description (TEACHER) [FIXED]
+- `POST /api/resources/note?teacherId={id}` - Create text-based note resource (TEACHER) [FIXED]
+- `GET /api/resources/course/{courseId}` - Get all visible resources for a course (STUDENT/TEACHER)
+- `GET /api/resources/course/{courseId}/filter` - Get filtered resources by topic/week/type
+- `GET /api/resources/course/{courseId}/search` - Search resources by title/description with real-time results
+- `GET /api/resources/course/{courseId}/topics` - Get all unique topics for a course
+- `GET /api/resources/course/{courseId}/weeks` - Get all unique weeks for a course
+- `PUT /api/resources/{resourceId}?teacherId={id}` - Update resource details (TEACHER)
+- `DELETE /api/resources/{resourceId}?teacherId={id}` - Delete resource with teacher validation (TEACHER)
+- `GET /api/resources/{resourceId}` - Get specific resource and increment view count
+- `GET /api/resources/{resourceId}/download` - Download file resource (increments download count)
+- `GET /api/resources/debug/teacher-assignment` - Debug endpoint for teacher assignment validation (DEV)
 
 ### Student Submission System
 - `POST /api/submissions` - Submit assignment with ZIP file upload (STUDENT)
@@ -666,6 +703,12 @@ npm start
 - [x] **Student Assignment Submission**: ZIP-only file upload system with deadline validation ✅
 - [x] **Submission Status Tracking**: On-Time/Late/Overdue status with color coding ✅
 - [x] **Teacher Submission Review**: Complete submission viewing and downloading interface ✅
+- [x] **Resource Management System**: Complete resource management with modern UI ✅
+- [x] **Resource UI Modernization**: Contemporary design with glassmorphism effects ✅
+- [x] **Resource Search Functionality**: Real-time search with backend API integration ✅
+- [x] **Teacher Permission Validation**: Enhanced teacher assignment validation system ✅
+- [x] **Resource Creator Display**: Show resource uploader names on cards ✅
+- [x] **Resource API Bug Fixes**: Fixed URL/link resource creation endpoints ✅
 - [ ] **Grading System**: Assignment grading, scoring, and feedback
 - [ ] **Real-time Notifications**: WebSocket integration for live enrollment updates
 - [ ] **Email Notification System**: Automated emails for enrollment status changes
@@ -675,6 +718,46 @@ npm start
 - [ ] **Mobile App**: React Native mobile application for iOS/Android
 - [ ] **Multi-language Support**: Internationalization (i18n) for global accessibility
 - [ ] **Advanced User Profiles**: Extended profile management with avatars and preferences
+
+## 🔄 Recent Updates & Bug Fixes (August 2025)
+
+### Resource Management System Enhancements
+**🎨 UI/UX Modernization**
+- ✅ **Complete UI Overhaul**: Transformed from basic styling to contemporary design
+- ✅ **Glassmorphism Effects**: Semi-transparent cards with backdrop blur
+- ✅ **Gradient Backgrounds**: Modern blue gradient color schemes
+- ✅ **Hover Animations**: Smooth transform and shadow effects
+- ✅ **Responsive Layout**: Grid-based responsive design for all screen sizes
+- ✅ **Visual Feedback**: Color-coded status indicators and loading states
+
+**🔧 Technical Bug Fixes**
+- ✅ **Resource Count Display**: Fixed incorrect count=0 issue by removing mock data dependency
+- ✅ **Search Icon Positioning**: Fixed CSS overlap between search input icon and button text
+- ✅ **URL Resource Creation**: Fixed missing teacherId parameter in LINK and NOTE resource endpoints
+- ✅ **Teacher Assignment Validation**: Enhanced validation with course entity refresh
+- ✅ **Database Persistence**: Verified and confirmed full PostgreSQL integration
+- ✅ **Docker Compilation**: Fixed multiple Java compilation errors during build
+
+**🚀 Feature Improvements**
+- ✅ **Resource Creator Names**: Added UserSummary model to display uploader information
+- ✅ **Enhanced Search**: Real-time search functionality with backend API integration
+- ✅ **Filter System**: Advanced filtering by topic, week, type with visual summary
+- ✅ **Sort Options**: Multiple sorting options (newest, oldest, name, most viewed)
+- ✅ **View Modes**: Grid and list view modes for optimal browsing experience
+- ✅ **Permission System**: Robust teacher assignment validation for resource creation
+
+**📝 Code Quality Improvements**
+- ✅ **Error Handling**: Comprehensive error messages and user feedback
+- ✅ **API Consistency**: Standardized endpoint parameter handling
+- ✅ **Model Enhancements**: Added UserSummary and ResourceResponse models
+- ✅ **Debug Capabilities**: Added debug endpoint for teacher assignment troubleshooting
+- ✅ **Docker Optimization**: Successful multi-service deployment with all fixes
+
+### Compilation Fixes Applied
+- ✅ **HashMap Import**: Added missing `java.util.HashMap` import in ResourceService
+- ✅ **Map.of() Limitation**: Replaced Map.of() with HashMap for large key-value collections
+- ✅ **User Model Fields**: Corrected field references from firstName/lastName to name
+- ✅ **Build Success**: All services now compile and run successfully in Docker environment
 
 ### Technical Improvements
 - [x] **Docker Compose Architecture**: Multi-container orchestration with persistent volumes ✅
@@ -701,22 +784,27 @@ npm start
 - ✅ **108 User Accounts Created**: 77 students + 31 teachers (pending approval)
 - ✅ **27 CSE Courses Loaded**: Complete computer science curriculum
 - ✅ **Admin User Search**: Advanced search functionality in user management
-- ✅ **Docker Environment**: Fully operational with persistent storage
-- ✅ **Production Ready**: All core systems tested and functional
-- 🎓 **Ready for Testing**: Complete enrollment and assignment workflows available
+- ✅ **Resource Management**: Fully functional with modern UI and all bug fixes applied
+- ✅ **Docker Environment**: Fully operational with persistent storage (all services running)
+- ✅ **Teacher URL Upload**: Fixed issue with teachers uploading link/URL resources
+- ✅ **Production Ready**: All core systems tested and functional including resource management
+- 🎓 **Ready for Testing**: Complete enrollment, assignment, and resource workflows available
 
 ### Key Achievements
 - ✅ **Complete Authentication System** with JWT and role-based access control
-- ✅ **Full CRUD Operations** for users, courses, enrollments, and assignments
+- ✅ **Full CRUD Operations** for users, courses, enrollments, assignments, and resources
 - ✅ **Advanced File Management** with persistent storage and download functionality
 - ✅ **Student Submission System** with ZIP-only validation and deadline enforcement
 - ✅ **Teacher Submission Review** with complete evaluation interface and file downloads
 - ✅ **Submission Status Tracking** with automatic On-Time/Late/Overdue calculation
 - ✅ **Teacher-Specific Data Filtering** ensuring proper data isolation
+- ✅ **Modern Resource Management** with contemporary UI, search, filtering, and creator tracking
+- ✅ **Enhanced Teacher Permissions** with robust validation and assignment checking
 - ✅ **Docker Containerization** with multi-container orchestration
 - ✅ **Production-Ready Database** with PostgreSQL and persistent volumes
 - ✅ **Responsive Modern UI** with professional design and user experience
-- ✅ **Comprehensive Testing** covering all major user workflows including submissions
+- ✅ **Comprehensive Testing** covering all major user workflows including submissions and resources
+- ✅ **Bug-Free Deployment** with all compilation errors fixed and services operational
 
 ### Docker Implementation Highlights
 - **Multi-Container Setup**: Separate containers for database, backend, and frontend

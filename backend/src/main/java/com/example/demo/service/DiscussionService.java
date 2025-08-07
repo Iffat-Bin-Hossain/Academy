@@ -22,6 +22,7 @@ public class DiscussionService {
     private final PostReactionRepository reactionRepository;
     private final CourseRepository courseRepository;
     private final AssignmentRepository assignmentRepository;
+    private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
@@ -68,6 +69,17 @@ public class DiscussionService {
             }
         }
 
+        // Validate resource if provided
+        Resource resource = null;
+        if (request.getResourceId() != null) {
+            resource = resourceRepository.findById(request.getResourceId())
+                    .orElseThrow(() -> new RuntimeException("Resource not found"));
+            
+            if (!resource.getCourse().getId().equals(request.getCourseId())) {
+                throw new RuntimeException("Resource does not belong to the specified course");
+            }
+        }
+
         // Create thread
         DiscussionThread thread = DiscussionThread.builder()
                 .title(request.getTitle())
@@ -75,6 +87,7 @@ public class DiscussionService {
                 .course(course)
                 .createdBy(teacher)
                 .assignment(assignment)
+                .resource(resource)
                 .resourceName(request.getResourceName())
                 .isPinned(request.getIsPinned() != null ? request.getIsPinned() : false)
                 .isActive(true)
@@ -301,6 +314,8 @@ public class DiscussionService {
                 .createdByRole(thread.getCreatedBy().getRole().toString())
                 .assignmentId(thread.getAssignment() != null ? thread.getAssignment().getId() : null)
                 .assignmentTitle(thread.getAssignment() != null ? thread.getAssignment().getTitle() : null)
+                .resourceId(thread.getResource() != null ? thread.getResource().getId() : null)
+                .resourceTitle(thread.getResource() != null ? thread.getResource().getTitle() : null)
                 .resourceName(thread.getResourceName())
                 .isActive(thread.getIsActive())
                 .isPinned(thread.getIsPinned())

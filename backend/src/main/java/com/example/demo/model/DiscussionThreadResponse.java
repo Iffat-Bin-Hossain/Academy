@@ -23,6 +23,8 @@ public class DiscussionThreadResponse {
     private String createdByRole;
     private Long assignmentId;
     private String assignmentTitle;
+    private Long resourceId;
+    private String resourceTitle;
     private String resourceName;
     private Boolean isActive;
     private Boolean isPinned;

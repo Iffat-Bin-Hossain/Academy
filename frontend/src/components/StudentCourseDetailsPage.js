@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import DiscussionThreads from './DiscussionThreads';
+import ResourceManagement from './ResourceManagement';
 
 const StudentCourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -11,7 +12,6 @@ const StudentCourseDetailsPage = () => {
   const [course, setCourse] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [assignments, setAssignments] = useState([]);
-  const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
@@ -165,47 +165,14 @@ const StudentCourseDetailsPage = () => {
           });
         }
 
-        // Mock resources
-        const mockResources = [
-          {
-            id: 1,
-            title: 'Course Syllabus',
-            description: 'Complete course syllabus and schedule',
-            type: 'PDF',
-            url: '#',
-            createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-            size: '2.5 MB'
-          },
-          {
-            id: 2,
-            title: 'Lecture Notes - Week 1',
-            description: 'Comprehensive notes for the first week of lectures',
-            type: 'PDF',
-            url: '#',
-            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-            size: '1.8 MB'
-          },
-          {
-            id: 3,
-            title: 'Reference Materials',
-            description: 'Additional reading materials and references',
-            type: 'ZIP',
-            url: '#',
-            createdAt: new Date(Date.now() - 86400000).toISOString(),
-            size: '15.2 MB'
-          }
-        ];
-
         setAnnouncements(mockAnnouncements);
         setAssignments(realAssignments);
-        setResources(mockResources);
 
       } catch (contentError) {
         console.error('Error fetching course content:', contentError);
         // Set empty arrays if content fetching fails
         setAnnouncements([]);
         setAssignments([]);
-        setResources([]);
       }
 
     } catch (error) {
@@ -492,7 +459,7 @@ const StudentCourseDetailsPage = () => {
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <input
               type="text"
-              placeholder="Search announcements, assignments, and resources..."
+              placeholder="Search announcements and assignments..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="form-control"
@@ -560,7 +527,7 @@ const StudentCourseDetailsPage = () => {
                 color: activeTab === 'resources' ? '#3b82f6' : '#64748b'
               }}
             >
-              📁 Resources ({getFilteredContent(resources).length})
+              📁 Resources
             </button>
             <button
               className={`tab-button ${activeTab === 'discussions' ? 'active' : ''}`}
@@ -882,64 +849,11 @@ const StudentCourseDetailsPage = () => {
           {/* Resources Tab */}
           {activeTab === 'resources' && (
             <div>
-              {getFilteredContent(sortByCreationTime(resources)).length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📁</span>
-                  <h4>No resources found</h4>
-                  <p>
-                    {searchTerm 
-                      ? `No resources match "${searchTerm}"`
-                      : 'No resources have been uploaded for this course yet.'
-                    }
-                  </p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {getFilteredContent(sortByCreationTime(resources)).map(resource => (
-                    <div key={resource.id} className="card" style={{ border: '1px solid #e2e8f0' }}>
-                      <div className="card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                              <span style={{ fontSize: '1.5rem' }}>
-                                {resource.type === 'PDF' ? '📄' : 
-                                 resource.type === 'ZIP' ? '📦' : 
-                                 resource.type === 'DOC' ? '📝' : '📁'}
-                              </span>
-                              <h5 style={{ margin: 0, color: '#1e293b' }}>{resource.title}</h5>
-                              <span style={{
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '12px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#f3f4f6',
-                                color: '#374151'
-                              }}>
-                                {resource.type}
-                              </span>
-                            </div>
-                            <p style={{ margin: '0.5rem 0', color: '#64748b' }}>
-                              {resource.description}
-                            </p>
-                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                              <span>📅 Added: {formatDate(resource.createdAt)}</span>
-                              <span>💾 Size: {resource.size}</span>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button className="btn btn-primary btn-sm">
-                              👁️ View
-                            </button>
-                            <button className="btn btn-secondary btn-sm">
-                              💾 Download
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <ResourceManagement 
+                courseId={course.id}
+                user={user}
+                onShowMessage={showMessage}
+              />
             </div>
           )}
 

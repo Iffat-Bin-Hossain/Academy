@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import AssignmentManagement from './AssignmentManagement';
+import ResourceManagement from './ResourceManagement';
 import DiscussionThreads from './DiscussionThreads';
 
 const CourseDetailsPage = () => {
@@ -293,6 +294,7 @@ const CourseDetailsPage = () => {
             {[
               { id: 'students', label: 'Students', icon: '👥' },
               { id: 'assignments', label: 'Assignments', icon: '📝' },
+              { id: 'resources', label: 'Resources', icon: '📚' },
               { id: 'discussions', label: 'Discussions', icon: '💬' }
             ].map(tab => (
               <button
@@ -558,6 +560,15 @@ const CourseDetailsPage = () => {
         <AssignmentManagement 
           user={user}
           courses={course ? [course] : []}
+          onShowMessage={showMessage}
+        />
+      )}
+
+      {/* Resources Tab */}
+      {activeTab === 'resources' && (
+        <ResourceManagement 
+          courseId={course?.id}
+          user={user}
           onShowMessage={showMessage}
         />
       )}
