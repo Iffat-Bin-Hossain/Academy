@@ -1,0 +1,10 @@
+id,content_type,created_at,description,download_count,file_size,is_active,is_visible,note_content,original_filename,resource_type,stored_filename,tags,title,topic,updated_at,url,view_count,visible_from,visible_until,week,course_id,uploaded_by
+2,application/pdf,2025-08-07 11:01:36.93788,"",5,304068,t,t,,specification.pdf,FILE,43b0ff88-7e8d-4feb-bcfd-d72cdbb42d9f.pdf,"",Lecture-01,K-Map,2025-08-07 12:09:47.7444,,5,,,1,38,4
+3,image/jpeg,2025-08-07 11:02:49.864176,"",5,89693,f,t,,photo_2025-08-07_01-15-53.jpg,FILE,ff0c8fb2-aa69-481e-ad0e-530311435138.jpg,"",Lecture-02,Truth Table,2025-08-07 12:13:18.816419,,6,,,2,38,4
+4,application/pdf,2025-08-07 12:16:42.716235,"",1,304068,f,t,,specification.pdf,FILE,ba03b084-275f-4311-bc29-91380e53253e.pdf,"",demo,PLA,2025-08-07 12:27:14.361414,,1,,,2,38,77
+5,image/jpeg,2025-08-07 12:26:02.493119,"",0,89693,f,t,,photo_2025-08-07_01-15-53.jpg,FILE,4a5b8e42-5d8f-4c1c-87aa-da1397dbddef.jpg,"",Url testing,"",2025-08-07 12:38:38.403041,,1,,,"",38,77
+1,application/pdf,2025-08-07 10:45:17.715955,"",5,304068,f,t,,specification.pdf,FILE,b42a6789-bb27-4c65-8a4e-33f91209e2fe.pdf,"",Lecture-1,1,2025-08-07 11:00:34.363052,,9,,,1,38,4
+6,,2025-08-07 12:38:59.243976,"",0,,t,t,,,LINK,,"",Lecture-02,"",2025-08-07 12:44:34.780661,https://github.com/Iffat-Bin-Hossain/Academy/,1,,,"",38,77
+7,,2025-08-07 12:58:57.536178,"",0,,t,t,This is a note text.,,NOTE,,"",Note Text,"",2025-08-07 12:59:03.617355,,1,2025-08-08 18:58:00,,"",38,77
+8,application/pdf,2025-08-07 13:43:01.556933,"",0,23731,t,t,,ns3_assignment1 (1).pdf,FILE,cb226614-e4be-49fc-a059-ef2b932f83b8.pdf,"",Announcement testing,"",2025-08-07 13:43:01.557031,,0,,,"",38,77
+9,,2025-08-07 13:51:45.203532,"",0,,t,t,XYZ TESTING,,NOTE,,"",Testing,"",2025-08-07 13:51:45.203586,,0,2025-08-07 19:51:00,,"",38,77

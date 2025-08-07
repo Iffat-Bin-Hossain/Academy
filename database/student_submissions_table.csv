@@ -1,0 +1,5 @@
+id,is_late,submission_status,submission_text,submitted_at,assignment_id,student_id
+1,f,ON_TIME,,2025-08-06 22:02:22.463282,1,107
+2,t,LATE,,2025-08-06 22:02:54.061478,2,107
+3,t,LATE,,2025-08-07 08:41:30.213831,2,60
+4,f,ON_TIME,,2025-08-07 12:22:23.816996,5,3

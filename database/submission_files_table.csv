@@ -1,0 +1,5 @@
+id,content_type,file_path,file_size,original_filename,stored_filename,uploaded_at,submission_id
+1,application/zip,/app/data/uploads/submissions/1/1892586a-ec66-44c3-8ad0-339b4d193d3e.zip,10055,starter_code.zip,1892586a-ec66-44c3-8ad0-339b4d193d3e.zip,2025-08-06 22:02:22.468561,1
+2,application/zip,/app/data/uploads/submissions/2/a38c1a4a-572a-494d-a76e-abb641e97576.zip,293824,2005087.zip,a38c1a4a-572a-494d-a76e-abb641e97576.zip,2025-08-06 22:02:54.066565,2
+3,application/zip,/app/data/uploads/submissions/3/1d915126-472d-46cf-ad30-aa459a4bc80d.zip,10055,starter_code.zip,1d915126-472d-46cf-ad30-aa459a4bc80d.zip,2025-08-07 08:41:30.222533,3
+4,application/zip,/app/data/uploads/submissions/4/f1e26c2a-b19a-46c4-9f96-25149db642a6.zip,10055,starter_code.zip,f1e26c2a-b19a-46c4-9f96-25149db642a6.zip,2025-08-07 12:22:23.831324,4

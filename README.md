@@ -84,12 +84,42 @@ docker exec -it academy_db psql -U academyuser -d academydb
 
 # Or connect from host
 psql -h localhost -p 5433 -U academyuser -d academydb
+
+# Export database tables to CSV (regenerate database/ folder)
+docker exec -it academy_db psql -U academyuser -d academydb -c "\COPY users TO STDOUT WITH CSV HEADER" > database/users_table.csv
+docker exec -it academy_db psql -U academyuser -d academydb -c "\COPY course TO STDOUT WITH CSV HEADER" > database/courses_table.csv
+# [Repeat for all 13 tables - see database/ folder for complete table list]
 ```
 
 ### 📁 File Storage
 - **Upload Directory**: `/app/data/uploads` (inside backend container)
 - **Persistent Storage**: Docker volume `academy_uploads`
 - **Supported Files**: PDF, DOC, TXT, ZIP, Images, Code files (Max 50MB each)
+
+### 📊 Database Exports (NEW!)
+- **Export Location**: `database/` folder with live data from PostgreSQL
+- **Export Format**: CSV files with headers for easy Excel/spreadsheet import
+- **Export Date**: August 7, 2025 (automatically generated from running database)
+- **Total Records**: 204 records across 13 tables from live Academy system
+- **Key Data**: 109 users, 28 courses, 8 assignments, 5 student submissions
+- **Export Method**: PostgreSQL COPY command via Docker container
+- **Documentation**: Comprehensive table data with all relationships
+- **Usage**: Ready for data analysis, backup, or migration purposes
+
+#### Database Export Contents:
+```
+database/
+├── users_table.csv (109 records)       # All user accounts with roles
+├── courses_table.csv (28 records)      # Complete course catalog
+├── assignments_table.csv (8 records)   # Course assignments with deadlines
+├── student_submissions_table.csv (5)   # Student work submissions
+├── course_enrollments_table.csv (5)    # Enrollment requests & approvals
+├── announcements_table.csv (4)         # System announcements
+├── resources_table.csv (10)            # Course learning materials
+├── discussion_threads_table.csv (3)    # Forum discussion topics
+├── discussion_posts_table.csv (8)      # Forum post responses
+└── [4 more tables with file attachments and relationships]
+```
 
 ### 🔧 Development Setup (Alternative)
 
@@ -234,6 +264,7 @@ npm start
 - **Error Handling & Feedback**: Comprehensive user notifications and error management
 - **Token-based Security**: JWT authentication with role-based access control
 - **Docker Integration**: Fully containerized deployment with persistent volumes
+- **🆕 Database Export System**: Live PostgreSQL data exports to CSV format (204+ records across 13 tables)
 
 ### 🔑 Default Credentials (Auto-generated)
 ```
@@ -264,6 +295,15 @@ Test Accounts:
 - Admin can approve/reject registrations from the dashboard
 - Sample student data available in student.txt file
 ```
+
+### 🆕 Database Exports Update (August 7, 2025)
+**NEW**: Added live database dumps to the `database/` folder from the running Academy system:
+- **Real Production Data**: 204+ records exported directly from PostgreSQL database
+- **All 13 Tables**: Complete data export including users, courses, assignments, submissions
+- **CSV Format**: Ready for Excel, data analysis, backup, or migration
+- **Live Data Insights**: 109 users, 28 courses, 8 assignments, 5 student submissions
+- **Export Documentation**: Comprehensive table data with all relationships
+- **Regeneration Scripts**: Easy commands to refresh exports from live database
 
 ## 🎯 Project Architecture
 
@@ -338,8 +378,24 @@ academy/
 │   ├── courses.txt           # Sample course data
 │   ├── student.txt           # Sample student data
 │   └── teacher.txt           # Sample teacher data
-├── Miscellaneous/
-│   └── DB Commands.txt       # Database management commands
+├── database/                  # 🆕 LIVE DATABASE EXPORTS (CSV format)
+│   ├── users_table.csv       # 109 user records from live database
+│   ├── courses_table.csv     # 28 course records from live database
+│   ├── course_enrollments_table.csv # 5 enrollment records
+│   ├── assignments_table.csv # 8 assignment records
+│   ├── student_submissions_table.csv # 5 submission records
+│   ├── announcements_table.csv # 4 announcement records
+│   ├── resources_table.csv   # 10 resource records
+│   ├── discussion_threads_table.csv # 3 thread records
+│   ├── discussion_posts_table.csv # 8 post records
+│   ├── assignment_files_table.csv # 9 file records
+│   ├── submission_files_table.csv # 5 submission file records
+│   ├── course_teachers_table.csv # 2 teacher assignment records
+│   └── post_reactions_table.csv # 7 reaction records
+├── miscellaneous/             # Project documentation and utilities
+│   ├── Academy Scope.pdf     # Project scope documentation
+│   ├── DB Commands.txt       # Database management commands
+│   └── Project Run Commands.txt # Project execution commands
 ├── README.md                  # Project documentation
 └── .gitignore                # Version control exclusions
 ```

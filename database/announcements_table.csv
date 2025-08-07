@@ -1,0 +1,4 @@
+id,content,created_at,reference_id,reference_type,title,type,course_id,created_by
+1,"A new assignment ""Announcement Testing"" has been posted. Please check the assignments section for details and submission requirements.",2025-08-07 13:36:47.184897,7,ASSIGNMENT,📝 New Assignment Posted: Announcement Testing,ASSIGNMENT_POSTED,38,77
+2,"A new file resource ""Announcement testing"" has been added to the course. Check the resources section to access it.",2025-08-07 13:43:01.57165,8,RESOURCE,📁 New Resource Added: Announcement testing,RESOURCE_ADDED,38,77
+3,"A new note resource ""Testing"" has been added to the course. Check the resources section to access it.",2025-08-07 13:51:45.271679,9,RESOURCE,📝 New Resource Added: Testing,RESOURCE_ADDED,38,77

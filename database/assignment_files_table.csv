@@ -1,0 +1,9 @@
+id,attachment_type,content_type,file_path,file_size,original_filename,stored_filename,uploaded_at,uploaded_by,url,url_description,url_title,assignment_id
+1,FILE,text/x-c++src,/app/data/uploads/assignments/1/82869a2b-c57a-448c-8f31-47b0c8612eea.cpp,21052,classes.cpp,82869a2b-c57a-448c-8f31-47b0c8612eea.cpp,2025-08-06 21:53:13.543368,77,,,,1
+2,URL,,,,,,2025-08-06 21:53:13.582647,77,https://github.com/settings/emails,"",Github-Email,1
+3,URL,,,,,,2025-08-06 21:56:42.595734,77,https://github.com/Iffat-Bin-Hossain/Academy,"",Lab Resources,2
+4,FILE,text/x-python,/app/data/uploads/assignments/3/3519bc8f-2adc-413a-80df-d6d634d6f017.py,2062,plot.py,3519bc8f-2adc-413a-80df-d6d634d6f017.py,2025-08-06 21:58:37.992673,77,,,,3
+5,FILE,application/pdf,/app/data/uploads/assignments/5/f1899d30-3c0a-44e3-a193-0d262fab9078.pdf,304068,specification.pdf,f1899d30-3c0a-44e3-a193-0d262fab9078.pdf,2025-08-07 08:59:33.092206,4,,,,5
+6,URL,,,,,,2025-08-07 08:59:33.130695,4,https://chatgpt.com/c/68944da9-4afc-832d-a66b-04dc506ee4f5,"",GPT Prompt,5
+7,FILE,image/jpeg,/app/data/uploads/assignments/7/674e00e4-22b0-48a2-95c6-0cf4a9a8e417.jpg,89693,photo_2025-08-07_01-15-53.jpg,674e00e4-22b0-48a2-95c6-0cf4a9a8e417.jpg,2025-08-07 13:36:47.320926,77,,,,7
+8,URL,,,,,,2025-08-07 13:36:47.37293,77,https://github.com/Iffat-Bin-Hossain/Academy/,"",Github Repo,7

@@ -1,0 +1,28 @@
+id,course_code,created_at,description,title,updated_at,assigned_teacher_id
+34,CSE102,2025-08-06 21:01:28.030909,Programming lab practice,Structured Programming Sessional,,
+35,CSE103,2025-08-06 21:01:28.077334,Mathematical foundations for computing,Discrete Mathematics,,
+36,CSE105,2025-08-06 21:01:28.115924,Basic DS & algorithms,Data Structures and Algorithms I,,
+37,CSE109,2025-08-06 21:01:28.167325,Introduction to coding techniques,Computer Programming,,
+39,CSE207,2025-08-06 21:01:28.263893,Advanced DS & algorithm analysis,Data Structures and Algorithms II,,
+40,CSE209,2025-08-06 21:01:28.303157,CPU and memory systems,Computer Architecture,,
+42,CSE213,2025-08-06 21:01:28.389624,Software development lifecycle principles,Software Engineering,,
+44,CSE300,2025-08-06 21:01:28.479548,Communication and writing skills,Technical Writing and Presentation,,
+45,CSE305,2025-08-06 21:01:28.521666,Advanced computer organization concepts,Computer Architecture,,
+48,CSE313,2025-08-06 21:01:28.654914,OS design and implementation,Operating System,,
+49,CSE315,2025-08-06 21:01:28.694742,Embedded hardware and software integration,Embedded Systems & Interfacing,,
+51,CSE321,2025-08-06 21:01:28.780682,Network protocols and architecture,Computer Networks,,
+52,CSE329,2025-08-06 21:01:28.827946,Foundations of machine learning models,Machine Learning,,
+53,CSE411,2025-08-06 21:01:28.879459,Modeling systems and simulation techniques,Simulation and Modeling,,
+54,CSE413,2025-08-06 21:01:28.924625,Parallel computing and optimization,High Performance Computing,,
+55,CSE415,2025-08-06 21:01:28.967403,Real-time system design concepts,Real‑time Embedded Systems,,
+56,CSE451,2025-08-06 21:01:28.992404,Practical networking topics,Computer Networks,,
+57,CSE461,2025-08-06 21:01:29.029495,Design efficient algorithm engineering,Algorithm Engineering,,
+58,CSE473,2025-08-06 21:01:29.074201,Recognize patterns using data models,Pattern Recognition,,
+59,CSE475,2025-08-06 21:01:29.126246,Principles of robotics systems design,Robotics,,
+41,CSE211,2025-08-06 21:01:28.346872,Formal languages and automata,Theory of Computation,2025-08-06 21:25:51.854124,78
+47,CSE309,2025-08-06 21:01:28.61619,Compiler design and construction,Compiler,2025-08-06 21:26:24.754678,78
+50,CSE317,2025-08-06 21:01:28.738632,Basics of AI algorithms,Artificial Intelligence,2025-08-06 21:27:48.101278,77
+46,CSE307,2025-08-06 21:01:28.572408,Software process & quality,Software Engineering,2025-08-06 21:28:21.314727,97
+43,CSE215,2025-08-06 21:01:28.439506,Relational database design fundamentals,Database,2025-08-06 21:30:33.101239,97
+33,CSE101,2025-08-06 21:01:27.962781,Learn structured programming basics,Structured Programming Language,2025-08-06 21:35:26.387215,4
+38,CSE205,2025-08-06 21:01:28.219986,Logic circuits and design,Digital Logic Design,2025-08-07 11:36:25.306931,77

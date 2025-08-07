@@ -1,0 +1,8 @@
+id,assignment_type,content,created_at,deadline,instructions,is_active,late_submission_deadline,max_marks,title,updated_at,course_id,created_by
+1,HOMEWORK,Design Report on Priority Encoder.,2025-08-06 21:53:13.380219,2025-08-07 21:52:00,"",t,2025-08-08 21:52:00,50,Priority Encoder,2025-08-06 21:53:13.380263,38,77
+2,LAB,Designing Sequential Circuit.,2025-08-06 21:56:42.566848,2025-08-06 21:57:00,"",t,2025-08-08 21:57:00,100,J Flip Flop,2025-08-06 21:56:42.566866,38,77
+4,PROJECT,Implementation of Sequential Circuit,2025-08-07 08:53:03.056154,2025-09-30 08:52:00,"",t,2025-10-02 08:52:00,100,Vending Machine,2025-08-07 08:53:03.056218,38,4
+3,PROJECT,PLA Design,2025-08-06 21:58:37.953169,2025-08-06 21:59:00,"",f,2025-08-06 22:00:00,50,PLA,2025-08-07 08:53:14.5222,38,77
+5,HOMEWORK,Only who has marks <5,2025-08-07 08:59:32.975663,2025-08-15 08:58:00,"",t,2025-08-17 08:58:00,10,Backup Assignent,2025-08-07 08:59:32.975682,38,4
+6,HOMEWORK,testing......,2025-08-07 12:15:36.495715,2025-08-08 12:15:00,"",t,2025-08-10 12:15:00,5,Test,2025-08-07 12:15:36.495739,38,77
+7,QUIZ,testing,2025-08-07 13:36:47.120865,2025-08-09 13:34:00,"",t,2025-08-11 13:34:00,20,Announcement Testing,2025-08-07 13:36:47.121023,38,77

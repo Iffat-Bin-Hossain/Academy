@@ -1,3 +1,10 @@
+##Copy DB table to a csv file:
+
+
+docker exec -it academy_db psql -U academyuser -d academydb -c "\COPY <<TABLE NAME>> TO STDOUT WITH CSV HEADER" > /home/iffat25082002/Desktop/Academy/database/<<CSV FILE NAME>>.csv
+
+
+
 ## Database Access Commands for Dockerized Academy Project
 
 ### Option 1: Connect from Docker Container (Recommended)
