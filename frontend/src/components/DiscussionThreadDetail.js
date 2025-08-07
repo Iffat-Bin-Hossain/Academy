@@ -9,6 +9,7 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
   const [newPost, setNewPost] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
+  const [expandedReplies, setExpandedReplies] = useState(new Set());
 
   useEffect(() => {
     fetchThreadDetails();
@@ -111,6 +112,16 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
     }
   };
 
+  const toggleReplies = (postId) => {
+    const newExpanded = new Set(expandedReplies);
+    if (newExpanded.has(postId)) {
+      newExpanded.delete(postId);
+    } else {
+      newExpanded.add(postId);
+    }
+    setExpandedReplies(newExpanded);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -123,97 +134,122 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
 
   const renderPost = (post, isReply = false) => {
     const totalReactions = Object.values(post.reactionCounts || {}).reduce((sum, count) => sum + count, 0);
+    const hasReplies = post.replies && post.replies.length > 0;
+    const areRepliesExpanded = expandedReplies.has(post.id);
     
     return (
       <div key={post.id} className={`post ${isReply ? 'reply' : 'main-post'}`}>
-        <div className="post-header">
-          <div className="author-info">
-            <div className="author-avatar">
-              {post.authorName.charAt(0)}
+        <div className="post-wrapper">
+          <div className="post-header">
+            <div className="author-info">
+              <div className="author-avatar">
+                {post.authorName.charAt(0)}
+              </div>
+              <div className="author-details">
+                <span className="author-name">{post.authorName}</span>
+                <span className={`author-role ${post.authorRole.toLowerCase()}`}>
+                  {post.authorRole === 'TEACHER' ? '👨‍🏫 Teacher' : '👨‍🎓 Student'}
+                </span>
+              </div>
             </div>
-            <div className="author-details">
-              <span className="author-name">{post.authorName}</span>
-              <span className={`author-role ${post.authorRole.toLowerCase()}`}>
-                {post.authorRole === 'TEACHER' ? '👨‍🏫 Teacher' : '👨‍🎓 Student'}
-              </span>
+            <div className="post-meta">
+              <span className="post-date">{formatDate(post.createdAt)}</span>
+              {post.isEdited && <span className="edited-badge">✏️ Edited</span>}
             </div>
           </div>
-          <div className="post-meta">
-            <span className="post-date">{formatDate(post.createdAt)}</span>
-            {post.isEdited && <span className="edited-badge">✏️ Edited</span>}
-          </div>
-        </div>
 
-        <div className="post-content">
-          <p>{post.content}</p>
-        </div>
-
-        <div className="post-actions">
-          <div className="reactions">
-            <button 
-              className={`reaction-btn ${post.userReaction === 'LIKE' ? 'active' : ''}`}
-              onClick={() => handleReaction(post.id, 'LIKE')}
-            >
-              👍 {post.reactionCounts?.LIKE || 0}
-            </button>
-            <button 
-              className={`reaction-btn ${post.userReaction === 'HELPFUL' ? 'active' : ''}`}
-              onClick={() => handleReaction(post.id, 'HELPFUL')}
-            >
-              💡 {post.reactionCounts?.HELPFUL || 0}
-            </button>
-            <button 
-              className={`reaction-btn ${post.userReaction === 'CONFUSED' ? 'active' : ''}`}
-              onClick={() => handleReaction(post.id, 'CONFUSED')}
-            >
-              😕 {post.reactionCounts?.CONFUSED || 0}
-            </button>
+          <div className="post-content">
+            <p>{post.content}</p>
           </div>
 
-          {!isReply && (
-            <button 
-              className="reply-btn"
-              onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-            >
-              💬 Reply
-            </button>
+          <div className="post-actions">
+            <div className="reactions">
+              <button 
+                className={`reaction-btn ${post.userReaction === 'LIKE' ? 'active' : ''}`}
+                onClick={() => handleReaction(post.id, 'LIKE')}
+              >
+                👍 {post.reactionCounts?.LIKE || 0}
+              </button>
+              <button 
+                className={`reaction-btn ${post.userReaction === 'HELPFUL' ? 'active' : ''}`}
+                onClick={() => handleReaction(post.id, 'HELPFUL')}
+              >
+                💡 {post.reactionCounts?.HELPFUL || 0}
+              </button>
+              <button 
+                className={`reaction-btn ${post.userReaction === 'CONFUSED' ? 'active' : ''}`}
+                onClick={() => handleReaction(post.id, 'CONFUSED')}
+              >
+                😕 {post.reactionCounts?.CONFUSED || 0}
+              </button>
+            </div>
+
+            <div className="action-buttons">
+              {!isReply && (
+                <button 
+                  className="reply-btn"
+                  onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+                >
+                  💬 Reply
+                </button>
+              )}
+              
+              {hasReplies && !isReply && (
+                <button 
+                  className="toggle-replies-btn"
+                  onClick={() => toggleReplies(post.id)}
+                >
+                  {areRepliesExpanded ? '🔽' : '▶️'} 
+                  {post.replies.length} {post.replies.length === 1 ? 'Reply' : 'Replies'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Reply Form */}
+          {replyingTo === post.id && (
+            <div className="reply-form">
+              <div className="reply-form-header">
+                <h5>💬 Reply to {post.authorName}</h5>
+              </div>
+              <textarea
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder="Write your reply..."
+                className="reply-input"
+                rows="3"
+              />
+              <div className="reply-actions">
+                <button 
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    setReplyingTo(null);
+                    setReplyContent('');
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-primary btn-sm"
+                  onClick={() => handleCreateReply(post.id)}
+                >
+                  Post Reply
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
-        {/* Reply Form */}
-        {replyingTo === post.id && (
-          <div className="reply-form">
-            <textarea
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="Write your reply..."
-              className="reply-input"
-              rows="3"
-            />
-            <div className="reply-actions">
-              <button 
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  setReplyingTo(null);
-                  setReplyContent('');
-                }}
-              >
-                Cancel
-              </button>
-              <button 
-                className="btn btn-primary btn-sm"
-                onClick={() => handleCreateReply(post.id)}
-              >
-                Post Reply
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Nested Replies */}
-        {post.replies && post.replies.length > 0 && (
+        {/* Nested Replies with Toggle */}
+        {hasReplies && !isReply && areRepliesExpanded && (
           <div className="replies-container">
-            {post.replies.map(reply => renderPost(reply, true))}
+            <div className="replies-header">
+              <div className="replies-line"></div>
+              <span className="replies-label">Replies</span>
+            </div>
+            <div className="replies-list">
+              {post.replies.map(reply => renderPost(reply, true))}
+            </div>
           </div>
         )}
       </div>
