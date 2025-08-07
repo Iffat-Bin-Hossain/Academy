@@ -14,6 +14,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final EmailValidationService emailValidationService;
+    private final NotificationService notificationService;
 
     public String signup(SignupRequest request) {
         // Validate input fields
@@ -67,6 +68,9 @@ public class UserService {
                 .build();
 
         userRepo.save(user);
+        
+        // Notify all admins about the new signup request
+        notificationService.createNewSignupRequestNotification(user);
         
         // Send welcome email
         emailService.sendWelcomeEmail(user.getEmail(), user.getName());

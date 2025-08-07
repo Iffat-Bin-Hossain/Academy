@@ -169,10 +169,6 @@ const StudentCourseDetailsPage = () => {
           setResources([]);
         }
 
-        // For discussions, we'll set a placeholder count (can be implemented later)
-        // TODO: Implement discussions API and fetching
-        setDiscussions([]); // Placeholder for now
-
         setAssignments(realAssignments);
 
       } catch (contentError) {
@@ -181,6 +177,15 @@ const StudentCourseDetailsPage = () => {
         setAnnouncements([]);
         setAssignments([]);
         setResources([]);
+        setDiscussions([]);
+      }
+
+      // Fetch discussions for this course (separate from other content to avoid being reset by content errors)
+      try {
+        const discussionsResponse = await axios.get(`/discussions/course/${foundCourse.id}/threads?userId=${currentUser.id}`);
+        setDiscussions(discussionsResponse.data);
+      } catch (discussionsError) {
+        console.error('Error fetching discussions:', discussionsError);
         setDiscussions([]);
       }
 

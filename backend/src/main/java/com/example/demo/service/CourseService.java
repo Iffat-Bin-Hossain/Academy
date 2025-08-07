@@ -17,6 +17,7 @@ public class CourseService {
     private final UserRepository userRepo;
     private final AssignmentRepository assignmentRepo;
     private final CourseTeacherRepository courseTeacherRepo;
+    private final NotificationService notificationService;
 
     // ============ BASIC CRUD OPERATIONS ============
     
@@ -25,7 +26,14 @@ public class CourseService {
         if (courseRepo.existsByCourseCode(course.getCourseCode())) {
             throw new RuntimeException("Course with same code exists already");
         }
-        return courseRepo.save(course);
+        
+        Course savedCourse = courseRepo.save(course);
+        
+        // Always notify all students about the new course
+        // Pass the admin who created the course as the creator
+        notificationService.createNewCourseNotification(savedCourse, savedCourse.getAssignedTeacher());
+        
+        return savedCourse;
     }
     
     public List<Course> getAllCourses() {
@@ -158,6 +166,10 @@ public class CourseService {
                 .build();
 
         enrollmentRepo.save(enrollment);
+        
+        // Notify teacher about new enrollment request
+        notificationService.createEnrollmentRequestNotification(course.getAssignedTeacher(), course, student);
+        
         return "✅ Enrollment request sent";
     }
 
@@ -185,6 +197,9 @@ public class CourseService {
         enrollment.setActionBy(teacher);
         enrollment.setDecisionAt(LocalDateTime.now());
         enrollmentRepo.save(enrollment);
+
+        // Notify student about enrollment decision
+        notificationService.createEnrollmentDecisionNotification(enrollment.getStudent(), enrollment.getCourse(), approve);
 
         return approve ? "✅ Enrollment approved" : "❌ Enrollment rejected";
     }

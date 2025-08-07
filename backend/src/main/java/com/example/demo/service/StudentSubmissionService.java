@@ -36,6 +36,7 @@ public class StudentSubmissionService {
     private final SubmissionFileRepository submissionFileRepository;
     private final AssignmentRepository assignmentRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Value("${app.upload.dir:/app/data/uploads}")
     private String uploadDir;
@@ -109,6 +110,9 @@ public class StudentSubmissionService {
         if (file != null && !file.isEmpty()) {
             submissionFile = saveSubmissionFile(file, savedSubmission);
         }
+
+        // Notify teacher about the new submission
+        notificationService.createAssignmentSubmissionNotification(assignment, student);
 
         return mapToResponse(savedSubmission, submissionFile != null ? List.of(submissionFile) : List.of());
     }

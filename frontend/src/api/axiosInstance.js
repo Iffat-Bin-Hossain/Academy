@@ -9,8 +9,14 @@ const instance = axios.create({
 // Add Authorization header with token if it exists in localStorage
 instance.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
+  console.log('🔑 Request interceptor - Token exists:', !!token);
+  console.log('🌐 Request interceptor - URL:', config.url);
+  console.log('🎯 Request interceptor - Method:', config.method);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('✅ Request interceptor - Authorization header added');
+  } else {
+    console.log('❌ Request interceptor - No token found in localStorage');
   }
   // Add cache-busting for data freshness
   if (config.method === 'get') {

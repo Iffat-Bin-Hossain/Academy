@@ -24,6 +24,7 @@ public class AssignmentService {
     private final CourseTeacherRepository courseTeacherRepository;
     private final AssignmentFileRepository assignmentFileRepository;
     private final AnnouncementService announcementService;
+    private final NotificationService notificationService;
 
     /**
      * Create a new assignment for a course
@@ -80,6 +81,9 @@ public class AssignmentService {
         // Create announcement for the new assignment
         announcementService.createAssignmentAnnouncement(
                 request.getCourseId(), teacherId, savedAssignment.getTitle(), savedAssignment.getId());
+
+        // Notify all enrolled students about the new assignment
+        notificationService.createNewAssignmentNotification(course, savedAssignment, teacher);
 
         return mapToResponse(savedAssignment);
     }
@@ -149,7 +153,8 @@ public class AssignmentService {
      * Get all assignments for a course (visible to students and teachers)
      */
     public List<AssignmentResponse> getAssignmentsForCourse(Long courseId) {
-        Course course = courseRepository.findById(courseId)
+        // Verify course exists
+        courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
         List<Assignment> assignments = assignmentRepository.findActiveByCourseId(courseId);

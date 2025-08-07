@@ -32,6 +32,7 @@ public class ResourceService {
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
     private final AnnouncementService announcementService;
+    private final NotificationService notificationService;
 
     @Value("${app.upload.dir:uploads/resources}")
     private String uploadDir;
@@ -105,6 +106,9 @@ public class ResourceService {
         announcementService.createResourceAnnouncement(
                 request.getCourseId(), teacherId, savedResource.getTitle(), savedResource.getId(), "FILE");
 
+        // Notify all enrolled students about the new resource
+        notificationService.createNewResourceNotification(course, savedResource, teacher);
+
         return mapToResponse(savedResource, teacherId);
     }
 
@@ -148,6 +152,9 @@ public class ResourceService {
         announcementService.createResourceAnnouncement(
                 request.getCourseId(), teacherId, savedResource.getTitle(), savedResource.getId(), "LINK");
 
+        // Notify all enrolled students about the new resource
+        notificationService.createNewResourceNotification(course, savedResource, teacher);
+
         return mapToResponse(savedResource, teacherId);
     }
 
@@ -190,6 +197,11 @@ public class ResourceService {
         // Create announcement for the new resource
         announcementService.createResourceAnnouncement(
                 request.getCourseId(), teacherId, savedResource.getTitle(), savedResource.getId(), "NOTE");
+
+        // Notify all enrolled students about the new resource
+        log.info("About to call notificationService.createNewResourceNotification for resource: {}", savedResource.getTitle());
+        notificationService.createNewResourceNotification(course, savedResource, teacher);
+        log.info("Completed notification service call for resource: {}", savedResource.getTitle());
 
         return mapToResponse(savedResource, teacherId);
     }

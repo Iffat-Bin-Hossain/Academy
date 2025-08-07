@@ -5,6 +5,7 @@ import com.example.demo.model.User;
 import com.example.demo.model.UserStatus;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.EmailService;
+import com.example.demo.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ public class AdminController {
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final UserRepository userRepo;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     // 1) List all pending users sorted by registration time (newest first)
     @GetMapping("/pending")
@@ -46,6 +48,9 @@ public class AdminController {
             
             // Send approval notification email
             emailService.sendApprovalNotification(user.getEmail(), user.getName());
+            
+            // Create in-app notification for the user
+            notificationService.createAccountApprovalNotification(user, true);
             
             return ResponseEntity.ok(Map.of(
                 "message", "User approved successfully",

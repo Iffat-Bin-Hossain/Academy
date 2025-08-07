@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 import './Navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
@@ -44,6 +45,7 @@ const Navbar = ({ user, onLogout }) => {
           {/* User Section (when logged in) */}
           {user && (
             <div className="navbar-user desktop-user">
+              <NotificationBell user={user} />
               <div className="user-info">
                 <div className="user-avatar">
                   {user.name?.charAt(0)?.toUpperCase() || 'U'}
@@ -87,6 +89,9 @@ const Navbar = ({ user, onLogout }) => {
                     <div className="mobile-user-name">{user.name}</div>
                     <div className="mobile-user-role">{user.role}</div>
                   </div>
+                </div>
+                <div className="mobile-notification-section">
+                  <NotificationBell user={user} />
                 </div>
                 <button onClick={handleLogout} className="mobile-logout-btn">
                   <span className="mobile-logout-icon">🚪</span>

@@ -77,7 +77,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/assignments/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/courses/*/assignments").authenticated()
 
-                // 4.6 Any other route requires authentication
+                // 4.7 Notification endpoints - all authenticated users
+                .requestMatchers("/api/notifications/**").authenticated()
+
+                // 4.8 Any other route requires authentication
                 .anyRequest().authenticated()
             )
 

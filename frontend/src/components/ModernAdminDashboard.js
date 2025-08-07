@@ -42,27 +42,29 @@ const ModernAdminDashboard = () => {
   const [selectedCourseId, setSelectedCourseId] = useState(null);
 
   useEffect(() => {
-    // Get user info from token
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-          name: payload.sub,
-          role: 'ADMIN',
-          email: payload.sub
-        });
-      } catch (error) {
-        console.error('Error parsing token:', error);
-      }
-    }
-    
     fetchData();
   }, []);
 
   const fetchData = async () => {
     try {
+      console.log('🔄 fetchData called - starting data fetch...');
       setLoading(true);
+      
+      // First get current user info
+      console.log('📡 Making API call to /user/me...');
+      const userResponse = await axios.get('/user/me');
+      console.log('✅ /user/me response received:', userResponse.data);
+      const currentUser = userResponse.data;
+      
+      console.log('🔄 Setting user state with ID:', currentUser.id);
+      setUser({
+        id: currentUser.id,
+        name: currentUser.name,
+        role: currentUser.role,
+        email: currentUser.email
+      });
+      console.log('✅ User state set successfully');
+      
       const [pendingResponse, coursesResponse, allUsersResponse] = await Promise.all([
         axios.get('/admin/pending'),
         axios.get('/courses'),

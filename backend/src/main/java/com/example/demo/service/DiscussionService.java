@@ -26,6 +26,7 @@ public class DiscussionService {
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
+    private final NotificationService notificationService;
 
     /**
      * Create a new discussion thread (Teachers only)
@@ -95,6 +96,14 @@ public class DiscussionService {
 
         DiscussionThread savedThread = threadRepository.save(thread);
         log.info("Discussion thread '{}' created successfully with ID: {}", savedThread.getTitle(), savedThread.getId());
+
+        // Send notifications to enrolled students
+        try {
+            notificationService.createNewDiscussionThreadNotification(course, savedThread, teacher);
+            log.info("Notifications sent for new discussion thread '{}'", savedThread.getTitle());
+        } catch (Exception e) {
+            log.warn("Failed to send notifications for new discussion thread '{}': {}", savedThread.getTitle(), e.getMessage());
+        }
 
         return mapToThreadResponse(savedThread, null);
     }
@@ -187,6 +196,37 @@ public class DiscussionService {
         thread.setUpdatedAt(LocalDateTime.now());
         threadRepository.save(thread);
 
+        // Send notifications for new posts
+        try {
+            if (author.getRole().equals(Role.STUDENT)) {
+                // Notify teachers when student posts
+                User courseTeacher = thread.getCourse().getAssignedTeacher();
+                if (courseTeacher != null) {
+                    notificationService.notifyDiscussionPost(
+                        courseTeacher.getId(),
+                        author,
+                        thread.getCourse(),
+                        thread.getTitle(),
+                        thread.getId()
+                    );
+                }
+            } else if (author.getRole().equals(Role.TEACHER) && parentPost != null) {
+                // Notify student when teacher replies to their post
+                User originalAuthor = parentPost.getAuthor();
+                if (originalAuthor.getRole().equals(Role.STUDENT)) {
+                    notificationService.notifyDiscussionReply(
+                        originalAuthor.getId(),
+                        author,
+                        thread.getCourse(),
+                        thread.getTitle(),
+                        thread.getId()
+                    );
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send notification for discussion post: {}", e.getMessage());
+        }
+
         log.info("Discussion post created successfully with ID: {}", savedPost.getId());
 
         return mapToPostResponse(savedPost, authorId);
@@ -272,9 +312,11 @@ public class DiscussionService {
                 throw new RuntimeException("Teacher is not assigned to this course");
             }
         } else if (user.getRole().equals(Role.STUDENT)) {
-            // Students: check if enrolled and approved
+            // Students: check if enrolled and approved or retaking
             Optional<CourseEnrollment> enrollment = enrollmentRepository.findByStudentAndCourse(user, course);
-            if (enrollment.isEmpty() || !enrollment.get().getStatus().equals(EnrollmentStatus.APPROVED)) {
+            if (enrollment.isEmpty() || 
+                (!enrollment.get().getStatus().equals(EnrollmentStatus.APPROVED) && 
+                 !enrollment.get().getStatus().equals(EnrollmentStatus.RETAKING))) {
                 throw new RuntimeException("Student is not enrolled in this course");
             }
         } else if (!user.getRole().equals(Role.ADMIN)) {
