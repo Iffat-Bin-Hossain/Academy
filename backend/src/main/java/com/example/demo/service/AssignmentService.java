@@ -23,6 +23,7 @@ public class AssignmentService {
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
     private final AssignmentFileRepository assignmentFileRepository;
+    private final AnnouncementService announcementService;
 
     /**
      * Create a new assignment for a course
@@ -75,6 +76,10 @@ public class AssignmentService {
 
         Assignment savedAssignment = assignmentRepository.save(assignment);
         log.info("Assignment '{}' created successfully with ID: {}", savedAssignment.getTitle(), savedAssignment.getId());
+
+        // Create announcement for the new assignment
+        announcementService.createAssignmentAnnouncement(
+                request.getCourseId(), teacherId, savedAssignment.getTitle(), savedAssignment.getId());
 
         return mapToResponse(savedAssignment);
     }

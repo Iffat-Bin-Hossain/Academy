@@ -12,6 +12,8 @@ const StudentCourseDetailsPage = () => {
   const [course, setCourse] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [resources, setResources] = useState([]);
+  const [discussions, setDiscussions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
@@ -140,32 +142,37 @@ const StudentCourseDetailsPage = () => {
           realAssignments = [];
         }
 
-        // Mock announcements - replace with actual API call when available
-        const mockAnnouncements = [
-          {
-            id: 1,
+        // Fetch real announcements from API
+        try {
+          const announcementsResponse = await axios.get(`/announcements/course/${foundCourse.id}`);
+          setAnnouncements(announcementsResponse.data);
+        } catch (announcementsError) {
+          console.error('Error fetching announcements:', announcementsError);
+          // Fallback to welcome message if API fails
+          const welcomeAnnouncement = {
+            id: 'welcome-' + foundCourse.id,
             title: 'Welcome to ' + foundCourse.title,
             content: 'Welcome to our course! Please review the syllabus and course materials.',
-            createdAt: new Date(Date.now() - 86400000 * 2).toISOString(), // 2 days ago
-            author: foundCourse.assignedTeacher?.name || 'Course Instructor',
-            type: 'ANNOUNCEMENT'
-          }
-        ];
-
-        // If there are assignments, add an announcement about them
-        if (realAssignments.length > 0) {
-          const latestAssignment = realAssignments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-          mockAnnouncements.unshift({
-            id: 2,
-            title: `New Assignment: ${latestAssignment.title}`,
-            content: `A new assignment "${latestAssignment.title}" has been posted. Please check the assignments section for details.`,
-            createdAt: latestAssignment.createdAt,
-            author: foundCourse.assignedTeacher?.name || 'Course Instructor',
-            type: 'ANNOUNCEMENT'
-          });
+            createdAt: new Date().toISOString(),
+            authorName: foundCourse.assignedTeacher?.name || 'Course Instructor',
+            type: 'GENERAL'
+          };
+          setAnnouncements([welcomeAnnouncement]);
         }
 
-        setAnnouncements(mockAnnouncements);
+        // Fetch resources for this course
+        try {
+          const resourcesResponse = await axios.get(`/resources/course/${foundCourse.id}?userId=${currentUser.id}`);
+          setResources(resourcesResponse.data);
+        } catch (resourcesError) {
+          console.error('Error fetching resources:', resourcesError);
+          setResources([]);
+        }
+
+        // For discussions, we'll set a placeholder count (can be implemented later)
+        // TODO: Implement discussions API and fetching
+        setDiscussions([]); // Placeholder for now
+
         setAssignments(realAssignments);
 
       } catch (contentError) {
@@ -173,6 +180,8 @@ const StudentCourseDetailsPage = () => {
         // Set empty arrays if content fetching fails
         setAnnouncements([]);
         setAssignments([]);
+        setResources([]);
+        setDiscussions([]);
       }
 
     } catch (error) {
@@ -527,7 +536,7 @@ const StudentCourseDetailsPage = () => {
                 color: activeTab === 'resources' ? '#3b82f6' : '#64748b'
               }}
             >
-              📁 Resources
+              📁 Resources ({resources.length})
             </button>
             <button
               className={`tab-button ${activeTab === 'discussions' ? 'active' : ''}`}
@@ -543,7 +552,7 @@ const StudentCourseDetailsPage = () => {
                 color: activeTab === 'discussions' ? '#3b82f6' : '#64748b'
               }}
             >
-              💬 Discussions
+              💬 Discussions ({discussions.length})
             </button>
           </div>
         </div>
@@ -575,7 +584,7 @@ const StudentCourseDetailsPage = () => {
                           </span>
                         </div>
                         <p style={{ margin: '0.5rem 0', color: '#64748b', fontSize: '0.875rem' }}>
-                          By {announcement.author}
+                          By {announcement.authorName}
                         </p>
                         <p style={{ margin: '1rem 0 0 0', color: '#374151' }}>
                           {announcement.content}

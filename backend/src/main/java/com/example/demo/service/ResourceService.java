@@ -31,6 +31,7 @@ public class ResourceService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
+    private final AnnouncementService announcementService;
 
     @Value("${app.upload.dir:uploads/resources}")
     private String uploadDir;
@@ -100,6 +101,10 @@ public class ResourceService {
         Resource savedResource = resourceRepository.save(resource);
         log.info("Resource '{}' created successfully with ID: {}", savedResource.getTitle(), savedResource.getId());
 
+        // Create announcement for the new resource
+        announcementService.createResourceAnnouncement(
+                request.getCourseId(), teacherId, savedResource.getTitle(), savedResource.getId(), "FILE");
+
         return mapToResponse(savedResource, teacherId);
     }
 
@@ -139,6 +144,10 @@ public class ResourceService {
         Resource savedResource = resourceRepository.save(resource);
         log.info("Link resource '{}' created successfully with ID: {}", savedResource.getTitle(), savedResource.getId());
 
+        // Create announcement for the new resource
+        announcementService.createResourceAnnouncement(
+                request.getCourseId(), teacherId, savedResource.getTitle(), savedResource.getId(), "LINK");
+
         return mapToResponse(savedResource, teacherId);
     }
 
@@ -177,6 +186,10 @@ public class ResourceService {
 
         Resource savedResource = resourceRepository.save(resource);
         log.info("Note resource '{}' created successfully with ID: {}", savedResource.getTitle(), savedResource.getId());
+
+        // Create announcement for the new resource
+        announcementService.createResourceAnnouncement(
+                request.getCourseId(), teacherId, savedResource.getTitle(), savedResource.getId(), "NOTE");
 
         return mapToResponse(savedResource, teacherId);
     }
