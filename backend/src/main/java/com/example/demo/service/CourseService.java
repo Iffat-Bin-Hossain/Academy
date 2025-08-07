@@ -5,8 +5,8 @@ import com.example.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -86,8 +86,37 @@ public class CourseService {
         User teacher = userRepo.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
+        // Update the legacy assignedTeacher field
         course.setAssignedTeacher(teacher);
         courseRepo.save(course);
+        
+        // Also ensure there's an active CourseTeacher entry
+        // First, deactivate any existing CourseTeacher entries for this course
+        List<CourseTeacher> existingAssignments = courseTeacherRepo.findByCourseAndActiveTrue(course);
+        for (CourseTeacher ct : existingAssignments) {
+            ct.setActive(false);
+            courseTeacherRepo.save(ct);
+        }
+        
+        // Check if there's already an inactive entry for this teacher-course combination
+        Optional<CourseTeacher> existingEntry = courseTeacherRepo.findByCourseAndTeacher(course, teacher);
+        if (existingEntry.isPresent()) {
+            // Reactivate the existing entry
+            CourseTeacher ct = existingEntry.get();
+            ct.setActive(true);
+            ct.setRole("PRIMARY");
+            courseTeacherRepo.save(ct);
+        } else {
+            // Create a new CourseTeacher entry
+            CourseTeacher courseTeacher = CourseTeacher.builder()
+                    .course(course)
+                    .teacher(teacher)
+                    .role("PRIMARY")
+                    .active(true)
+                    .build();
+            courseTeacherRepo.save(courseTeacher);
+        }
+        
         return "✅ Teacher assigned to course";
     }
 
@@ -96,8 +125,17 @@ public class CourseService {
         Course course = courseRepo.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
+        // Clear the legacy assignedTeacher field
         course.setAssignedTeacher(null);
         courseRepo.save(course);
+        
+        // Also deactivate all CourseTeacher entries for this course
+        List<CourseTeacher> existingAssignments = courseTeacherRepo.findByCourseAndActiveTrue(course);
+        for (CourseTeacher ct : existingAssignments) {
+            ct.setActive(false);
+            courseTeacherRepo.save(ct);
+        }
+        
         return "✅ Teacher removed from course";
     }
 

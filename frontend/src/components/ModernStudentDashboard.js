@@ -880,6 +880,7 @@ const ModernStudentDashboard = () => {
                             </div>
                             
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                              <span>👤 Instructor: {assignment.createdByName || 'Course Instructor'}</span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                 📅 Due: {formatDate(assignment.deadline)}
                                 {isOverdue && <span style={{ color: '#ef4444', fontWeight: '600' }}>(OVERDUE)</span>}

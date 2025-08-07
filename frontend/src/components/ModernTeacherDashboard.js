@@ -74,10 +74,10 @@ const ModernTeacherDashboard = () => {
         console.log('Fetched assignment stats:', assignmentStats);
       } catch (assignmentError) {
         console.warn('Could not fetch assignment stats, using fallback count:', assignmentError);
-        // Fallback: Count assignments from all courses using teacher endpoint
+        // Fallback: Count assignments from all courses using general course endpoint
         try {
           const assignmentPromises = coursesResponse.data.map(course => 
-            axios.get(`/assignments/course/${course.id}/teacher/${currentUser.id}`)
+            axios.get(`/assignments/course/${course.id}`)
               .then(response => response.data?.length || 0)
               .catch(() => 0)
           );

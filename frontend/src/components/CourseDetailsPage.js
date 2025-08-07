@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import AssignmentManagement from './AssignmentManagement';
+import DiscussionThreads from './DiscussionThreads';
 
 const CourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -291,7 +292,8 @@ const CourseDetailsPage = () => {
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
               { id: 'students', label: 'Students', icon: '👥' },
-              { id: 'assignments', label: 'Assignments', icon: '📝' }
+              { id: 'assignments', label: 'Assignments', icon: '📝' },
+              { id: 'discussions', label: 'Discussions', icon: '💬' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -556,6 +558,15 @@ const CourseDetailsPage = () => {
         <AssignmentManagement 
           user={user}
           courses={course ? [course] : []}
+          onShowMessage={showMessage}
+        />
+      )}
+
+      {/* Discussions Tab */}
+      {activeTab === 'discussions' && (
+        <DiscussionThreads 
+          courseId={course?.id}
+          user={user}
           onShowMessage={showMessage}
         />
       )}

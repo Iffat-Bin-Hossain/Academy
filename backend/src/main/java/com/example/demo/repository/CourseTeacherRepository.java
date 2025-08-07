@@ -20,7 +20,10 @@ public interface CourseTeacherRepository extends JpaRepository<CourseTeacher, Lo
     // Find all active courses for a teacher
     List<CourseTeacher> findByTeacherAndActiveTrue(User teacher);
     
-    // Find specific course-teacher assignment
+    // Find specific course-teacher assignment (active or inactive)
+    Optional<CourseTeacher> findByCourseAndTeacher(Course course, User teacher);
+    
+    // Find specific course-teacher assignment (active only)
     Optional<CourseTeacher> findByCourseAndTeacherAndActiveTrue(Course course, User teacher);
     
     // Check if a teacher is already assigned to a course

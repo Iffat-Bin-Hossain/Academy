@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -266,24 +267,67 @@ public class AssignmentService {
     }
 
     /**
-     * Get assignment statistics for a teacher
+     * Get assignment statistics for a teacher based on ALL assignments in their assigned courses
      */
     public AssignmentStats getTeacherStats(Long teacherId) {
         User teacher = userRepository.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
-        long totalAssignments = assignmentRepository.countByCreatedByAndIsActiveTrue(teacher);
+        // Get all courses assigned to this teacher
+        List<Course> assignedCourses = new ArrayList<>();
+        
+        // Get courses from CourseTeacher table
+        List<CourseTeacher> courseTeachers = courseTeacherRepository.findByTeacherAndActiveTrue(teacher);
+        assignedCourses.addAll(courseTeachers.stream().map(CourseTeacher::getCourse).collect(Collectors.toList()));
+        
+        // Also get courses from legacy assignedTeacher field
+        List<Course> legacyCourses = courseRepository.findByAssignedTeacher(teacher);
+        assignedCourses.addAll(legacyCourses);
+        
+        // Remove duplicates
+        assignedCourses = assignedCourses.stream().distinct().collect(Collectors.toList());
+
+        if (assignedCourses.isEmpty()) {
+            return AssignmentStats.builder()
+                    .totalAssignments(0)
+                    .overdueAssignments(0)
+                    .upcomingDeadlines(0)
+                    .build();
+        }
+
+        // Count assignments in all assigned courses
+        long totalAssignments = assignedCourses.stream()
+                .mapToLong(course -> assignmentRepository.countByCourseAndIsActiveTrue(course))
+                .sum();
         
         LocalDateTime now = LocalDateTime.now();
-        List<Assignment> overdueAssignments = assignmentRepository.findOverdueAssignmentsByTeacher(now, teacherId);
+        
+        // Count overdue assignments in all assigned courses
+        long overdueAssignments = assignedCourses.stream()
+                .mapToLong(course -> {
+                    List<Assignment> courseAssignments = assignmentRepository.findByCourseAndIsActiveTrueOrderByCreatedAtDesc(course);
+                    return courseAssignments.stream()
+                            .filter(a -> a.getDeadline().isBefore(now))
+                            .count();
+                })
+                .sum();
 
         LocalDateTime tomorrow = now.plusHours(24);
-        List<Assignment> upcomingAssignments = assignmentRepository.findUpcomingDeadlinesByTeacher(now, tomorrow, teacherId);
+        
+        // Count upcoming assignments in all assigned courses
+        long upcomingDeadlines = assignedCourses.stream()
+                .mapToLong(course -> {
+                    List<Assignment> courseAssignments = assignmentRepository.findByCourseAndIsActiveTrueOrderByCreatedAtDesc(course);
+                    return courseAssignments.stream()
+                            .filter(a -> a.getDeadline().isAfter(now) && a.getDeadline().isBefore(tomorrow))
+                            .count();
+                })
+                .sum();
 
         return AssignmentStats.builder()
                 .totalAssignments(totalAssignments)
-                .overdueAssignments(overdueAssignments.size())
-                .upcomingDeadlines(upcomingAssignments.size())
+                .overdueAssignments(overdueAssignments)
+                .upcomingDeadlines(upcomingDeadlines)
                 .build();
     }
 

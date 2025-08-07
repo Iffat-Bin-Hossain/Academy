@@ -266,12 +266,12 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
 
       if (selectedCourse) {
         // Fetch assignments for specific course (teachers see all assignments)
-        const response = await axios.get(`/assignments/course/${selectedCourse}/teacher/${user.id}`);
+        const response = await axios.get(`/assignments/course/${selectedCourse}`);
         allAssignments = response.data || [];
       } else {
         // Fetch assignments for all teacher's courses (teachers see all assignments)
         const promises = courses.map(course => 
-          axios.get(`/assignments/course/${course.id}/teacher/${user.id}`)
+          axios.get(`/assignments/course/${course.id}`)
             .then(response => response.data?.map(assignment => ({
               ...assignment,
               courseName: course.title,
@@ -787,7 +787,8 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                             {assignment.content}
                           </p>
                           <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                            <span>📊 Max Marks: {assignment.maxMarks}</span>
+                            <span>� Created by: {assignment.createdByName || 'Unknown'}</span>
+                            <span>�📊 Max Marks: {assignment.maxMarks}</span>
                             <span style={{ color: isOverdue ? '#dc2626' : '#64748b' }}>
                               📅 Due: {formatDate(assignment.deadline)}
                             </span>

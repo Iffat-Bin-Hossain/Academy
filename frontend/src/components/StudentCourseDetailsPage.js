@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
+import DiscussionThreads from './DiscussionThreads';
 
 const StudentCourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -108,6 +109,7 @@ const StudentCourseDetailsPage = () => {
                   lateSubmissionDeadline: assignment.lateSubmissionDeadline,
                   assignmentType: assignment.assignmentType,
                   createdAt: assignment.createdAt,
+                  createdByName: assignment.createdByName,
                   status: 'ACTIVE', // Default status for students
                   attachments: attachmentsResponse.data || []
                 };
@@ -123,6 +125,7 @@ const StudentCourseDetailsPage = () => {
                   lateSubmissionDeadline: assignment.lateSubmissionDeadline,
                   assignmentType: assignment.assignmentType,
                   createdAt: assignment.createdAt,
+                  createdByName: assignment.createdByName,
                   status: 'ACTIVE',
                   attachments: []
                 };
@@ -559,6 +562,22 @@ const StudentCourseDetailsPage = () => {
             >
               📁 Resources ({getFilteredContent(resources).length})
             </button>
+            <button
+              className={`tab-button ${activeTab === 'discussions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('discussions')}
+              style={{
+                flex: 1,
+                padding: '1rem',
+                border: 'none',
+                background: activeTab === 'discussions' ? '#f8fafc' : 'transparent',
+                borderBottom: activeTab === 'discussions' ? '2px solid #3b82f6' : '2px solid transparent',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'discussions' ? '600' : '400',
+                color: activeTab === 'discussions' ? '#3b82f6' : '#64748b'
+              }}
+            >
+              💬 Discussions
+            </button>
           </div>
         </div>
 
@@ -652,6 +671,7 @@ const StudentCourseDetailsPage = () => {
                               </div>
                               
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
+                                <span>👤 Instructor: {assignment.createdByName || 'Course Instructor'}</span>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                                   📅 Due: {formatDate(assignment.deadline)}
                                   {isOverdue && <span style={{ color: '#ef4444', fontWeight: '600' }}>(OVERDUE)</span>}
@@ -920,6 +940,17 @@ const StudentCourseDetailsPage = () => {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Discussions Tab */}
+          {activeTab === 'discussions' && (
+            <div>
+              <DiscussionThreads 
+                courseId={course.id}
+                user={user}
+                onShowMessage={showMessage}
+              />
             </div>
           )}
         </div>
