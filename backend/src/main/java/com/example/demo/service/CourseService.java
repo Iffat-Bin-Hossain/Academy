@@ -125,6 +125,9 @@ public class CourseService {
             courseTeacherRepo.save(courseTeacher);
         }
         
+        // Notify the teacher about the course assignment
+        notificationService.createTeacherCourseAssignmentNotification(teacher, course);
+        
         return "✅ Teacher assigned to course";
     }
 

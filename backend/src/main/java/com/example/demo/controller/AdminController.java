@@ -25,13 +25,13 @@ public class AdminController {
     private final EmailService emailService;
     private final NotificationService notificationService;
 
-    // 1) List all pending users sorted by registration time (newest first)
+        // 1) List all pending users sorted by registration time (newest first)
     @GetMapping("/pending")
     public List<User> listPending() {
         logger.info("Fetching pending users...");
-        List<User> pendingUsers = userRepo.findByIsApprovedFalseOrderByCreatedAtDesc();
+        List<User> pendingUsers = userRepo.findByStatusOrderByCreatedAtDesc(UserStatus.PENDING);
         logger.info("Found {} pending users", pendingUsers.size());
-        pendingUsers.forEach(user -> logger.info("User: {}, Approved: {}", user.getName(), user.isApproved()));
+        pendingUsers.forEach(user -> logger.info("User: {}, Status: {}", user.getName(), user.getStatus()));
         return pendingUsers;
     }
 
@@ -67,29 +67,53 @@ public class AdminController {
         }
     }
 
-    // 3) Reject a user by ID (delete the request)
+    // 3) Reject a user by ID (mark as rejected instead of deleting)
     @PostMapping("/reject/{id}")
     public ResponseEntity<?> reject(@PathVariable Long id) {
         try {
             User user = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
             
-            // Send rejection notification email
-            emailService.sendRejectionNotification(user.getEmail(), user.getName());
+            // Check if user is already approved
+            if (user.isApproved()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Cannot reject a user that has already been approved"
+                ));
+            }
             
-            // Delete the user from database
-            userRepo.delete(user);
+            // Mark user as rejected instead of deleting
+            user.setApproved(false);
+            user.setStatus(UserStatus.REJECTED);
+            userRepo.save(user);
+            
+            // Send rejection notification email
+            try {
+                emailService.sendRejectionNotification(user.getEmail(), user.getName());
+            } catch (Exception emailError) {
+                // Log email error but don't fail the rejection
+                logger.warn("Failed to send rejection email to {}: {}", user.getEmail(), emailError.getMessage());
+            }
+            
+                        // Create in-app notification for the user
+            try {
+                notificationService.createAccountApprovalNotification(user, false);
+            } catch (Exception notificationError) {
+                // Log notification error but don't fail the rejection
+                logger.warn("Failed to create rejection notification for {}: {}", user.getEmail(), notificationError.getMessage());
+            }
             
             return ResponseEntity.ok(Map.of(
-                "message", "User request rejected and removed",
+                "message", "User request rejected successfully",
                 "user", Map.of(
                     "id", user.getId(),
                     "name", user.getName(),
                     "email", user.getEmail(),
-                    "role", user.getRole()
+                    "role", user.getRole(),
+                    "status", user.getStatus()
                 )
             ));
         } catch (Exception e) {
+            logger.error("Error rejecting user with ID {}: {}", id, e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }

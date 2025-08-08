@@ -15,7 +15,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByStatusOrderByCreatedAtDesc(UserStatus status);
     List<User> findByStatus(UserStatus status);
     List<User> findByRole(Role role);
+    List<User> findByRoleAndStatus(Role role, UserStatus status);
     
-    @Query("SELECT ce.student FROM CourseEnrollment ce WHERE ce.course.id = :courseId AND ce.status = 'APPROVED'")
+    @Query("SELECT ce.student FROM CourseEnrollment ce WHERE ce.course.id = :courseId AND ce.status = 'APPROVED' AND ce.student.status = 'ACTIVE'")
     List<User> findEnrolledStudentsByCourse(@Param("courseId") Long courseId);
 }

@@ -141,7 +141,7 @@ public class NotificationService {
                 Notification.NotificationType.TEACHER_COURSE_ASSIGNMENT,
                 "New Course Assignment",
                 String.format("You have been assigned to teach the course: %s (%s)", course.getTitle(), course.getCourseCode()),
-                "/teacher/course/" + course.getCourseCode(),
+                "/teacher/" + course.getCourseCode(),
                 course,
                 null,
                 null,
@@ -158,7 +158,7 @@ public class NotificationService {
                 Notification.NotificationType.STUDENT_ENROLLMENT_REQUEST,
                 "New Enrollment Request",
                 String.format("%s has requested enrollment in your course: %s", student.getName(), course.getTitle()),
-                "/teacher/course/" + course.getCourseCode() + "?tab=students",
+                "/teacher/" + course.getCourseCode(),
                 course,
                 null,
                 student,
@@ -175,7 +175,7 @@ public class NotificationService {
                 Notification.NotificationType.ASSIGNMENT_SUBMISSION,
                 "New Assignment Submission",
                 String.format("%s has submitted assignment: %s", student.getName(), assignment.getTitle()),
-                "/teacher/course/" + assignment.getCourse().getCourseCode() + "?tab=assignments",
+                "/teacher/" + assignment.getCourse().getCourseCode(),
                 assignment.getCourse(),
                 assignment,
                 student,
@@ -192,7 +192,7 @@ public class NotificationService {
                 Notification.NotificationType.DISCUSSION_POST,
                 "New Discussion Post",
                 String.format("%s posted in discussion: %s", student.getName(), threadTitle),
-                "/teacher/course/" + course.getCourseCode() + "?tab=discussions",
+                "/teacher/" + course.getCourseCode(),
                 course,
                 null,
                 student,
@@ -209,7 +209,7 @@ public class NotificationService {
                 Notification.NotificationType.ENROLLMENT_APPROVED,
                 "Enrollment Approved",
                 String.format("Your enrollment request for %s has been approved!", course.getTitle()),
-                "/student/course/" + course.getCourseCode(),
+                "/student/" + course.getCourseCode(),
                 course,
                 null,
                 null,
@@ -248,7 +248,7 @@ public class NotificationService {
                 Notification.NotificationType.NEW_ASSIGNMENT,
                 "New Assignment Posted",
                 String.format("New assignment available in %s: %s", assignment.getCourse().getTitle(), assignment.getTitle()),
-                "/student/course/" + assignment.getCourse().getCourseCode() + "?tab=assignments",
+                "/student/" + assignment.getCourse().getCourseCode(),
                 assignment.getCourse(),
                 assignment,
                 null,
@@ -265,7 +265,7 @@ public class NotificationService {
                 Notification.NotificationType.NEW_RESOURCE,
                 "New Resource Available",
                 String.format("New resource uploaded in %s: %s", course.getTitle(), resourceTitle),
-                "/student/course/" + course.getCourseCode() + "?tab=resources",
+                "/student/" + course.getCourseCode(),
                 course,
                 null,
                 null,
@@ -282,7 +282,7 @@ public class NotificationService {
                 Notification.NotificationType.DISCUSSION_REPLY,
                 "Teacher Reply in Discussion",
                 String.format("%s replied to discussion: %s", teacher.getName(), threadTitle),
-                "/student/course/" + course.getCourseCode() + "?tab=discussions",
+                "/student/" + course.getCourseCode(),
                 course,
                 null,
                 teacher,
@@ -299,7 +299,7 @@ public class NotificationService {
                 Notification.NotificationType.ASSIGNMENT_GRADED,
                 "Assignment Graded",
                 String.format("Your assignment '%s' has been graded: %d/%d", assignment.getTitle(), marks, maxMarks),
-                "/student/course/" + assignment.getCourse().getCourseCode() + "?tab=assignments",
+                "/student/" + assignment.getCourse().getCourseCode(),
                 assignment.getCourse(),
                 assignment,
                 null,
@@ -358,7 +358,13 @@ public class NotificationService {
     
     // Enrollment request notification for teachers
     public void createEnrollmentRequestNotification(User teacher, Course course, User student) {
-        String redirectUrl = String.format("/teacher/courses/%d/enrollments", course.getId());
+        // Only send notification if teacher is ACTIVE
+        if (teacher.getStatus() != UserStatus.ACTIVE) {
+            log.info("Skipping enrollment request notification for teacher {} - not ACTIVE (status: {})", teacher.getEmail(), teacher.getStatus());
+            return;
+        }
+        
+        String redirectUrl = String.format("/teacher/%s", course.getCourseCode());
         
         Notification notification = Notification.builder()
                 .recipient(teacher)
@@ -378,11 +384,17 @@ public class NotificationService {
     
     // Enrollment decision notification for students
     public void createEnrollmentDecisionNotification(User student, Course course, boolean approved) {
+        // Only send notification if student is ACTIVE
+        if (student.getStatus() != UserStatus.ACTIVE) {
+            log.info("Skipping enrollment decision notification for student {} - not ACTIVE (status: {})", student.getEmail(), student.getStatus());
+            return;
+        }
+        
         String title = approved ? "Enrollment Approved" : "Enrollment Rejected";
         String message = approved ? 
             String.format("Your enrollment in %s has been approved", course.getTitle()) :
             String.format("Your enrollment in %s has been rejected", course.getTitle());
-        String redirectUrl = "/student/courses";
+        String redirectUrl = "/student";
             
         Notification notification = Notification.builder()
                 .recipient(student)
@@ -520,6 +532,12 @@ public class NotificationService {
         User teacher = assignment.getCourse().getAssignedTeacher();
         
         if (teacher != null) {
+            // Only send notification if teacher is ACTIVE
+            if (teacher.getStatus() != UserStatus.ACTIVE) {
+                log.info("Skipping assignment submission notification for teacher {} - not ACTIVE (status: {})", teacher.getEmail(), teacher.getStatus());
+                return;
+            }
+            
             String redirectUrl = String.format("/teacher/%s", assignment.getCourse().getCourseCode());
             
             Notification notification = Notification.builder()
@@ -545,6 +563,12 @@ public class NotificationService {
         try {
             User teacher = userRepository.findById(teacherId).orElse(null);
             if (teacher != null && !teacher.getId().equals(author.getId())) {
+                // Only send notification if teacher is ACTIVE
+                if (teacher.getStatus() != UserStatus.ACTIVE) {
+                    log.info("Skipping discussion post notification for teacher {} - not ACTIVE (status: {})", teacher.getEmail(), teacher.getStatus());
+                    return;
+                }
+                
                 String redirectUrl = String.format("/teacher/%s", course.getCourseCode());
                 
                 Notification notification = Notification.builder()
@@ -573,6 +597,13 @@ public class NotificationService {
         try {
             // Notify the thread author if they're not the one replying
             if (!thread.getCreatedBy().getId().equals(replier.getId())) {
+                // Only send notification if recipient is ACTIVE
+                if (thread.getCreatedBy().getStatus() != UserStatus.ACTIVE) {
+                    log.info("Skipping discussion reply notification for user {} - not ACTIVE (status: {})", 
+                            thread.getCreatedBy().getEmail(), thread.getCreatedBy().getStatus());
+                    return;
+                }
+                
                 String role = thread.getCreatedBy().getRole().toString().toLowerCase();
                 String redirectUrl = String.format("/%s/courses/%d/discussions/%d", 
                     role, thread.getCourse().getId(), thread.getId());
@@ -652,22 +683,22 @@ public class NotificationService {
     // New course created notification for all students
     public void createNewCourseNotification(Course course, User teacher) {
         try {
-            // Find all student users
-            List<User> allStudents = userRepository.findByRole(Role.STUDENT);
-            log.info("Creating new course notifications for {} students about course: {}", allStudents.size(), course.getTitle());
+            // Find only ACTIVE student users (approved users only)
+            List<User> activeStudents = userRepository.findByRoleAndStatus(Role.STUDENT, UserStatus.ACTIVE);
+            log.info("Creating new course notifications for {} ACTIVE students about course: {}", activeStudents.size(), course.getTitle());
             
             // Create appropriate message based on whether teacher is assigned
             String creatorName = (teacher != null) ? teacher.getName() : "Academy Administration";
             String message = String.format("New course '%s' has been created by %s. You can now enroll in this course!", 
                 course.getTitle(), creatorName);
             
-            for (User student : allStudents) {
+            for (User student : activeStudents) {
                 Notification notification = Notification.builder()
                         .recipient(student)
                         .type(Notification.NotificationType.NEW_COURSE_CREATED)
                         .title("📚 New Course Available")
                         .message(message)
-                        .redirectUrl("/student/courses") // Redirect to course list page
+                        .redirectUrl("/student") // Redirect to student dashboard
                         .relatedCourse(course)
                         .relatedUser(teacher) // This can be null, which is fine
                         .createdAt(LocalDateTime.now())
@@ -676,9 +707,34 @@ public class NotificationService {
                         
                 notificationRepository.save(notification);
             }
-            log.info("Created {} new course notifications for course: {}", allStudents.size(), course.getTitle());
+            log.info("Created {} new course notifications for course: {}", activeStudents.size(), course.getTitle());
         } catch (Exception e) {
             log.error("Error creating new course notifications for course: " + course.getTitle(), e);
         }
+    }
+    
+    // Teacher course assignment notification
+    public void createTeacherCourseAssignmentNotification(User teacher, Course course) {
+        // Only send notification if teacher is ACTIVE
+        if (teacher.getStatus() != UserStatus.ACTIVE) {
+            log.info("Skipping notification for teacher {} - not ACTIVE (status: {})", teacher.getEmail(), teacher.getStatus());
+            return;
+        }
+        
+        String redirectUrl = String.format("/teacher/%s", course.getCourseCode());
+        
+        Notification notification = Notification.builder()
+                .recipient(teacher)
+                .type(Notification.NotificationType.TEACHER_COURSE_ASSIGNMENT)
+                .title("New Course Assignment")
+                .message(String.format("You have been assigned to teach the course: %s (%s)", 
+                    course.getTitle(), course.getCourseCode()))
+                .redirectUrl(redirectUrl)
+                .relatedCourse(course)
+                .createdAt(LocalDateTime.now())
+                .isRead(false)
+                .build();
+                
+        notificationRepository.save(notification);
     }
 }

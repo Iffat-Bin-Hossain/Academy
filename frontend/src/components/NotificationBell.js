@@ -116,7 +116,7 @@ import './NotificationBell.css';
             : '/student';
         
         case 'NEW_COURSE_CREATED':
-          return '/student/courses';
+          return '/student';
         
         case 'ENROLLMENT_APPROVED':
         case 'ENROLLMENT_REJECTED':

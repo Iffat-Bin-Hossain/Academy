@@ -60,7 +60,9 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter(user => {
     // First filter by status
-    const statusMatch = filter === 'ALL' || user.status === filter;
+    const statusMatch = filter === 'ALL' 
+      ? user.status !== 'REJECTED' // Exclude rejected users from ALL view
+      : user.status === filter;
     
     // Then filter by search term
     if (!searchTerm) return statusMatch;
@@ -161,10 +163,11 @@ const UserManagement = () => {
 
   const getStatusCounts = () => {
     const counts = {
-      ALL: users.length,
+      ALL: users.filter(u => u.status !== 'REJECTED').length, // Exclude rejected users from ALL count
       PENDING: users.filter(u => u.status === 'PENDING').length,
       ACTIVE: users.filter(u => u.status === 'ACTIVE').length,
-      DISABLED: users.filter(u => u.status === 'DISABLED').length
+      DISABLED: users.filter(u => u.status === 'DISABLED').length,
+      REJECTED: users.filter(u => u.status === 'REJECTED').length
     };
     return counts;
   };
@@ -185,10 +188,11 @@ const UserManagement = () => {
       <div className="user-management-header">
         <h2>👥 User Management</h2>
         <div className="user-stats">
-          <span className="stat">Total: {statusCounts.ALL}</span>
+          <span className="stat">Active Users: {statusCounts.ALL}</span>
           <span className="stat pending">Pending: {statusCounts.PENDING}</span>
           <span className="stat active">Active: {statusCounts.ACTIVE}</span>
           <span className="stat disabled">Disabled: {statusCounts.DISABLED}</span>
+          <span className="stat rejected">Rejected: {statusCounts.REJECTED}</span>
         </div>
       </div>
 
@@ -238,7 +242,7 @@ const UserManagement = () => {
       </div>
 
       <div className="user-filters">
-        {['ALL', 'PENDING', 'ACTIVE', 'DISABLED'].map(status => (
+        {['ALL', 'PENDING', 'ACTIVE', 'DISABLED', 'REJECTED'].map(status => (
           <button
             key={status}
             className={`filter-btn ${filter === status ? 'active' : ''}`}

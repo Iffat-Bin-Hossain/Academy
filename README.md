@@ -239,6 +239,34 @@ npm start
 - **Search & Discovery**: Students can search and filter available courses
 - **Real-time Enrollment Data**: Live updates of student counts and status changes
 - **Database Constraint Management**: Proper handling of enrollment status transitions
+## 🔔 Notification System
+
+A role-based real-time notification service keeps all users informed of important updates and actions.
+
+### Admin Notifications
+- Receives alerts when:
+  - A new signup request is submitted (STUDENT/TEACHER).
+  - Any system-level event requires administrative action.
+
+### Student Notifications
+- Gets notified when:
+  - Approved to join the academy.
+  - Personal information is updated by an admin.
+  - Enrollment request to any course is approved.
+  - A **new course** is created *(only for approved students)*.
+  - A teacher creates/edits any resource or assignment in his enrolled course.*(only for successfully enrolled students)*
+  - A teacher creates a new discussion thread in an enrolled course.*(only for successfully enrolled students)*
+  - Anyone reacts or replies to the student's discussion post.*(only for successfully enrolled students)*
+
+### Teacher Notifications
+- Receives alerts when:
+  - Personal information is updated by an admin.
+  - Assigned to a new course.
+  - Removed from a course.
+  - Another teacher is replaced by them in a course.
+  - A student submits any assignment in a course they teach.
+  - A new discussion post is created in a thread within their assigned courses.
+  - Anyone reacts or replies to the teacher’s discussion reply.
 
 ### 🎯 Advanced Features
 - **Real-time Search Systems**: Instant filtering across courses and students
