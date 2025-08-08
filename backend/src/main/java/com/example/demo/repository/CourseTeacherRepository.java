@@ -43,4 +43,7 @@ public interface CourseTeacherRepository extends JpaRepository<CourseTeacher, Lo
     // Find courses by teacher ID
     @Query("SELECT ct FROM CourseTeacher ct WHERE ct.teacher.id = :teacherId AND ct.active = true")
     List<CourseTeacher> findByTeacherIdAndActiveTrue(@Param("teacherId") Long teacherId);
+    
+    // For course deletion - find all course-teacher assignments (active and inactive)
+    List<CourseTeacher> findByCourseAndActiveFalse(Course course);
 }

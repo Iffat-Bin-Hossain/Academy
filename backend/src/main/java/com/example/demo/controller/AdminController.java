@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -138,6 +139,9 @@ public class AdminController {
                 ));
             }
             
+            // Store original status for notification
+            UserStatus originalStatus = user.getStatus();
+            
             // Toggle between ACTIVE and DISABLED
             if (user.getStatus() == UserStatus.ACTIVE) {
                 user.setStatus(UserStatus.DISABLED);
@@ -151,6 +155,14 @@ public class AdminController {
             }
             
             userRepo.save(user);
+            
+            // Create status change notification
+            try {
+                notificationService.createUserStatusChangeNotification(user, originalStatus, user.getStatus());
+            } catch (Exception notificationError) {
+                // Log notification error but don't fail the status update
+                logger.warn("Failed to create status change notification for {}: {}", user.getEmail(), notificationError.getMessage());
+            }
             
             return ResponseEntity.ok(Map.of(
                 "message", "User status updated successfully",
@@ -186,8 +198,22 @@ public class AdminController {
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid role: " + roleStr));
             }
             
-            user.setRole(newRole);
-            userRepo.save(user);
+            // Store original role for notification
+            Role originalRole = user.getRole();
+            
+            // Only update if role actually changed
+            if (originalRole != newRole) {
+                user.setRole(newRole);
+                userRepo.save(user);
+                
+                // Create role change notification
+                try {
+                    notificationService.createUserRoleChangeNotification(user, originalRole, newRole);
+                } catch (Exception notificationError) {
+                    // Log notification error but don't fail the role update
+                    logger.warn("Failed to create role change notification for {}: {}", user.getEmail(), notificationError.getMessage());
+                }
+            }
             
             return ResponseEntity.ok(Map.of(
                 "message", "User role updated successfully",
@@ -211,18 +237,30 @@ public class AdminController {
             User user = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
             
+            // Store original values for notification purposes
+            String originalName = user.getName();
+            String originalEmail = user.getEmail();
+            Role originalRole = user.getRole();
+            UserStatus originalStatus = user.getStatus();
+            
+            // Track what changes were made
+            List<String> changes = new ArrayList<>();
+            boolean hasChanges = false;
+            
             // Update name if provided
             if (updates.containsKey("name")) {
                 String name = (String) updates.get("name");
-                if (name != null && !name.trim().isEmpty()) {
+                if (name != null && !name.trim().isEmpty() && !name.trim().equals(originalName)) {
                     user.setName(name.trim());
+                    changes.add("name");
+                    hasChanges = true;
                 }
             }
             
             // Update email if provided
             if (updates.containsKey("email")) {
                 String email = (String) updates.get("email");
-                if (email != null && !email.trim().isEmpty()) {
+                if (email != null && !email.trim().isEmpty() && !email.trim().toLowerCase().equals(originalEmail)) {
                     // Check if email is already in use by another user
                     userRepo.findByEmail(email.trim().toLowerCase())
                         .filter(existingUser -> !existingUser.getId().equals(user.getId()))
@@ -230,6 +268,8 @@ public class AdminController {
                             throw new RuntimeException("Email already in use by another user");
                         });
                     user.setEmail(email.trim().toLowerCase());
+                    changes.add("email");
+                    hasChanges = true;
                 }
             }
             
@@ -239,7 +279,11 @@ public class AdminController {
                 if (roleStr != null && !roleStr.trim().isEmpty()) {
                     try {
                         Role newRole = Role.valueOf(roleStr.toUpperCase());
-                        user.setRole(newRole);
+                        if (newRole != originalRole) {
+                            user.setRole(newRole);
+                            changes.add("role");
+                            hasChanges = true;
+                        }
                     } catch (IllegalArgumentException e) {
                         return ResponseEntity.badRequest().body(Map.of("error", "Invalid role: " + roleStr));
                     }
@@ -252,16 +296,44 @@ public class AdminController {
                 if (statusStr != null && !statusStr.trim().isEmpty()) {
                     try {
                         UserStatus newStatus = UserStatus.valueOf(statusStr.toUpperCase());
-                        user.setStatus(newStatus);
-                        // Update isApproved based on status
-                        user.setApproved(newStatus == UserStatus.ACTIVE);
+                        if (newStatus != originalStatus) {
+                            user.setStatus(newStatus);
+                            // Update isApproved based on status
+                            user.setApproved(newStatus == UserStatus.ACTIVE);
+                            changes.add("status");
+                            hasChanges = true;
+                        }
                     } catch (IllegalArgumentException e) {
                         return ResponseEntity.badRequest().body(Map.of("error", "Invalid status: " + statusStr));
                     }
                 }
             }
             
-            userRepo.save(user);
+            if (hasChanges) {
+                userRepo.save(user);
+                
+                // Create appropriate notifications based on what changed
+                try {
+                    // General profile update notification if name or email changed
+                    if ((changes.contains("name") || changes.contains("email")) && !changes.contains("role") && !changes.contains("status")) {
+                        String changeDetails = String.join(", ", changes);
+                        notificationService.createUserProfileUpdateNotification(user, changeDetails);
+                    }
+                    
+                    // Role change notification
+                    if (changes.contains("role")) {
+                        notificationService.createUserRoleChangeNotification(user, originalRole, user.getRole());
+                    }
+                    
+                    // Status change notification
+                    if (changes.contains("status")) {
+                        notificationService.createUserStatusChangeNotification(user, originalStatus, user.getStatus());
+                    }
+                } catch (Exception notificationError) {
+                    // Log notification error but don't fail the update
+                    logger.warn("Failed to create user update notification for {}: {}", user.getEmail(), notificationError.getMessage());
+                }
+            }
             
             return ResponseEntity.ok(Map.of(
                 "message", "User updated successfully",

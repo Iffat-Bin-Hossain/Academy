@@ -72,6 +72,8 @@ public class Notification {
         
         // Teacher notifications
         TEACHER_COURSE_ASSIGNMENT,
+        TEACHER_COURSE_REMOVAL,
+        TEACHER_COURSE_REPLACEMENT,
         STUDENT_ENROLLMENT_REQUEST,
         ASSIGNMENT_SUBMISSION,
         DISCUSSION_POST,
@@ -81,15 +83,23 @@ public class Notification {
         ENROLLMENT_REJECTED,
         NEW_ASSIGNMENT,
         NEW_RESOURCE,
+        ASSIGNMENT_UPDATED,
+        RESOURCE_UPDATED,
         NEW_DISCUSSION_THREAD,
         NEW_COURSE_CREATED,
         DISCUSSION_REPLY,
+        DISCUSSION_POST_REACTION,
         ASSIGNMENT_GRADED,
         
         // General notifications
         COURSE_ANNOUNCEMENT,
         SYSTEM_NOTIFICATION,
         ACCOUNT_APPROVED,
-        ACCOUNT_REJECTED
+        ACCOUNT_REJECTED,
+        
+        // User profile update notifications
+        USER_PROFILE_UPDATED,
+        USER_STATUS_CHANGED,
+        USER_ROLE_CHANGED
     }
 }

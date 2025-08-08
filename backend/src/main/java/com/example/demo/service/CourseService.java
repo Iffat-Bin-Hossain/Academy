@@ -17,6 +17,10 @@ public class CourseService {
     private final UserRepository userRepo;
     private final AssignmentRepository assignmentRepo;
     private final CourseTeacherRepository courseTeacherRepo;
+    private final NotificationRepository notificationRepo;
+    private final AnnouncementRepository announcementRepo;
+    private final ResourceRepository resourceRepo;
+    private final DiscussionThreadRepository discussionThreadRepo;
     private final NotificationService notificationService;
 
     // ============ BASIC CRUD OPERATIONS ============
@@ -66,23 +70,42 @@ public class CourseService {
         Course course = getCourseById(courseId);
         
         // Delete all related entities to avoid foreign key constraint violations
+        // Order is important to prevent FK constraint issues
         
-        // 1. Delete all enrollments for this course
+        // 1. Delete all notifications related to this course
+        List<Notification> courseNotifications = notificationRepo.findByRelatedCourse(course);
+        notificationRepo.deleteAll(courseNotifications);
+        
+        // 2. Delete all discussion threads for this course
+        List<DiscussionThread> discussionThreads = discussionThreadRepo.findByCourse(course);
+        discussionThreadRepo.deleteAll(discussionThreads);
+        
+        // 3. Delete all resources for this course (active and inactive)
+        List<Resource> allCourseResources = resourceRepo.findByCourse(course);
+        resourceRepo.deleteAll(allCourseResources);
+        
+        // 4. Delete all announcements for this course
+        List<Announcement> announcements = announcementRepo.findByCourse(course);
+        announcementRepo.deleteAll(announcements);
+        
+        // 5. Delete all enrollments for this course
         List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
         enrollmentRepo.deleteAll(enrollments);
         
-        // 2. Delete ALL assignments for this course (both active and inactive)
-        // This prevents foreign key constraint violations
+        // 6. Delete ALL assignments for this course (both active and inactive)
         List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
         assignmentRepo.deleteAll(allAssignments);
         
-        // 3. Delete all course-teacher assignments
-        List<CourseTeacher> courseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
-        courseTeacherRepo.deleteAll(courseTeachers);
+        // 7. Delete all course-teacher assignments (active and inactive)
+        List<CourseTeacher> activeCourseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
+        List<CourseTeacher> inactiveCourseTeachers = courseTeacherRepo.findByCourseAndActiveFalse(course);
+        courseTeacherRepo.deleteAll(activeCourseTeachers);
+        courseTeacherRepo.deleteAll(inactiveCourseTeachers);
         
-        // 4. Finally, delete the course itself
+        // 8. Finally, delete the course itself
         courseRepo.delete(course);
-        return "✅ Course deleted successfully with all related data";
+        
+        return "✅ Course deleted successfully with all related data (notifications, discussions, resources, announcements, enrollments, assignments, and teacher assignments)";
     }
 
     // ============ ENROLLMENT MANAGEMENT ============
@@ -94,6 +117,9 @@ public class CourseService {
         User teacher = userRepo.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
+        // Check if there's already a teacher assigned (for replacement notification)
+        User previousTeacher = course.getAssignedTeacher();
+        
         // Update the legacy assignedTeacher field
         course.setAssignedTeacher(teacher);
         courseRepo.save(course);
@@ -125,8 +151,25 @@ public class CourseService {
             courseTeacherRepo.save(courseTeacher);
         }
         
-        // Notify the teacher about the course assignment
-        notificationService.createTeacherCourseAssignmentNotification(teacher, course);
+        // Send appropriate notification
+        try {
+            if (previousTeacher != null && !previousTeacher.getId().equals(teacherId)) {
+                // This is a replacement scenario
+                // Notify the new teacher that they are replacing someone
+                notificationService.notifyTeacherCourseReplacement(
+                    teacher.getId(), course, previousTeacher, null);
+                
+                // Notify the old teacher that they are being replaced
+                notificationService.notifyTeacherBeingReplaced(
+                    previousTeacher.getId(), course, teacher, null);
+            } else {
+                // This is a regular assignment
+                notificationService.createTeacherCourseAssignmentNotification(teacher, course);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the assignment
+            System.err.println("Failed to send teacher assignment notification: " + e.getMessage());
+        }
         
         return "✅ Teacher assigned to course";
     }
@@ -136,6 +179,9 @@ public class CourseService {
         Course course = courseRepo.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
+        // Get the current teacher for notification (before removing)
+        User currentTeacher = course.getAssignedTeacher();
+        
         // Clear the legacy assignedTeacher field
         course.setAssignedTeacher(null);
         courseRepo.save(course);
@@ -145,6 +191,17 @@ public class CourseService {
         for (CourseTeacher ct : existingAssignments) {
             ct.setActive(false);
             courseTeacherRepo.save(ct);
+        }
+        
+        // Send removal notification to the removed teacher
+        if (currentTeacher != null) {
+            try {
+                notificationService.notifyTeacherCourseRemoval(
+                    currentTeacher.getId(), course, null);
+            } catch (Exception e) {
+                // Log error but don't fail the removal
+                System.err.println("Failed to send teacher removal notification: " + e.getMessage());
+            }
         }
         
         return "✅ Teacher removed from course";
@@ -255,24 +312,43 @@ public class CourseService {
         
         for (Course course : allCourses) {
             // Delete all related entities for each course
+            // Order is important to prevent FK constraint issues
             
-            // 1. Delete all enrollments for this course
+            // 1. Delete all notifications related to this course
+            List<Notification> courseNotifications = notificationRepo.findByRelatedCourse(course);
+            notificationRepo.deleteAll(courseNotifications);
+            
+            // 2. Delete all discussion threads for this course
+            List<DiscussionThread> discussionThreads = discussionThreadRepo.findByCourse(course);
+            discussionThreadRepo.deleteAll(discussionThreads);
+            
+            // 3. Delete all resources for this course (active and inactive)
+            List<Resource> allCourseResources = resourceRepo.findByCourse(course);
+            resourceRepo.deleteAll(allCourseResources);
+            
+            // 4. Delete all announcements for this course
+            List<Announcement> announcements = announcementRepo.findByCourse(course);
+            announcementRepo.deleteAll(announcements);
+            
+            // 5. Delete all enrollments for this course
             List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
             enrollmentRepo.deleteAll(enrollments);
             
-            // 2. Delete ALL assignments for this course (both active and inactive)
-            // We need to use a different method that gets ALL assignments, not just active ones
+            // 6. Delete ALL assignments for this course (both active and inactive)
             List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
             assignmentRepo.deleteAll(allAssignments);
             
-            // 3. Delete all course-teacher assignments
-            List<CourseTeacher> courseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
-            courseTeacherRepo.deleteAll(courseTeachers);
+            // 7. Delete all course-teacher assignments (active and inactive)
+            List<CourseTeacher> activeCourseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
+            List<CourseTeacher> inactiveCourseTeachers = courseTeacherRepo.findByCourseAndActiveFalse(course);
+            courseTeacherRepo.deleteAll(activeCourseTeachers);
+            courseTeacherRepo.deleteAll(inactiveCourseTeachers);
         }
         
-        // 4. Finally, delete all courses
+        // 8. Finally, delete all courses
         courseRepo.deleteAll(allCourses);
         
-        return "✅ All courses and related data cleared successfully. Total courses removed: " + allCourses.size();
+        return "✅ All courses and related data cleared successfully. Total courses removed: " + allCourses.size() + 
+               " (including notifications, discussions, resources, announcements, enrollments, assignments, and teacher assignments)";
     }
 }

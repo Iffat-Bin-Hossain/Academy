@@ -146,6 +146,14 @@ public class AssignmentService {
         Assignment updatedAssignment = assignmentRepository.save(assignment);
         log.info("Assignment '{}' updated successfully", updatedAssignment.getTitle());
 
+        // Notify enrolled students about assignment update
+        try {
+            notificationService.createAssignmentUpdateNotification(course, updatedAssignment, teacher);
+            log.info("Assignment update notifications sent for assignment: {}", updatedAssignment.getTitle());
+        } catch (Exception e) {
+            log.error("Error sending assignment update notifications for assignment {}: {}", updatedAssignment.getTitle(), e.getMessage());
+        }
+
         return mapToResponse(updatedAssignment);
     }
 

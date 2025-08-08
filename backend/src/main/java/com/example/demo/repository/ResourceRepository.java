@@ -81,4 +81,9 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
            "AND r.visibleFrom IS NOT NULL AND r.visibleFrom <= :now " +
            "AND (r.visibleUntil IS NULL OR r.visibleUntil > :now)")
     List<Resource> findScheduledVisibleResources(@Param("now") LocalDateTime now);
+    
+    // For course deletion - find all resources by course (active and inactive)
+    List<Resource> findByCourse(Course course);
+    List<Resource> findByCourseAndIsActiveTrue(Course course);
+    List<Resource> findByCourseAndIsActiveFalse(Course course);
 }

@@ -16,4 +16,7 @@ public interface AnnouncementRepository extends JpaRepository<Announcement, Long
     
     @Query("SELECT a FROM Announcement a LEFT JOIN FETCH a.createdBy WHERE a.course.id = :courseId AND a.type = :type ORDER BY a.createdAt DESC")
     List<Announcement> findByCourseIdAndTypeOrderByCreatedAtDesc(@Param("courseId") Long courseId, @Param("type") Announcement.AnnouncementType type);
+    
+    // For course deletion - find all announcements by course entity
+    List<Announcement> findByCourse(com.example.demo.model.Course course);
 }

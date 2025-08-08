@@ -223,6 +223,23 @@ public class DiscussionService {
                     );
                 }
             }
+            
+            // NEW: Notify original post author when someone replies to their post
+            if (parentPost != null && !parentPost.getAuthor().getId().equals(authorId)) {
+                // Don't notify if replying to own post
+                User originalPostAuthor = parentPost.getAuthor();
+                
+                // Only notify if the original author is successfully enrolled
+                if (isUserEnrolledInCourse(originalPostAuthor, thread.getCourse())) {
+                    notificationService.notifyDiscussionPostReply(
+                        originalPostAuthor.getId(),
+                        author,
+                        thread.getCourse(),
+                        thread.getTitle(),
+                        thread.getId()
+                    );
+                }
+            }
         } catch (Exception e) {
             log.warn("Failed to send notification for discussion post: {}", e.getMessage());
         }
@@ -247,17 +264,23 @@ public class DiscussionService {
 
         Optional<PostReaction> existingReaction = reactionRepository.findByPostAndUser(post, user);
         
+        boolean shouldNotify = false;
+        String reactionAction = "";
+        
         if (existingReaction.isPresent()) {
             PostReaction reaction = existingReaction.get();
             if (reaction.getReactionType().equals(reactionType)) {
                 // Remove reaction if same type
                 reactionRepository.delete(reaction);
                 log.info("Removed {} reaction from post {} by user {}", reactionType, postId, userId);
+                // Don't send notification for removing reactions
             } else {
                 // Update reaction type
                 reaction.setReactionType(reactionType);
                 reactionRepository.save(reaction);
                 log.info("Updated reaction on post {} by user {} to {}", postId, userId, reactionType);
+                shouldNotify = true;
+                reactionAction = reactionType.name();
             }
         } else {
             // Add new reaction
@@ -268,6 +291,30 @@ public class DiscussionService {
                     .build();
             reactionRepository.save(newReaction);
             log.info("Added {} reaction to post {} by user {}", reactionType, postId, userId);
+            shouldNotify = true;
+            reactionAction = reactionType.name();
+        }
+
+        // NEW: Notify original post author when someone reacts to their post
+        if (shouldNotify && !post.getAuthor().getId().equals(userId)) {
+            // Don't notify if reacting to own post
+            try {
+                User postAuthor = post.getAuthor();
+                
+                // Only notify if the post author is successfully enrolled in the course
+                if (isUserEnrolledInCourse(postAuthor, post.getThread().getCourse())) {
+                    notificationService.notifyDiscussionPostReaction(
+                        postAuthor.getId(),
+                        user,
+                        post.getThread().getCourse(),
+                        post.getThread().getTitle(),
+                        post.getThread().getId(),
+                        reactionAction
+                    );
+                }
+            } catch (Exception e) {
+                log.warn("Failed to send notification for post reaction: {}", e.getMessage());
+            }
         }
 
         // Return updated reaction counts
@@ -428,5 +475,21 @@ public class DiscussionService {
         
         Optional<PostReaction> reaction = reactionRepository.findByPostAndUser(post, user);
         return reaction.map(r -> r.getReactionType().toString()).orElse(null);
+    }
+
+    /**
+     * Check if user is successfully enrolled in a course
+     */
+    private boolean isUserEnrolledInCourse(User user, Course course) {
+        if (user.getRole().equals(Role.TEACHER)) {
+            // Teachers are always considered enrolled if they're assigned to the course
+            return course.getAssignedTeacher() != null && course.getAssignedTeacher().getId().equals(user.getId());
+        } else if (user.getRole().equals(Role.STUDENT)) {
+            // Check if student has approved enrollment
+            return enrollmentRepository.findByStudentAndCourse(user, course)
+                    .map(enrollment -> enrollment.getStatus().equals(EnrollmentStatus.APPROVED))
+                    .orElse(false);
+        }
+        return false;
     }
 }

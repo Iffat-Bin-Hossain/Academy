@@ -31,170 +31,8 @@ public class ResourceService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
-    @Value("${app.upload.dir:uploads}")
+    @Value("${file.upload-dir:uploads}")
     private String UPLOAD_DIR;
-
-    /**
-     * Create a new resource with file
-     */
-    @Transactional
-    public ResourceResponse createResourceWithFile(ResourceCreateRequest request, MultipartFile file, Long teacherId) {
-        return createResource(request, file, teacherId);
-    }
-
-    /**
-     * Create a new link resource
-     */
-    @Transactional
-    public ResourceResponse createLinkResource(ResourceCreateRequest request, Long teacherId) {
-        return createResource(request, null, teacherId);
-    }
-
-    /**
-     * Create a new note resource
-     */
-    @Transactional
-    public ResourceResponse createNoteResource(ResourceCreateRequest request, Long teacherId) {
-        return createResource(request, null, teacherId);
-    }
-
-    /**
-     * Get resources for a course
-     */
-    public List<ResourceResponse> getResourcesForCourse(Long courseId, Long userId) {
-        return getResourcesByCourse(courseId, userId);
-    }
-
-    /**
-     * Get resources with filters
-     */
-    public List<ResourceResponse> getResourcesWithFilters(Long courseId, String topic, String week, Resource.ResourceType resourceType, Long userId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        
-        List<Resource> resources;
-        if (topic != null && !topic.isEmpty()) {
-            resources = resourceRepository.findByCourseAndTopicAndIsActiveTrueOrderByCreatedAtDesc(course, topic);
-        } else if (week != null && !week.isEmpty()) {
-            resources = resourceRepository.findByCourseAndWeekAndIsActiveTrueOrderByCreatedAtDesc(course, week);
-        } else if (resourceType != null) {
-            resources = resourceRepository.findByCourseAndResourceTypeAndIsActiveTrueOrderByCreatedAtDesc(course, resourceType);
-        } else {
-            resources = resourceRepository.findByCourseAndIsActiveTrueOrderByCreatedAtDesc(course);
-        }
-        
-        return resources.stream()
-                .map(this::convertToResourceResponse)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Search resources in a course
-     */
-    public List<ResourceResponse> searchResourcesInCourse(Long courseId, String searchTerm, Long userId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        
-        List<Resource> resources = resourceRepository.searchResourcesInCourse(course, searchTerm);
-        return resources.stream()
-                .map(this::convertToResourceResponse)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get a resource
-     */
-    public ResourceResponse getResource(Long resourceId, Long userId) {
-        return getResourceById(resourceId, userId);
-    }
-
-    /**
-     * Download a resource file
-     */
-    public Path downloadResource(Long resourceId, Long userId) {
-        Resource resource = resourceRepository.findById(resourceId)
-                .orElseThrow(() -> new RuntimeException("Resource not found"));
-
-        if (resource.getResourceType() != Resource.ResourceType.FILE) {
-            throw new RuntimeException("Resource is not a file");
-        }
-
-        if (!resource.getIsActive() || !resource.getIsVisible()) {
-            throw new RuntimeException("Resource not available");
-        }
-
-        // Increment download count
-        resource.incrementDownloadCount();
-        resourceRepository.save(resource);
-
-        Path filePath = Paths.get(UPLOAD_DIR, resource.getStoredFilename());
-        if (!Files.exists(filePath)) {
-            throw new RuntimeException("File not found on server");
-        }
-
-        return filePath;
-    }
-
-    /**
-     * Get topics for a course
-     */
-    public List<String> getTopicsForCourse(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        
-        return resourceRepository.findByCourseAndIsActiveTrueOrderByCreatedAtDesc(course)
-                .stream()
-                .map(Resource::getTopic)
-                .filter(topic -> topic != null && !topic.isEmpty())
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Get weeks for a course
-     */
-    public List<String> getWeeksForCourse(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        
-        return resourceRepository.findByCourseAndIsActiveTrueOrderByCreatedAtDesc(course)
-                .stream()
-                .map(Resource::getWeek)
-                .filter(week -> week != null && !week.isEmpty())
-                .distinct()
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Debug teacher assignment
-     */
-    public Map<String, Object> debugTeacherAssignment(Long teacherId, Long courseId) {
-        Map<String, Object> debugInfo = new HashMap<>();
-        
-        try {
-            Course course = courseRepository.findById(courseId).orElse(null);
-            User teacher = userRepository.findById(teacherId).orElse(null);
-            
-            debugInfo.put("courseExists", course != null);
-            debugInfo.put("teacherExists", teacher != null);
-            
-            if (course != null) {
-                debugInfo.put("courseId", course.getId());
-                debugInfo.put("assignedTeacherId", course.getAssignedTeacher() != null ? course.getAssignedTeacher().getId() : null);
-                debugInfo.put("isTeacherAssigned", course.getAssignedTeacher() != null && course.getAssignedTeacher().getId().equals(teacherId));
-            }
-            
-            if (teacher != null) {
-                debugInfo.put("teacherId", teacher.getId());
-                debugInfo.put("teacherName", teacher.getName());
-            }
-            
-        } catch (Exception e) {
-            debugInfo.put("error", e.getMessage());
-        }
-        
-        return debugInfo;
-    }
 
     /**
      * Get all resources for a course
@@ -255,10 +93,10 @@ public class ResourceService {
                 }
                 break;
             case LINK:
-                resource.setUrl(request.getUrl());
+                resource.setUrl(request.getResourceUrl());
                 break;
             case NOTE:
-                resource.setNoteContent(request.getNoteContent());
+                resource.setNoteContent(request.getTextContent());
                 break;
         }
 
@@ -511,10 +349,6 @@ public class ResourceService {
             throw new RuntimeException("Resource not found");
         }
 
-        // Increment view count when resource is accessed
-        resource.incrementViewCount();
-        resourceRepository.save(resource);
-
         return convertToResourceResponse(resource);
     }
 
@@ -573,20 +407,17 @@ public class ResourceService {
         response.setIsActive(resource.getIsActive());
         response.setCreatedAt(resource.getCreatedAt());
         response.setUpdatedAt(resource.getUpdatedAt());
-        
-        // Add view and download counts
-        response.setViewCount(resource.getViewCount() != null ? resource.getViewCount() : 0L);
-        response.setDownloadCount(resource.getDownloadCount() != null ? resource.getDownloadCount() : 0L);
 
         // Set type-specific fields
         if (resource.getResourceType() == Resource.ResourceType.FILE) {
+            response.setFileName(resource.getStoredFilename());
+            response.setFilePath(resource.getStoredFilename());
             response.setOriginalFilename(resource.getOriginalFilename());
             response.setFileSize(resource.getFileSize());
-            response.setContentType(resource.getContentType());
         } else if (resource.getResourceType() == Resource.ResourceType.LINK) {
-            response.setUrl(resource.getUrl());
+            response.setResourceUrl(resource.getUrl());
         } else if (resource.getResourceType() == Resource.ResourceType.NOTE) {
-            response.setNoteContent(resource.getNoteContent());
+            response.setTextContent(resource.getNoteContent());
         }
 
         return response;

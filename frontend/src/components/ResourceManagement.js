@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
 import ResourceCard from './ResourceCard';
 import ResourceCreateModal from './ResourceCreateModal';
+import ResourceEditModal from './ResourceEditModal';
 import './ResourceManagement.css';
 
 const ResourceManagement = ({ courseId, user, onShowMessage }) => {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingResource, setEditingResource] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('');
   const [selectedWeek, setSelectedWeek] = useState('');
@@ -137,6 +140,60 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
     }
   };
 
+  const updateResource = async (resourceId, resourceData, file, replaceFileOrTypeChange) => {
+    try {
+      let response;
+      
+      if ((replaceFileOrTypeChange && file) || resourceData.resourceTypeChanged) {
+        // Update resource with file replacement or type change
+        const formData = new FormData();
+        if (file) formData.append('file', file);
+        formData.append('title', resourceData.title);
+        formData.append('teacherId', user.id);
+        formData.append('description', resourceData.description || '');
+        formData.append('topic', resourceData.topic || '');
+        formData.append('week', resourceData.week || '');
+        formData.append('tags', resourceData.tags || '');
+        formData.append('isVisible', resourceData.isVisible !== false);
+        
+        // Add URL and note content fields
+        if (resourceData.url) {
+          formData.append('url', resourceData.url);
+        }
+        if (resourceData.noteContent) {
+          formData.append('noteContent', resourceData.noteContent);
+        }
+        
+        // Handle resource type change
+        if (resourceData.resourceTypeChanged) {
+          formData.append('resourceType', resourceData.resourceType);
+          formData.append('resourceTypeChanged', 'true');
+        }
+        
+        response = await axios.put(`/resources/${resourceId}/file`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          params: { teacherId: user.id }
+        });
+      } else {
+        // Update resource metadata only
+        response = await axios.put(`/resources/${resourceId}?teacherId=${user.id}`, resourceData);
+      }
+      
+      // Refresh data after successful update
+      fetchResources();
+      fetchTopics();
+      fetchWeeks();
+      onShowMessage('Resource updated successfully!', 'success');
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error updating resource:', error);
+      throw error;
+    }
+  };
+
   const handleResourceView = async (resource) => {
     try {
       // Increment view count
@@ -174,8 +231,8 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
   };
 
   const handleResourceEdit = (resource) => {
-    // TODO: Implement edit functionality
-    onShowMessage('Edit functionality coming soon!', 'info');
+    setEditingResource(resource);
+    setShowEditModal(true);
   };
 
   const handleResourceDelete = async (resource) => {
@@ -411,6 +468,21 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
           courseId={courseId}
           onClose={() => setShowCreateModal(false)}
           onSubmit={createResource}
+          topics={topics}
+          weeks={weeks}
+        />
+      )}
+
+      {/* Edit Resource Modal */}
+      {showEditModal && editingResource && (
+        <ResourceEditModal
+          isOpen={showEditModal}
+          resource={editingResource}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingResource(null);
+          }}
+          onSubmit={updateResource}
           topics={topics}
           weeks={weeks}
         />

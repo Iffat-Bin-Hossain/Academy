@@ -56,9 +56,6 @@ public class ResourceController {
 
             ResourceResponse resource = resourceService.createResourceWithFile(request, file, teacherId);
             return ResponseEntity.ok(resource);
-        } catch (IOException e) {
-            log.error("Error uploading file: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("error", "Failed to upload file: " + e.getMessage()));
         } catch (RuntimeException e) {
             log.error("Error creating file resource: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -182,7 +179,65 @@ public class ResourceController {
             @Valid @RequestBody ResourceUpdateRequest request,
             @RequestParam Long teacherId) {
         try {
-            ResourceResponse resource = resourceService.updateResource(resourceId, request, teacherId);
+            // Check if resource type has changed and needs special handling
+            if (request.getResourceTypeChanged() != null && request.getResourceTypeChanged()) {
+                // Use the comprehensive update method for type changes
+                ResourceResponse resource = resourceService.updateResourceWithTypeChange(resourceId, request, teacherId);
+                return ResponseEntity.ok(resource);
+            } else {
+                // Use regular update for metadata changes
+                ResourceResponse resource = resourceService.updateResource(resourceId, request, teacherId);
+                return ResponseEntity.ok(resource);
+            }
+        } catch (RuntimeException e) {
+            log.error("Error updating resource: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Update a resource with file replacement
+     * PUT /api/resources/{resourceId}/file?teacherId={teacherId}
+     */
+    @PutMapping("/{resourceId}/file")
+    public ResponseEntity<?> updateResourceWithFile(
+            @PathVariable Long resourceId,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam("title") String title,
+            @RequestParam("teacherId") Long teacherId,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "topic", required = false) String topic,
+            @RequestParam(value = "week", required = false) String week,
+            @RequestParam(value = "tags", required = false) String tags,
+            @RequestParam(value = "isVisible", required = false, defaultValue = "true") Boolean isVisible,
+            @RequestParam(value = "resourceType", required = false) String resourceType,
+            @RequestParam(value = "resourceTypeChanged", required = false, defaultValue = "false") Boolean resourceTypeChanged,
+            @RequestParam(value = "url", required = false) String url,
+            @RequestParam(value = "noteContent", required = false) String noteContent) {
+        try {
+            ResourceUpdateRequest.ResourceUpdateRequestBuilder requestBuilder = ResourceUpdateRequest.builder()
+                    .title(title)
+                    .description(description)
+                    .topic(topic)
+                    .week(week)
+                    .tags(tags)
+                    .isVisible(isVisible)
+                    .replaceFile(file != null && !file.isEmpty())
+                    .resourceTypeChanged(resourceTypeChanged)
+                    .url(url)
+                    .noteContent(noteContent);
+            
+            // Handle resource type change
+            if (resourceType != null && resourceTypeChanged) {
+                try {
+                    Resource.ResourceType newType = Resource.ResourceType.valueOf(resourceType);
+                    requestBuilder.resourceType(newType);
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "Invalid resource type: " + resourceType));
+                }
+            }
+
+            ResourceResponse resource = resourceService.updateResourceWithFile(resourceId, requestBuilder.build(), file, teacherId);
             return ResponseEntity.ok(resource);
         } catch (RuntimeException e) {
             log.error("Error updating resource: {}", e.getMessage());
@@ -199,8 +254,8 @@ public class ResourceController {
             @PathVariable Long resourceId,
             @RequestParam Long teacherId) {
         try {
-            String result = resourceService.deleteResource(resourceId, teacherId);
-            return ResponseEntity.ok(Map.of("message", result));
+            resourceService.deleteResource(resourceId, teacherId);
+            return ResponseEntity.ok(Map.of("message", "Resource deleted successfully"));
         } catch (RuntimeException e) {
             log.error("Error deleting resource: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

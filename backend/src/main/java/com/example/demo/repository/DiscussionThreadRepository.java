@@ -36,4 +36,7 @@ public interface DiscussionThreadRepository extends JpaRepository<DiscussionThre
            "OR LOWER(dt.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
            "ORDER BY dt.isPinned DESC, dt.updatedAt DESC")
     List<DiscussionThread> searchThreadsInCourse(@Param("courseId") Long courseId, @Param("searchTerm") String searchTerm);
+    
+    // For course deletion - find all discussion threads by course (active and inactive)
+    List<DiscussionThread> findByCourse(Course course);
 }

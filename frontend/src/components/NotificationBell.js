@@ -120,6 +120,9 @@ import './NotificationBell.css';
         
         case 'ENROLLMENT_APPROVED':
         case 'ENROLLMENT_REJECTED':
+        case 'USER_PROFILE_UPDATED':
+        case 'USER_STATUS_CHANGED':
+        case 'USER_ROLE_CHANGED':
         default:
           return '/student';
       }
@@ -134,6 +137,9 @@ import './NotificationBell.css';
         
         case 'STUDENT_ENROLLMENT_REQUEST':
         case 'TEACHER_COURSE_ASSIGNMENT':
+        case 'USER_PROFILE_UPDATED':
+        case 'USER_STATUS_CHANGED':
+        case 'USER_ROLE_CHANGED':
         default:
           return '/teacher';
       }
@@ -260,6 +266,9 @@ import './NotificationBell.css';
       case 'DISCUSSION_REPLY': return '💬';
       case 'ASSIGNMENT_GRADED': return '🎓';
       case 'COURSE_ANNOUNCEMENT': return '📢';
+      case 'USER_PROFILE_UPDATED': return '👤';
+      case 'USER_STATUS_CHANGED': return '🔄';
+      case 'USER_ROLE_CHANGED': return '🎭';
       default: return '🔔';
     }
   };

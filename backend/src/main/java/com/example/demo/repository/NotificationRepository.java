@@ -31,4 +31,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     // Find notifications for a specific course
     @Query("SELECT n FROM Notification n WHERE n.recipient = :recipient AND n.relatedCourse.id = :courseId ORDER BY n.createdAt DESC")
     List<Notification> findByCourseForUser(@Param("recipient") User recipient, @Param("courseId") Long courseId);
+    
+    // Find all notifications related to a specific course (for deletion)
+    List<Notification> findByRelatedCourse(com.example.demo.model.Course course);
 }

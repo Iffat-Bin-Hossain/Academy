@@ -25,4 +25,11 @@ public class ResourceUpdateRequest {
     private LocalDateTime visibleUntil;
     private Boolean isVisible;
     private Boolean isActive;
+    
+    // File update flag
+    private Boolean replaceFile;
+    
+    // Resource type change support
+    private Resource.ResourceType resourceType;
+    private Boolean resourceTypeChanged;
 }

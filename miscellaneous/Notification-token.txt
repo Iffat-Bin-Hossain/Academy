@@ -1,0 +1,33 @@
+docker exec -it academy_db psql -U academyuser -d academydb -c "
+-- Drop the existing constraint
+ALTER TABLE notifications DROP CONSTRAINT notifications_type_check;
+
+-- Add the new constraint with all notification types including the new ones
+ALTER TABLE notifications ADD CONSTRAINT notifications_type_check 
+CHECK (type IN (
+    'NEW_SIGNUP_REQUEST',
+    'TEACHER_COURSE_ASSIGNMENT',
+    'STUDENT_ENROLLMENT_REQUEST',
+    'ASSIGNMENT_SUBMISSION',
+    'DISCUSSION_POST',
+    'TEACHER_COURSE_REMOVAL',
+    'TEACHER_COURSE_REPLACEMENT',
+    'ENROLLMENT_APPROVED',
+    'ENROLLMENT_REJECTED',
+    'NEW_ASSIGNMENT',
+    'NEW_RESOURCE',
+    'ASSIGNMENT_UPDATED',
+    'RESOURCE_UPDATED',
+    'NEW_DISCUSSION_THREAD',
+    'NEW_COURSE_CREATED',
+    'DISCUSSION_REPLY',
+    'DISCUSSION_POST_REACTION',
+    'ASSIGNMENT_GRADED',
+    'COURSE_ANNOUNCEMENT',
+    'SYSTEM_NOTIFICATION',
+    'ACCOUNT_APPROVED',
+    'ACCOUNT_REJECTED',
+    'USER_PROFILE_UPDATED',
+    'USER_STATUS_CHANGED',
+    'USER_ROLE_CHANGED'
+));"

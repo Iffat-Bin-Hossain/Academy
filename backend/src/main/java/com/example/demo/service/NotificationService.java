@@ -291,6 +291,95 @@ public class NotificationService {
     }
 
     /**
+     * Notify post author when someone reacts to their discussion post
+     */
+    public void notifyDiscussionPostReaction(Long postAuthorId, User reactor, Course course, String threadTitle, Long threadId, String reactionType) {
+        createNotification(
+                postAuthorId,
+                Notification.NotificationType.DISCUSSION_POST_REACTION,
+                "Someone reacted to your post",
+                String.format("%s %s your post in discussion: %s", reactor.getName(), 
+                    reactionType.toLowerCase() + "d", threadTitle),
+                "/discussions/" + course.getCourseCode() + "/" + threadId,
+                course,
+                null,
+                reactor,
+                threadId
+        );
+    }
+
+    /**
+     * Notify post author when someone replies to their discussion post
+     */
+    public void notifyDiscussionPostReply(Long originalPostAuthorId, User replier, Course course, String threadTitle, Long threadId) {
+        createNotification(
+                originalPostAuthorId,
+                Notification.NotificationType.DISCUSSION_REPLY,
+                "Someone replied to your post",
+                String.format("%s replied to your post in discussion: %s", replier.getName(), threadTitle),
+                "/discussions/" + course.getCourseCode() + "/" + threadId,
+                course,
+                null,
+                replier,
+                threadId
+        );
+    }
+
+    /**
+     * Notify teacher when they are removed from a course
+     */
+    public void notifyTeacherCourseRemoval(Long teacherId, Course course, User adminUser) {
+        createNotification(
+                teacherId,
+                Notification.NotificationType.TEACHER_COURSE_REMOVAL,
+                "Removed from Course",
+                String.format("You have been removed from teaching course: %s (%s)", 
+                    course.getTitle(), course.getCourseCode()),
+                "/teacher/courses",
+                course,
+                null,
+                adminUser,
+                null
+        );
+    }
+
+    /**
+     * Notify teacher when they replace another teacher in a course
+     */
+    public void notifyTeacherCourseReplacement(Long newTeacherId, Course course, User previousTeacher, User adminUser) {
+        createNotification(
+                newTeacherId,
+                Notification.NotificationType.TEACHER_COURSE_REPLACEMENT,
+                "Course Replacement",
+                String.format("You have been assigned to teach course: %s (%s), replacing %s", 
+                    course.getTitle(), course.getCourseCode(), previousTeacher.getName()),
+                "/teacher/courses",
+                course,
+                null,
+                adminUser,
+                null
+        );
+    }
+
+    /**
+     * Notify previous teacher when they are being replaced by another teacher
+     */
+    public void notifyTeacherBeingReplaced(Long previousTeacherId, Course course, User newTeacher, User adminUser) {
+        createNotification(
+                previousTeacherId,
+                Notification.NotificationType.TEACHER_COURSE_REMOVAL,
+                "Course Reassignment",
+                String.format("You have been replaced in course: %s (%s) by %s", 
+                    course.getTitle(), course.getCourseCode(), newTeacher.getName()),
+                "/teacher/courses",
+                course,
+                null,
+                adminUser,
+                null
+        );
+    }
+
+    /**
      * Assignment graded
      */
     public void notifyAssignmentGraded(Long studentId, Assignment assignment, int marks, int maxMarks) {
@@ -493,6 +582,96 @@ public class NotificationService {
             case NOTE: return "📝";
             default: return "📚";
         }
+    }
+
+    // Updated assignment notification for students
+    public void createAssignmentUpdateNotification(Course course, Assignment assignment, User teacher) {
+        log.info("Creating assignment update notifications for course {} (ID: {}) with assignment '{}'", 
+                course.getCourseCode(), course.getId(), assignment.getTitle());
+        
+        // Get all enrolled students in the course
+        List<User> enrolledStudents = userRepository.findEnrolledStudentsByCourse(course.getId());
+        log.info("Found {} enrolled students in course {}", enrolledStudents.size(), course.getCourseCode());
+        
+        for (User student : enrolledStudents) {
+            String redirectUrl = String.format("/student/%s", course.getCourseCode());
+            
+            log.info("Creating update notification for student {} about assignment '{}'", student.getName(), assignment.getTitle());
+            
+            Notification notification = Notification.builder()
+                    .recipient(student)
+                    .type(Notification.NotificationType.ASSIGNMENT_UPDATED)
+                    .title("📝 Assignment Updated")
+                    .message(String.format("Assignment '%s' has been updated in %s by %s", 
+                        assignment.getTitle(), course.getTitle(), teacher.getName()))
+                    .redirectUrl(redirectUrl)
+                    .relatedCourse(course)
+                    .relatedAssignment(assignment)
+                    .relatedUser(teacher)
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+                    
+            notificationRepository.save(notification);
+            log.info("Assignment update notification created successfully for student {}", student.getName());
+        }
+        
+        log.info("Completed creating {} assignment update notifications for course {}", 
+                enrolledStudents.size(), course.getCourseCode());
+    }
+
+    // Updated resource notification for students
+    public void createResourceUpdateNotification(Course course, Resource resource, User teacher) {
+        log.info("Creating resource update notifications for course {} (ID: {}) with resource '{}'", 
+                course.getCourseCode(), course.getId(), resource.getTitle());
+        
+        // Get all enrolled students in the course
+        List<User> enrolledStudents = userRepository.findEnrolledStudentsByCourse(course.getId());
+        log.info("Found {} enrolled students in course {}", enrolledStudents.size(), course.getCourseCode());
+        
+        for (User student : enrolledStudents) {
+            String redirectUrl = String.format("/student/%s", course.getCourseCode());
+            
+            // Determine resource type emoji and description
+            String resourceTypeText = getResourceTypeDescription(resource.getResourceType());
+            String resourceEmoji = getResourceTypeEmoji(resource.getResourceType());
+            
+            log.info("Creating update notification for student {} about resource '{}'", student.getName(), resource.getTitle());
+            
+            Notification notification = Notification.builder()
+                    .recipient(student)
+                    .type(Notification.NotificationType.RESOURCE_UPDATED)
+                    .title(resourceEmoji + " Resource Updated")
+                    .message(String.format("%s '%s' has been updated in %s by %s", 
+                        resourceTypeText.substring(0, 1).toUpperCase() + resourceTypeText.substring(1), 
+                        resource.getTitle(), course.getTitle(), teacher.getName()))
+                    .redirectUrl(redirectUrl)
+                    .relatedCourse(course)
+                    .relatedResource(resource)
+                    .relatedUser(teacher)
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+                    
+            notificationRepository.save(notification);
+            log.info("Resource update notification created successfully for student {}", student.getName());
+        }
+        
+        log.info("Completed creating {} resource update notifications for course {}", 
+                enrolledStudents.size(), course.getCourseCode());
+    }
+
+    // Wrapper methods for resource notifications (for compatibility with ResourceService)
+    public void sendResourceCreatedNotification(Course course, Resource resource, Long teacherId) {
+        User teacher = userRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        createNewResourceNotification(course, resource, teacher);
+    }
+
+    public void sendResourceUpdatedNotification(Course course, Resource resource, Long teacherId) {
+        User teacher = userRepository.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        createResourceUpdateNotification(course, resource, teacher);
     }
 
     // New discussion thread notification for students
@@ -736,5 +915,121 @@ public class NotificationService {
                 .build();
                 
         notificationRepository.save(notification);
+    }
+    
+    // User profile update notifications
+    public void createUserProfileUpdateNotification(User user, String changes) {
+        // Only send notification if user is ACTIVE (approved users only)
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            log.info("Skipping profile update notification for user {} - not ACTIVE (status: {})", user.getEmail(), user.getStatus());
+            return;
+        }
+        
+        try {
+            String title = "Profile Updated";
+            String message = String.format("Your profile information has been updated by an administrator. Changes: %s", changes);
+            String redirectUrl = getUserDashboardUrl(user.getRole());
+            
+            Notification notification = Notification.builder()
+                    .recipient(user)
+                    .type(Notification.NotificationType.USER_PROFILE_UPDATED)
+                    .title(title)
+                    .message(message)
+                    .redirectUrl(redirectUrl)
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+                    
+            notificationRepository.save(notification);
+            log.info("Created profile update notification for user: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Error creating profile update notification for user: " + user.getEmail(), e);
+        }
+    }
+    
+    public void createUserStatusChangeNotification(User user, UserStatus oldStatus, UserStatus newStatus) {
+        // Only send notification if user became ACTIVE or was ACTIVE and got changed
+        if (user.getStatus() != UserStatus.ACTIVE && oldStatus != UserStatus.ACTIVE) {
+            log.info("Skipping status change notification for user {} - neither old nor new status is ACTIVE", user.getEmail());
+            return;
+        }
+        
+        try {
+            String title = "Account Status Changed";
+            String message = getStatusChangeMessage(oldStatus, newStatus);
+            String redirectUrl = getUserDashboardUrl(user.getRole());
+            
+            Notification notification = Notification.builder()
+                    .recipient(user)
+                    .type(Notification.NotificationType.USER_STATUS_CHANGED)
+                    .title(title)
+                    .message(message)
+                    .redirectUrl(redirectUrl)
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+                    
+            notificationRepository.save(notification);
+            log.info("Created status change notification for user: {} ({} -> {})", user.getEmail(), oldStatus, newStatus);
+        } catch (Exception e) {
+            log.error("Error creating status change notification for user: " + user.getEmail(), e);
+        }
+    }
+    
+    public void createUserRoleChangeNotification(User user, Role oldRole, Role newRole) {
+        // Only send notification if user is ACTIVE (approved users only)
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            log.info("Skipping role change notification for user {} - not ACTIVE (status: {})", user.getEmail(), user.getStatus());
+            return;
+        }
+        
+        try {
+            String title = "Account Role Changed";
+            String message = String.format("Your account role has been changed from %s to %s by an administrator. Your access permissions have been updated accordingly.", 
+                    oldRole.toString(), newRole.toString());
+            String redirectUrl = getUserDashboardUrl(newRole);
+            
+            Notification notification = Notification.builder()
+                    .recipient(user)
+                    .type(Notification.NotificationType.USER_ROLE_CHANGED)
+                    .title(title)
+                    .message(message)
+                    .redirectUrl(redirectUrl)
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+                    
+            notificationRepository.save(notification);
+            log.info("Created role change notification for user: {} ({} -> {})", user.getEmail(), oldRole, newRole);
+        } catch (Exception e) {
+            log.error("Error creating role change notification for user: " + user.getEmail(), e);
+        }
+    }
+    
+    // Helper methods
+    private String getUserDashboardUrl(Role role) {
+        switch (role) {
+            case ADMIN:
+                return "/admin";
+            case TEACHER:
+                return "/teacher";
+            case STUDENT:
+                return "/student";
+            default:
+                return "/";
+        }
+    }
+    
+    private String getStatusChangeMessage(UserStatus oldStatus, UserStatus newStatus) {
+        if (newStatus == UserStatus.ACTIVE && oldStatus != UserStatus.ACTIVE) {
+            return "Your account has been activated by an administrator. You now have full access to the platform.";
+        } else if (newStatus == UserStatus.DISABLED && oldStatus == UserStatus.ACTIVE) {
+            return "Your account has been temporarily disabled by an administrator. Please contact support if you have questions.";
+        } else if (newStatus == UserStatus.PENDING) {
+            return "Your account status has been changed to pending review by an administrator.";
+        } else {
+            return String.format("Your account status has been changed from %s to %s by an administrator.", 
+                    oldStatus.toString(), newStatus.toString());
+        }
     }
 }
