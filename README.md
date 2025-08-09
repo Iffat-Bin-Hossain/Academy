@@ -1,45 +1,13 @@
 # Academy
 
-A comprehensive full-stack web application for academy management with complete user authentication, role-based dashboards, course management, enrollment system, and assignment file upload/download functionality. **Fully Dockerized** for easy deployment and development.
+A modern full-stack Learning Management System with comprehensive user management, course enrollment, assignment handling, and real-time notifications. **Fully Dockerized** for instant deployment.
 
-## 🎨 Design Features
+## 🚀 Tech Stack & Architecture
 
-- **Modern Branding**: Blue gradient backgrounds with "academy" branding
-- **Curved Logo Design**: "ACADEMY" text curved in an arc above a graduation cap icon
-- **Grid Overlay**: Subtle grid pattern for visual sophistication  
-- **Tagline**: "STAY LINKED, STAY LOCAL" in italic styling
-- **Glass Morphism**: Semi-transparent cards with backdrop blur effects
-- **Responsive Design**: Mobile-first approach with modern UI components
-- **Dark Theme Support**: Elegant dark color schemes with proper contrast
-
-## 🚀 Tech Stack
-
-### Backend
-- **Spring Boot** (Java 17) - REST API server
-- **Spring Security** - JWT-based authentication and authorization
-- **JPA/Hibernate** - Database ORM with entity relationships
-- **PostgreSQL** - Production database with full ACID compliance
-- **Lombok** - Code generation and boilerplate reduction
-- **Jakarta Validation** - Input validation and constraints
-- **File Upload System** - Persistent file storage with download functionality
-- **Docker** - Containerized deployment
-- **Port**: 8080
-
-### Frontend  
-- **React 19** (JavaScript) - Modern UI framework with hooks
-- **Axios** - HTTP client with interceptors for API calls
-- **React Router** - Client-side routing and navigation
-- **JWT Decode** - Token parsing and role extraction
-- **Custom CSS** - Modern styling with CSS Grid and Flexbox
-- **React Icons** - Icon library for UI elements
-- **Docker** - Containerized deployment with Nginx
-- **Port**: 3000
-
-### Infrastructure
-- **Docker Compose** - Multi-container orchestration
-- **PostgreSQL** - Persistent database storage
-- **Docker Volumes** - Persistent file storage for uploads
-- **Nginx** - Production-ready frontend serving
+**Backend**: Spring Boot (Java 17) + PostgreSQL + JWT Security  
+**Frontend**: React 19 + Modern CSS + Responsive Design  
+**Infrastructure**: Docker Compose + Nginx + Persistent Volumes  
+**Features**: Role-based access, File management, Real-time notifications
 
 ## 🛠️ Setup & Installation
 

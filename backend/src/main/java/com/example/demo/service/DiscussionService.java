@@ -225,12 +225,17 @@ public class DiscussionService {
             }
             
             // NEW: Notify original post author when someone replies to their post
+            // BUT: Skip this if we already sent a specific teacher-to-student notification above
             if (parentPost != null && !parentPost.getAuthor().getId().equals(authorId)) {
                 // Don't notify if replying to own post
                 User originalPostAuthor = parentPost.getAuthor();
                 
-                // Only notify if the original author is successfully enrolled
-                if (isUserEnrolledInCourse(originalPostAuthor, thread.getCourse())) {
+                // Skip if this is a teacher replying to a student (already handled above)
+                boolean isTeacherReplyingToStudent = author.getRole().equals(Role.TEACHER) && 
+                                                   originalPostAuthor.getRole().equals(Role.STUDENT);
+                
+                // Only notify if the original author is successfully enrolled AND this isn't a teacher->student reply
+                if (!isTeacherReplyingToStudent && isUserEnrolledInCourse(originalPostAuthor, thread.getCourse())) {
                     notificationService.notifyDiscussionPostReply(
                         originalPostAuthor.getId(),
                         author,
