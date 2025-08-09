@@ -52,6 +52,19 @@ public class Message {
     @Builder.Default
     private MessageType messageType = MessageType.DIRECT;
 
+    // File attachment fields
+    @Column(name = "attachment_url")
+    private String attachmentUrl;
+
+    @Column(name = "attachment_filename")
+    private String attachmentFilename;
+
+    @Column(name = "attachment_size")
+    private Long attachmentSize;
+
+    @Column(name = "attachment_content_type")
+    private String attachmentContentType;
+
     // Enum for message types
     public enum MessageType {
         DIRECT, // Direct message between users

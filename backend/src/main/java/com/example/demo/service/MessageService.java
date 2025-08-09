@@ -42,6 +42,10 @@ public class MessageService {
                 .createdAt(LocalDateTime.now())
                 .isRead(false)
                 .messageType(Message.MessageType.DIRECT)
+                .attachmentUrl(request.getAttachmentUrl())
+                .attachmentFilename(request.getAttachmentFilename())
+                .attachmentSize(request.getAttachmentSize())
+                .attachmentContentType(request.getAttachmentContentType())
                 .build();
 
         Message savedMessage = messageRepository.save(message);
@@ -226,7 +230,8 @@ public class MessageService {
                                message.getRecipient().getStatus() == UserStatus.PENDING) ? 
                 message.getRecipient().getEmail() : "disabled@user.com";
 
-        return new MessageResponse(
+        // Set attachment fields if present
+        MessageResponse response = new MessageResponse(
                 message.getId(),
                 message.getSender().getId(),
                 senderName,
@@ -238,5 +243,12 @@ public class MessageService {
                 message.getIsRead(),
                 message.getCreatedAt()
         );
+        
+        response.setAttachmentUrl(message.getAttachmentUrl());
+        response.setAttachmentFilename(message.getAttachmentFilename());
+        response.setAttachmentSize(message.getAttachmentSize());
+        response.setAttachmentContentType(message.getAttachmentContentType());
+        
+        return response;
     }
 }

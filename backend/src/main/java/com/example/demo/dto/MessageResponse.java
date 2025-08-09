@@ -14,6 +14,12 @@ public class MessageResponse {
     private boolean isRead;
     private LocalDateTime createdAt;
     
+    // Attachment fields
+    private String attachmentUrl;
+    private String attachmentFilename;
+    private Long attachmentSize;
+    private String attachmentContentType;
+    
     // Constructors
     public MessageResponse() {}
     
@@ -111,5 +117,38 @@ public class MessageResponse {
     
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    // Attachment getters and setters
+    public String getAttachmentUrl() {
+        return attachmentUrl;
+    }
+
+    public void setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+    }
+
+    public String getAttachmentFilename() {
+        return attachmentFilename;
+    }
+
+    public void setAttachmentFilename(String attachmentFilename) {
+        this.attachmentFilename = attachmentFilename;
+    }
+
+    public Long getAttachmentSize() {
+        return attachmentSize;
+    }
+
+    public void setAttachmentSize(Long attachmentSize) {
+        this.attachmentSize = attachmentSize;
+    }
+
+    public String getAttachmentContentType() {
+        return attachmentContentType;
+    }
+
+    public void setAttachmentContentType(String attachmentContentType) {
+        this.attachmentContentType = attachmentContentType;
     }
 }

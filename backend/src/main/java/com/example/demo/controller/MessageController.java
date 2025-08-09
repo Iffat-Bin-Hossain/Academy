@@ -30,6 +30,31 @@ public class MessageController {
         }
     }
 
+    @PostMapping("/send-with-attachment")
+    public ResponseEntity<MessageResponse> sendMessageWithAttachment(
+            @RequestParam Long senderId,
+            @RequestParam Long recipientId,
+            @RequestParam String content,
+            @RequestParam(required = false) String attachmentUrl,
+            @RequestParam(required = false) String attachmentFilename,
+            @RequestParam(required = false) Long attachmentSize,
+            @RequestParam(required = false) String attachmentContentType) {
+        try {
+            MessageCreateRequest request = new MessageCreateRequest();
+            request.setRecipientId(recipientId);
+            request.setContent(content);
+            request.setAttachmentUrl(attachmentUrl);
+            request.setAttachmentFilename(attachmentFilename);
+            request.setAttachmentSize(attachmentSize);
+            request.setAttachmentContentType(attachmentContentType);
+            
+            MessageResponse message = messageService.sendMessage(request, senderId);
+            return ResponseEntity.ok(message);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationResponse>> getConversations(@RequestParam Long userId) {
         try {

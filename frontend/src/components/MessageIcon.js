@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from '../api/axiosInstance';
+import Linkify from 'react-linkify';
 import './MessageIcon.css';
 
 const MessageIcon = ({ userId }) => {
@@ -15,8 +16,13 @@ const MessageIcon = ({ userId }) => {
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [filteredConversations, setFilteredConversations] = useState([]);
     const [currentView, setCurrentView] = useState('conversations'); // 'conversations', 'newChat', 'chat'
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
     const modalRef = useRef(null);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         if (userId) {
@@ -28,6 +34,8 @@ const MessageIcon = ({ userId }) => {
         if (showModal && userId) {
             fetchConversations();
             fetchAvailableUsers();
+            // Update unread count when modal is opened (user is viewing messages)
+            fetchUnreadCount();
         }
     }, [showModal, userId]);
 
@@ -57,6 +65,10 @@ const MessageIcon = ({ userId }) => {
         }
     }, [searchTerm, conversations, availableUsers]);
 
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
     const fetchUnreadCount = async () => {
         try {
             const response = await axios.get(`/messages/unread-count?userId=${userId}`);
@@ -66,11 +78,31 @@ const MessageIcon = ({ userId }) => {
         }
     };
 
+    const markAllMessagesAsSeen = async () => {
+        try {
+            await axios.put(`/messages/mark-all-seen?userId=${userId}`);
+            // Reset unread count to 0 immediately for better UX
+            setUnreadCount(0);
+            // Also update conversations to show no unread messages
+            setConversations(prevConversations => 
+                prevConversations.map(conv => ({ ...conv, unreadCount: 0 }))
+            );
+        } catch (error) {
+            console.error('Error marking all messages as seen:', error);
+        }
+    };
+
     const fetchConversations = async () => {
         try {
             setLoading(true);
             const response = await axios.get(`/messages/conversations?userId=${userId}`);
             setConversations(response.data);
+            
+            // When user opens the modal and sees conversations, 
+            // mark all messages as seen (common UX pattern)
+            if (response.data.some(conv => conv.unreadCount > 0)) {
+                markAllMessagesAsSeen();
+            }
         } catch (error) {
             console.error('Error fetching conversations:', error);
         } finally {
@@ -119,17 +151,51 @@ const MessageIcon = ({ userId }) => {
     };
 
     const sendMessage = async () => {
-        if (!newMessage.trim() || !selectedConversation) return;
+        if ((!newMessage.trim() && !selectedFile) || !selectedConversation) return;
 
         try {
-            const messageData = {
-                recipientId: selectedConversation.userId,
-                content: newMessage.trim()
-            };
+            let attachmentInfo = null;
+            
+            // Upload file if selected
+            if (selectedFile) {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                
+                const uploadResponse = await axios.post('/files/upload', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                });
+                
+                attachmentInfo = uploadResponse.data;
+            }
 
-            await axios.post(`/messages/send?senderId=${userId}`, messageData);
+            // Send message
+            if (attachmentInfo) {
+                // Send with attachment using form data
+                const formData = new FormData();
+                formData.append('senderId', userId);
+                formData.append('recipientId', selectedConversation.userId);
+                formData.append('content', newMessage.trim() || 'File attachment');
+                formData.append('attachmentUrl', attachmentInfo.url);
+                formData.append('attachmentFilename', attachmentInfo.filename);
+                formData.append('attachmentSize', attachmentInfo.size);
+                formData.append('attachmentContentType', attachmentInfo.contentType);
+
+                await axios.post('/messages/send-with-attachment', formData);
+            } else {
+                // Send regular message
+                const messageData = {
+                    recipientId: selectedConversation.userId,
+                    content: newMessage.trim()
+                };
+
+                await axios.post(`/messages/send?senderId=${userId}`, messageData);
+            }
             
             setNewMessage('');
+            setSelectedFile(null);
+            setFilePreview(null);
             fetchConversation(selectedConversation.userId);
             fetchConversations();
             fetchUnreadCount();
@@ -188,6 +254,14 @@ const MessageIcon = ({ userId }) => {
         fetchConversation(conversation.userId);
         setSearchTerm('');
         setCurrentView('chat');
+        // Immediately update the unread count in state for this conversation
+        setConversations(prevConversations => 
+            prevConversations.map(conv => 
+                conv.userId === conversation.userId 
+                    ? { ...conv, unreadCount: 0 }
+                    : conv
+            )
+        );
     };
 
     const openFullMessaging = () => {
@@ -195,6 +269,137 @@ const MessageIcon = ({ userId }) => {
         // For now, just close the dropdown
         setShowModal(false);
         setSearchTerm('');
+    };
+
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Check file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size too large. Maximum 10MB allowed.');
+            return;
+        }
+
+        setSelectedFile(file);
+
+        // Create preview for images
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => setFilePreview(e.target.result);
+            reader.readAsDataURL(file);
+        } else {
+            setFilePreview(null);
+        }
+    };
+
+    const removeSelectedFile = () => {
+        setSelectedFile(null);
+        setFilePreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    const openImageModal = (imageSrc) => {
+        setSelectedImage(imageSrc);
+        setShowImageModal(true);
+    };
+
+    const closeImageModal = () => {
+        setShowImageModal(false);
+        setSelectedImage(null);
+    };
+
+    const handleFileView = async (attachmentUrl, filename) => {
+        try {
+            // Fix URL doubling issue - remove /api prefix if it exists since axiosInstance adds it
+            let cleanUrl = attachmentUrl;
+            if (attachmentUrl.startsWith('/api/')) {
+                cleanUrl = attachmentUrl.substring(4); // Remove '/api' prefix
+            }
+            
+            console.log('Original attachmentUrl:', attachmentUrl);
+            console.log('Clean URL for request:', cleanUrl);
+            
+            // Use exact same pattern as assignments - axios with blob response
+            const response = await axios.get(cleanUrl, {
+                responseType: 'blob',
+            });
+            
+            // Create blob link to download - identical to assignment pattern
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            console.error('Failed URL:', attachmentUrl);
+            alert('Failed to download file. Please try again.');
+        }
+    };
+
+    const isImageFile = (contentType) => {
+        return contentType && contentType.startsWith('image/');
+    };
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const renderMessageContent = (message) => {
+        const hasAttachment = message.attachmentUrl;
+        
+        return (
+            <div className="message-content-wrapper">
+                {message.content && (
+                    <div className="message-text">
+                        <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>
+                            {message.content}
+                        </Linkify>
+                    </div>
+                )}
+                
+                {hasAttachment && (
+                    <div className="message-attachment">
+                        {isImageFile(message.attachmentContentType) ? (
+                            <div className="attachment-image">
+                                <img 
+                                    src={message.attachmentUrl}
+                                    alt={message.attachmentFilename}
+                                    onClick={() => openImageModal(message.attachmentUrl)}
+                                    style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer', borderRadius: '8px' }}
+                                />
+                                <div className="attachment-filename">{message.attachmentFilename}</div>
+                            </div>
+                        ) : (
+                            <div className="attachment-file">
+                                <div className="file-icon">🔗</div>
+                                <div className="file-details">
+                                    <div className="file-name">{message.attachmentFilename}</div>
+                                    <div className="file-size">{formatFileSize(message.attachmentSize)}</div>
+                                </div>
+                                <button 
+                                    onClick={() => handleFileView(message.attachmentUrl, message.attachmentFilename)}
+                                    className="download-link"
+                                    type="button"
+                                >
+                                    Download
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -431,7 +636,7 @@ const MessageIcon = ({ userId }) => {
                                                 key={index} 
                                                 className={`message-bubble ${message.senderId === userId ? 'sent' : 'received'}`}
                                             >
-                                                <div className="message-content">{message.content}</div>
+                                                {renderMessageContent(message)}
                                                 <div className="message-time">{formatTime(message.timestamp)}</div>
                                             </div>
                                         ))
@@ -442,23 +647,63 @@ const MessageIcon = ({ userId }) => {
                                     )}
                                 </div>
                                 <div className="chat-input">
-                                    <input
-                                        type="text"
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                                        placeholder="Type a message..."
-                                        className="message-input"
-                                    />
-                                    <button 
-                                        onClick={sendMessage}
-                                        disabled={!newMessage.trim()}
-                                        className="send-btn"
-                                    >
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                                        </svg>
-                                    </button>
+                                    {/* File preview */}
+                                    {selectedFile && (
+                                        <div className="file-attachment-area">
+                                            <div className="file-preview">
+                                                {filePreview ? (
+                                                    <img src={filePreview} alt="Preview" />
+                                                ) : (
+                                                    <div className="file-icon">📁</div>
+                                                )}
+                                                <div className="file-info">
+                                                    <div className="file-name">{selectedFile.name}</div>
+                                                    <div className="file-size">{formatFileSize(selectedFile.size)}</div>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={removeSelectedFile} 
+                                                className="remove-file-btn"
+                                                title="Remove file"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="message-input-row">
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileSelect}
+                                            style={{ display: 'none' }}
+                                            accept="*/*"
+                                        />
+                                        <button 
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="file-input-btn"
+                                            title="Attach file"
+                                        >
+                                            📎
+                                        </button>
+                                        <input
+                                            type="text"
+                                            value={newMessage}
+                                            onChange={(e) => setNewMessage(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                                            placeholder="Type a message..."
+                                            className="message-input"
+                                        />
+                                        <button 
+                                            onClick={sendMessage}
+                                            disabled={!newMessage.trim() && !selectedFile}
+                                            className="send-btn"
+                                        >
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -478,6 +723,16 @@ const MessageIcon = ({ userId }) => {
                             </button>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Image Modal */}
+            {showImageModal && selectedImage && (
+                <div className="image-modal-overlay" onClick={closeImageModal}>
+                    <div className="image-modal" onClick={(e) => e.stopPropagation()}>
+                        <button className="close-image-modal" onClick={closeImageModal}>×</button>
+                        <img src={selectedImage} alt="Full size" className="modal-image" />
+                    </div>
                 </div>
             )}
         </div>
