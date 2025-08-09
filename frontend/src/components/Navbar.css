@@ -71,6 +71,12 @@
   padding-left: 2rem;
 }
 
+.navbar-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .user-info {
   display: flex;
   align-items: center;
@@ -270,6 +276,8 @@
 .mobile-notification-section {
   display: flex;
   justify-content: center;
+  align-items: center;
+  gap: 16px;
   padding: 0.5rem;
   background-color: rgba(255, 255, 255, 0.05);
   border-radius: 12px;

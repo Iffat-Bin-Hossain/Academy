@@ -80,7 +80,10 @@ public class SecurityConfig {
                 // 4.7 Notification endpoints - all authenticated users
                 .requestMatchers("/api/notifications/**").authenticated()
 
-                // 4.8 Any other route requires authentication
+                // 4.8 Messaging endpoints - all authenticated users
+                .requestMatchers("/api/messages/**").authenticated()
+
+                // 4.9 Any other route requires authentication
                 .anyRequest().authenticated()
             )
 

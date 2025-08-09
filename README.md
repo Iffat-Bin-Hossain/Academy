@@ -2,7 +2,71 @@
 
 A modern full-stack Learning Management System with comprehensive user management, course enrollment, assignment handling, and real-time notifications. **Fully Dockerized** for instant deployment.
 
-## 🚀 Tech Stack & Architecture
+## 🚀 Tech Stack & ### Teacher Notifications
+- Receives alerts when:
+  - Personal information is updated by an admin.
+  - Assigned to a new course.
+  - Removed from a course.
+  - Another teacher is replaced by them in a course.
+  - A student submits any assignment in a course they teach.
+  - A new discussion post is created in a thread within their assigned courses.
+  - Anyone reacts or replies to the teacher's discussion reply.
+
+## 💬 Real-time Messaging System (NEW!)
+
+A comprehensive messaging platform with dropdown interface and role-based permissions for secure communication between academy users.
+
+### 🎯 Key Features
+- **Dropdown Interface**: Clean messaging dropdown similar to notification bell for consistent UX
+- **Active Users Only**: Messaging restricted to ACTIVE users only - no pending/disabled users
+- **Disabled User Protection**: Inactive users show as "disabled user" instead of real names
+- **Role-based Messaging**: Secure permissions based on user roles and course relationships
+- **Search Functionality**: Find existing conversations or search for new users to message
+- **Unread Badge**: Visual indicator showing unread message count on message icon
+- **Conversation Management**: Organized conversation list with timestamps and previews
+- **Individual Chat Modal**: Dedicated chat interface for detailed conversations
+
+### 👥 Messaging Permissions
+- **Admin ↔ All Active Users**: Admins can message any active user (students, teachers, other admins)
+- **Teacher ↔ Admin**: Teachers can message all active admin users
+- **Teacher ↔ Students**: Teachers can only message students enrolled in their assigned courses
+- **Student ↔ Admin**: Students can message all active admin users  
+- **Student ↔ Teachers**: Students can only message teachers of courses they're enrolled in
+- **Same Role Restriction**: Students cannot message other students, teachers cannot message other teachers (except admins)
+
+### 🔧 Technical Implementation
+- **Backend**: Spring Boot service with PostgreSQL message storage
+- **Frontend**: React component with dropdown interface and search capabilities
+- **Security**: JWT-based authentication with role validation
+- **Database**: Message entity with sender/recipient relationships and timestamps
+- **API Endpoints**: RESTful messaging APIs with role-based access control
+- **Real-time Updates**: Live unread count updates and conversation refresh
+
+### 🎨 User Interface
+- **Message Icon**: Located beside notification bell in navbar
+- **Dropdown Menu**: Shows conversation list with search bar and new chat option
+- **Conversation Items**: Display partner name, role, last message preview, and timestamp
+- **Unread Indicators**: Blue badge on message icon and conversation highlighting
+- **Search Bar**: Real-time search through conversations and available users
+- **Chat Modal**: Full-screen chat interface for individual conversations
+- **Disabled User Handling**: Shows "disabled user" for inactive participants
+
+### 📱 Usage Flow
+1. **Access**: Click message icon in navbar (beside notification bell)
+2. **View Conversations**: See all existing conversations with last message and time
+3. **Search**: Use search bar to filter conversations or find specific users
+4. **New Chat**: Click plus button to find available users and start new conversations
+5. **Chat**: Click on conversation to open dedicated chat modal
+6. **Send Messages**: Type and send messages with Enter key or send button
+7. **Real-time Updates**: See unread counts and new messages instantly
+
+### 🛡️ Security & Privacy
+- **Permission Validation**: All message operations validated against role-based rules
+- **Active User Enforcement**: Only ACTIVE users can send/receive messages
+- **Course Relationship Checks**: Teacher-student messaging requires valid course enrollment
+- **Disabled User Privacy**: Inactive users show as "disabled user" to protect identity
+- **Authentication Required**: All messaging features require valid JWT tokens
+- **Data Persistence**: Messages stored securely in PostgreSQL with proper relationshipsure
 
 **Backend**: Spring Boot (Java 17) + PostgreSQL + JWT Security  
 **Frontend**: React 19 + Modern CSS + Responsive Design  
@@ -196,6 +260,27 @@ npm start
 - **Enhanced Error Handling**: Comprehensive error messages and user feedback
 - **Docker Integration**: Fully containerized with persistent file storage
 - **API Endpoint Fixes**: Corrected URL/link resource creation with proper teacherId parameter handling
+
+### 💬 Real-time Messaging System (NEW!)
+- **Dropdown Interface**: Clean messaging dropdown beside notification bell for consistent UX
+- **Active Users Only**: Messaging restricted to ACTIVE users - inactive users show as "disabled user"
+- **Role-based Permissions**: Secure messaging based on user roles and course relationships
+- **Admin Messaging**: Admins can message any active user across all roles
+- **Teacher-Student Messaging**: Teachers can only message students enrolled in their courses
+- **Student-Teacher Messaging**: Students can only message teachers of their enrolled courses
+- **Search Functionality**: Real-time search through existing conversations and available users
+- **New Chat Creation**: Find and start conversations with available users through search
+- **Unread Message Badge**: Visual indicator showing unread message count on message icon
+- **Conversation Management**: Organized list with user names, roles, last message, and timestamps
+- **Individual Chat Modal**: Dedicated full-screen chat interface for detailed conversations
+- **Message History**: Complete conversation history with sent/received message indicators
+- **Real-time Updates**: Live unread count updates and conversation refresh
+- **Privacy Protection**: Disabled users show as "disabled user" instead of real names
+- **JWT Security**: All messaging operations require valid authentication tokens
+- **PostgreSQL Storage**: Secure message persistence with proper user relationships
+- **Mobile-Responsive**: Optimized messaging interface for all device sizes
+- **Professional UI**: Modern chat interface with message bubbles and timestamps
+
 ### 📚 Course Management System
 - **Admin Course Creation**: Create courses with title, code, description, and teacher assignment
 - **Teacher Assignment System**: Admin assigns specific teachers to courses
