@@ -222,6 +222,22 @@
     border-left: 3px solid #3b82f6;
 }
 
+/* Disabled user styles */
+.conversation-item.disabled-user {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: #f5f5f5;
+}
+
+.conversation-item.disabled-user:hover {
+    background: #f5f5f5; /* Prevent hover effect for disabled users */
+}
+
+.conversation-item.disabled-user .conversation-name {
+    color: #9ca3af;
+    font-style: italic;
+}
+
 .conversation-avatar, .user-avatar {
     width: 36px;
     height: 36px;

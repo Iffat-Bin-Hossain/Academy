@@ -203,6 +203,11 @@ const MessageIcon = ({ userId }) => {
     };
 
     const startNewConversation = async (user) => {
+        // Prevent starting conversation with disabled users
+        if (user.name === 'disabled user' || user.status === 'DISABLED') {
+            return; // Do nothing for disabled users
+        }
+        
         // Check if conversation already exists
         const existingConv = conversations.find(conv => conv.userId === user.id);
         if (existingConv) {
@@ -247,6 +252,11 @@ const MessageIcon = ({ userId }) => {
     };
 
     const openChatModal = (conversation) => {
+        // Prevent opening chat with disabled users
+        if (conversation.userName === 'disabled user') {
+            return; // Do nothing for disabled users
+        }
+        
         setSelectedConversation(conversation);
         fetchConversation(conversation.userId);
         setSearchTerm('');
@@ -525,8 +535,12 @@ const MessageIcon = ({ userId }) => {
                                         filteredConversations.map((conversation, index) => (
                                             <div 
                                                 key={index}
-                                                className={`conversation-item ${conversation.unreadCount > 0 ? 'unread' : ''}`}
+                                                className={`conversation-item ${conversation.unreadCount > 0 ? 'unread' : ''} ${conversation.userName === 'disabled user' ? 'disabled-user' : ''}`}
                                                 onClick={() => {
+                                                    // Prevent interaction with disabled users
+                                                    if (conversation.userName === 'disabled user') {
+                                                        return; // Do nothing for disabled users
+                                                    }
                                                     setSelectedConversation(conversation);
                                                     // Open chat in the same modal and mark messages as read
                                                     openChatModal(conversation);

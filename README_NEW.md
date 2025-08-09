@@ -57,6 +57,7 @@ docker-compose up --build -d
 - **Course Management**: Create, assign teachers, manage course catalog
 - **Advanced Search & Filtering**: Multi-field search with status filters
 - **System Analytics**: Real-time metrics and user statistics
+- **Batch Operations**: Mass approval/rejection of users
 
 ### 👨‍🏫 Teacher Dashboard
 - **Unified Course & Student Management**: Single interface for all teaching activities
@@ -83,8 +84,7 @@ docker-compose up --build -d
 - **File Attachments**: Share images, documents, PDFs with preview
 - **Unread Message Badges**: Visual indicators for unread conversations
 - **Search Functionality**: Find conversations and users instantly
-- **Privacy Protection**: Inactive users shown as "disabled user" (non-interactive)
-- **Disabled User Handling**: Prevents interactions with inactive accounts
+- **Privacy Protection**: Inactive users shown as "disabled user"
 
 ### 📚 Resource Management System
 - **Multi-Format Support**: PDF, DOC, PPT, images, videos, code files (Max 50MB)
@@ -183,14 +183,12 @@ docker exec -it academy_db psql -U academyuser -d academydb -c "\COPY users TO S
 - Added mark-all-seen endpoint for proper message status
 - Improved conversation-specific unread tracking
 - Enhanced role-based messaging permissions
-- **NEW**: Prevented interactions with disabled users (no errors on click)
 
 ### ✅ UI/UX Improvements
 - Organized README documentation
 - Streamlined feature descriptions
 - Updated project architecture overview
 - Consolidated repetitive sections
-- **NEW**: Added visual indicators for disabled users in messaging
 
 ### ✅ Database Optimizations
 - Live CSV exports from production database
