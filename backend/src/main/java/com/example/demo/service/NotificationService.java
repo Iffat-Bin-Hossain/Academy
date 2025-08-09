@@ -326,6 +326,23 @@ public class NotificationService {
     }
 
     /**
+     * Notify user when they are tagged in a discussion post
+     */
+    public void notifyUserTagged(Long taggedUserId, User tagger, Course course, String threadTitle, Long threadId) {
+        createNotification(
+                taggedUserId,
+                Notification.NotificationType.DISCUSSION_TAG,
+                "You were tagged in a discussion",
+                String.format("%s tagged you in discussion: %s", tagger.getName(), threadTitle),
+                "/discussions/" + course.getCourseCode() + "/" + threadId,
+                course,
+                null,
+                tagger,
+                threadId
+        );
+    }
+
+    /**
      * Notify teacher when they are removed from a course
      */
     public void notifyTeacherCourseRemoval(Long teacherId, Course course, User adminUser) {

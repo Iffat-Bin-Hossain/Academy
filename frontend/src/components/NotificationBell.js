@@ -110,6 +110,7 @@ import './NotificationBell.css';
         case 'NEW_ASSIGNMENT':
         case 'NEW_DISCUSSION_THREAD':
         case 'DISCUSSION_REPLY':
+        case 'DISCUSSION_TAG':
         case 'ASSIGNMENT_GRADED':
           return relatedCourse?.courseCode 
             ? `/student/${relatedCourse.courseCode}` 
@@ -264,6 +265,7 @@ import './NotificationBell.css';
       case 'NEW_DISCUSSION_THREAD': return '💬';
       case 'NEW_COURSE_CREATED': return '📚';
       case 'DISCUSSION_REPLY': return '💬';
+      case 'DISCUSSION_TAG': return '🏷️';
       case 'ASSIGNMENT_GRADED': return '🎓';
       case 'COURSE_ANNOUNCEMENT': return '📢';
       case 'USER_PROFILE_UPDATED': return '👤';

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import UserTagging from './UserTagging';
 import './DiscussionThreadDetail.css';
 
 const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
@@ -10,10 +11,45 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyContent, setReplyContent] = useState('');
   const [expandedReplies, setExpandedReplies] = useState(new Set());
+  const [courseUsers, setCourseUsers] = useState([]); // Store course users for tag processing
 
   useEffect(() => {
     fetchThreadDetails();
   }, [thread.id]);
+
+  useEffect(() => {
+    // Fetch course users for tag processing
+    if (threadData?.courseId) {
+      fetchCourseUsers();
+    }
+  }, [threadData]);
+
+  const fetchCourseUsers = async () => {
+    try {
+      const response = await axios.get(`/discussions/course/${threadData.courseId}/students?userId=${user.id}`);
+      setCourseUsers(response.data);
+    } catch (error) {
+      console.error('Error fetching course users:', error);
+    }
+  };
+
+  // Function to process tagged content and make tags bold and blue
+  const processTaggedContent = (content) => {
+    if (!content || courseUsers.length === 0) return content;
+
+    let processedContent = content;
+    
+    // Replace @userId with styled @username
+    courseUsers.forEach(courseUser => {
+      const tagPattern = new RegExp(`@${courseUser.id}(?=\\s|$)`, 'g');
+      processedContent = processedContent.replace(
+        tagPattern, 
+        `<span class="user-tag">@${courseUser.name}</span>`
+      );
+    });
+    
+    return processedContent;
+  };
 
   const fetchThreadDetails = async () => {
     try {
@@ -159,7 +195,9 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
           </div>
 
           <div className="post-content">
-            <p>{post.content}</p>
+            <p dangerouslySetInnerHTML={{ 
+              __html: processTaggedContent(post.content) 
+            }}></p>
           </div>
 
           <div className="post-actions">
@@ -212,12 +250,14 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
               <div className="reply-form-header">
                 <h5>💬 Reply to {post.authorName}</h5>
               </div>
-              <textarea
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+              <UserTagging
+                courseId={threadData.courseId}
+                userId={user.id}
+                content={replyContent}
+                setContent={setReplyContent}
                 placeholder="Write your reply..."
                 className="reply-input"
-                rows="3"
+                onMention={(user) => console.log('Mentioned user in reply:', user)}
               />
               <div className="reply-actions">
                 <button 
@@ -319,12 +359,14 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
       <div className="new-post-section">
         <h4>💬 Join the Discussion</h4>
         <form onSubmit={handleCreatePost}>
-          <textarea
-            value={newPost}
-            onChange={(e) => setNewPost(e.target.value)}
+          <UserTagging
+            courseId={threadData.courseId}
+            userId={user.id}
+            content={newPost}
+            setContent={setNewPost}
             placeholder="Share your thoughts, ask a question, or contribute to the discussion..."
             className="new-post-input"
-            rows="4"
+            onMention={(user) => console.log('Mentioned user:', user)}
           />
           <div className="new-post-actions">
             <button type="submit" className="btn btn-primary">

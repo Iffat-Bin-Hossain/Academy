@@ -89,6 +89,7 @@ public class Notification {
         NEW_COURSE_CREATED,
         DISCUSSION_REPLY,
         DISCUSSION_POST_REACTION,
+        DISCUSSION_TAG,
         ASSIGNMENT_GRADED,
         
         // General notifications

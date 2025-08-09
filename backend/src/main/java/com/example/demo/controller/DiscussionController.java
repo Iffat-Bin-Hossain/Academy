@@ -110,6 +110,23 @@ public class DiscussionController {
     }
 
     /**
+     * Get enrolled students for tagging in a course
+     * GET /api/discussions/course/{courseId}/students
+     */
+    @GetMapping("/course/{courseId}/students")
+    public ResponseEntity<?> getEnrolledStudentsForTagging(
+            @PathVariable Long courseId,
+            @RequestParam Long userId) {
+        try {
+            List<UserTagResponse> students = discussionService.getEnrolledStudentsForTagging(courseId, userId);
+            return ResponseEntity.ok(students);
+        } catch (RuntimeException e) {
+            log.error("Error getting enrolled students for tagging: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * Search discussion threads in a course
      * GET /api/discussions/course/{courseId}/search
      */

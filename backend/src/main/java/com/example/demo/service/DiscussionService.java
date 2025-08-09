@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -196,6 +198,9 @@ public class DiscussionService {
         thread.setUpdatedAt(LocalDateTime.now());
         threadRepository.save(thread);
 
+        // Extract tagged users from post content
+        List<Long> taggedUserIds = extractTaggedUserIds(request.getContent());
+
         // Send notifications for new posts
         try {
             if (author.getRole().equals(Role.STUDENT)) {
@@ -244,6 +249,11 @@ public class DiscussionService {
                         thread.getId()
                     );
                 }
+            }
+            
+            // Send tag notifications
+            if (!taggedUserIds.isEmpty()) {
+                sendTagNotifications(taggedUserIds, author, thread, request.getContent());
             }
         } catch (Exception e) {
             log.warn("Failed to send notification for discussion post: {}", e.getMessage());
@@ -331,6 +341,106 @@ public class DiscussionService {
         response.put("userReaction", userReaction);
         
         return response;
+    }
+
+    /**
+     * Get enrolled students for tagging in a course
+     */
+    public List<UserTagResponse> getEnrolledStudentsForTagging(Long courseId, Long userId) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if user has access to this course
+        validateCourseAccess(course, user);
+
+        // Get all enrolled students in the course (both APPROVED and RETAKING)
+        List<CourseEnrollment> enrollments = enrollmentRepository.findByCourseAndStatusIn(
+                course, Arrays.asList(EnrollmentStatus.APPROVED, EnrollmentStatus.RETAKING));
+        
+        // Also include teachers if the requester is a student
+        List<UserTagResponse> taggableUsers = new ArrayList<>();
+        
+        // Add enrolled students
+        for (CourseEnrollment enrollment : enrollments) {
+            User student = enrollment.getStudent();
+            if (!student.getId().equals(userId)) { // Don't include the requester themselves
+                taggableUsers.add(UserTagResponse.builder()
+                        .id(student.getId())
+                        .name(student.getName())
+                        .email(student.getEmail())
+                        .role(student.getRole().toString())
+                        .build());
+            }
+        }
+        
+        // Add the assigned teacher if requester is a student
+        if (user.getRole().equals(Role.STUDENT) && course.getAssignedTeacher() != null) {
+            User teacher = course.getAssignedTeacher();
+            taggableUsers.add(UserTagResponse.builder()
+                    .id(teacher.getId())
+                    .name(teacher.getName())
+                    .email(teacher.getEmail())
+                    .role(teacher.getRole().toString())
+                    .build());
+        }
+        
+        // Sort by name
+        taggableUsers.sort(Comparator.comparing(UserTagResponse::getName));
+        
+        return taggableUsers;
+    }
+
+    /**
+     * Extract tagged user IDs from post content
+     */
+    private List<Long> extractTaggedUserIds(String content) {
+        List<Long> taggedUserIds = new ArrayList<>();
+        // Pattern to match @userId format (e.g., @123)
+        Pattern pattern = Pattern.compile("@(\\d+)");
+        Matcher matcher = pattern.matcher(content);
+        
+        while (matcher.find()) {
+            try {
+                Long userId = Long.parseLong(matcher.group(1));
+                taggedUserIds.add(userId);
+            } catch (NumberFormatException e) {
+                // Ignore invalid user IDs
+            }
+        }
+        
+        return taggedUserIds;
+    }
+
+    /**
+     * Send notifications to tagged users
+     */
+    private void sendTagNotifications(List<Long> taggedUserIds, User tagger, DiscussionThread thread, String postContent) {
+        for (Long taggedUserId : taggedUserIds) {
+            try {
+                User taggedUser = userRepository.findById(taggedUserId).orElse(null);
+                if (taggedUser != null && !taggedUser.getId().equals(tagger.getId())) {
+                    // Check if tagged user has access to the course
+                    if (isUserEnrolledInCourse(taggedUser, thread.getCourse()) || 
+                        (taggedUser.getRole().equals(Role.TEACHER) && 
+                         thread.getCourse().getAssignedTeacher() != null && 
+                         thread.getCourse().getAssignedTeacher().getId().equals(taggedUserId))) {
+                        
+                        notificationService.notifyUserTagged(
+                            taggedUserId, 
+                            tagger, 
+                            thread.getCourse(), 
+                            thread.getTitle(), 
+                            thread.getId()
+                        );
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to send tag notification to user {}: {}", taggedUserId, e.getMessage());
+            }
+        }
     }
 
     /**
