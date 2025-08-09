@@ -100,6 +100,16 @@ public class MessageController {
         }
     }
 
+    @PutMapping("/mark-all-seen")
+    public ResponseEntity<Void> markAllMessagesAsSeen(@RequestParam Long userId) {
+        try {
+            messageService.markAllMessagesAsSeen(userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @GetMapping("/unread-count")
     public ResponseEntity<Long> getUnreadCount(@RequestParam Long userId) {
         try {

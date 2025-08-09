@@ -98,11 +98,8 @@ const MessageIcon = ({ userId }) => {
             const response = await axios.get(`/messages/conversations?userId=${userId}`);
             setConversations(response.data);
             
-            // When user opens the modal and sees conversations, 
-            // mark all messages as seen (common UX pattern)
-            if (response.data.some(conv => conv.unreadCount > 0)) {
-                markAllMessagesAsSeen();
-            }
+            // Don't mark messages as seen just by viewing the conversation list
+            // Messages should only be marked as read when user opens specific conversations
         } catch (error) {
             console.error('Error fetching conversations:', error);
         } finally {

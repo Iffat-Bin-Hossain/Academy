@@ -75,8 +75,8 @@ public class MessageService {
                 continue;
             }
             
-            // Get unread count for this partner
-            long unreadCount = messageRepository.countUnreadMessagesForUser(user);
+            // Get unread count from this specific partner to the current user
+            long unreadCount = messageRepository.countUnreadMessagesFromSender(partner, user);
             
             // Use display names for privacy protection
             String displayName = (partner.getStatus() == UserStatus.ACTIVE) ? 
@@ -157,6 +157,25 @@ public class MessageService {
         
         // Mark all unread messages from the sender to the user as read
         List<Message> unreadMessages = messageRepository.findBySenderAndRecipientAndIsReadFalse(sender, user);
+        
+        LocalDateTime now = LocalDateTime.now();
+        for (Message message : unreadMessages) {
+            message.setIsRead(true);
+            message.setReadAt(now);
+        }
+        
+        if (!unreadMessages.isEmpty()) {
+            messageRepository.saveAll(unreadMessages);
+        }
+    }
+
+    @Transactional
+    public void markAllMessagesAsSeen(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Mark all unread messages for this user as read
+        List<Message> unreadMessages = messageRepository.findByRecipientAndIsReadFalse(user);
         
         LocalDateTime now = LocalDateTime.now();
         for (Message message : unreadMessages) {
