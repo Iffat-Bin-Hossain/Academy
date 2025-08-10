@@ -11,6 +11,9 @@ import Signup from './components/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import AboutPage from './components/AboutPage';
+import SmartProfile from './components/SmartProfile';
+import Layout from './components/Layout';
+import ProfileWrapper from './components/ProfileWrapper';
 
 function App() {
   return (
@@ -92,6 +95,49 @@ function App() {
           element={
             <ProtectedRoute roleRequired="STUDENT">
               <StudentCourseDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Profile routes - accessible by all authenticated users */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfileWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:userId"
+          element={
+            <ProtectedRoute>
+              <ProfileWrapper />
+            </ProtectedRoute>
+          }
+        />
+        {/* Role-specific profile routes */}
+        <Route
+          path="/admin/profile"
+          element={
+            <ProtectedRoute roleRequired="ADMIN">
+              <ProfileWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/profile"
+          element={
+            <ProtectedRoute roleRequired="TEACHER">
+              <ProfileWrapper />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/profile"
+          element={
+            <ProtectedRoute roleRequired="STUDENT">
+              <ProfileWrapper />
             </ProtectedRoute>
           }
         />

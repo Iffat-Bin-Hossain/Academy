@@ -10,6 +10,13 @@ function ProtectedRoute({ roleRequired, children }) {
 
   try {
     const decoded = jwtDecode(token); // decode token to get role
+    
+    // If no specific role is required, any authenticated user can access
+    if (!roleRequired) {
+      return children;
+    }
+    
+    // If a specific role is required, check if user has that role
     if (decoded.role !== roleRequired) {
       return <Navigate to="/login" replace />;
     }

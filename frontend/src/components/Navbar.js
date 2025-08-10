@@ -51,13 +51,15 @@ const Navbar = ({ user, onLogout }) => {
                 <NotificationBell user={user} />
               </div>
               <div className="user-info">
-                <div className="user-avatar">
-                  {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-                <div className="user-details">
-                  <div className="user-name">{user.name}</div>
-                  <div className="user-role">{user.role}</div>
-                </div>
+                <Link to={`/${user.role.toLowerCase()}/profile`} className="profile-link">
+                  <div className="user-avatar">
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <div className="user-details">
+                    <div className="user-name">{user.name}</div>
+                    <div className="user-role">{user.role}</div>
+                  </div>
+                </Link>
               </div>
               <button onClick={handleLogout} className="logout-btn">
                 <span className="logout-icon">🚪</span>
@@ -86,13 +88,15 @@ const Navbar = ({ user, onLogout }) => {
             {user && (
               <>
                 <div className="mobile-user-info">
-                  <div className="mobile-user-avatar">
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
-                  <div className="mobile-user-details">
-                    <div className="mobile-user-name">{user.name}</div>
-                    <div className="mobile-user-role">{user.role}</div>
-                  </div>
+                  <Link to={`/${user.role.toLowerCase()}/profile`} className="mobile-profile-link">
+                    <div className="mobile-user-avatar">
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                    <div className="mobile-user-details">
+                      <div className="mobile-user-name">{user.name}</div>
+                      <div className="mobile-user-role">{user.role}</div>
+                    </div>
+                  </Link>
                 </div>
                 <div className="mobile-notification-section">
                   <MessageIcon userId={user.id} />

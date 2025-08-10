@@ -53,6 +53,7 @@
 .btn-signup {
   background-color: transparent;
   color: white;
+  border: 2px solid white;
 }
 
 .btn-signup:hover {

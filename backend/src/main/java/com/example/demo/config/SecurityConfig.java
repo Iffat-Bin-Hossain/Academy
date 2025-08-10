@@ -36,6 +36,7 @@ public class SecurityConfig {
 
                 // 4.1 Public endpoints
                 .requestMatchers("/api/auth/**", "/api/test").permitAll()
+                .requestMatchers("/api/files/download/**").permitAll()
 
                 // 4.2 Admin-only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -102,7 +103,8 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "http://localhost:3000", // React frontend
-            "http://localhost:8080"  // Optional (for Swagger or direct backend access)
+            "http://localhost:8080", // Optional (for Swagger or direct backend access)
+            "http://localhost:8081"  // Current backend port
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));

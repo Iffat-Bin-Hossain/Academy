@@ -19,11 +19,14 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8081"})
 public class FileUploadController {
 
     @Value("${app.upload.dir:./uploads}")
     private String uploadDir;
+
+    @Value("${app.profile.photos.dir:./uploads/profiles}")
+    private String profilePhotoDir;
 
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -94,6 +97,31 @@ public class FileUploadController {
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .body(fileContent);
+
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/download/profiles/{filename}")
+    public ResponseEntity<byte[]> downloadProfilePhoto(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get(profilePhotoDir).resolve(filename);
+            
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] fileContent = Files.readAllBytes(filePath);
+            String contentType = Files.probeContentType(filePath);
+            
+            if (contentType == null) {
+                contentType = "image/jpeg"; // Default for profile photos
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
                     .body(fileContent);
 
         } catch (IOException e) {
