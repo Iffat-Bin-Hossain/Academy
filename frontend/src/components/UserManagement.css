@@ -718,3 +718,124 @@
   font-size: 13px;
   font-style: italic;
 }
+
+/* Bulk Operations Styles */
+.bulk-operations {
+  background: white;
+  border: 2px solid #3498db;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.1);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bulk-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.selected-count {
+  background: #3498db;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.selection-controls {
+  background: white;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.selection-controls .btn {
+  padding: 6px 12px;
+  font-size: 0.85em;
+}
+
+/* Checkbox Styles */
+.users-table th:first-child,
+.users-table td:first-child {
+  width: 40px;
+  text-align: center;
+  padding: 8px 4px;
+}
+
+.users-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3498db;
+}
+
+/* Update user row selection highlight */
+.user-row {
+  transition: background-color 0.2s ease;
+}
+
+.user-row:has(input:checked) {
+  background-color: rgba(52, 152, 219, 0.05);
+  border-left: 3px solid #3498db;
+}
+
+/* Button size variants */
+.btn.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85em;
+  line-height: 1.2;
+}
+
+/* Loading state for bulk operations */
+.bulk-actions .btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .bulk-operations {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .bulk-info {
+    justify-content: center;
+  }
+
+  .bulk-actions {
+    justify-content: center;
+  }
+
+  .selection-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

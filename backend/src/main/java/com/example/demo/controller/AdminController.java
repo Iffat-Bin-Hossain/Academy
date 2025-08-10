@@ -351,4 +351,144 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("error", "Error updating user: " + e.getMessage()));
         }
     }
+
+    // Bulk approve users
+    @PostMapping("/bulk-approve")
+    public ResponseEntity<?> bulkApprove(@RequestBody Map<String, List<Long>> request) {
+        try {
+            List<Long> userIds = request.get("userIds");
+            if (userIds == null || userIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No user IDs provided"));
+            }
+
+            List<String> successfulUsers = new ArrayList<>();
+            List<String> failedUsers = new ArrayList<>();
+
+            for (Long userId : userIds) {
+                try {
+                    User user = userRepo.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                    
+                    if (user.getStatus() == UserStatus.REJECTED) {
+                        failedUsers.add(user.getName() + " (already rejected)");
+                        continue;
+                    }
+                    
+                    user.setApproved(true);
+                    user.setStatus(UserStatus.ACTIVE);
+                    userRepo.save(user);
+                    successfulUsers.add(user.getName());
+
+                    // Send approval notification email
+                    try {
+                        emailService.sendApprovalNotification(user.getEmail(), user.getName());
+                    } catch (Exception emailError) {
+                        logger.warn("Failed to send approval email to {}: {}", user.getEmail(), emailError.getMessage());
+                    }
+
+                    // Send notification to user
+                    try {
+                        notificationService.createNotification(
+                            user.getId(),
+                            com.example.demo.model.Notification.NotificationType.ACCOUNT_APPROVED,
+                            "Account Approved",
+                            "Congratulations! Your Academy account has been approved. You can now access all features.",
+                            "/dashboard",
+                            null, null, null, null
+                        );
+                    } catch (Exception notificationError) {
+                        logger.warn("Failed to create approval notification for user {}: {}", user.getId(), notificationError.getMessage());
+                    }
+
+                } catch (Exception e) {
+                    failedUsers.add("User ID " + userId + " (" + e.getMessage() + ")");
+                }
+            }
+
+            String message = String.format("Bulk approval completed. %d successful, %d failed.", 
+                successfulUsers.size(), failedUsers.size());
+
+            return ResponseEntity.ok(Map.of(
+                "message", message,
+                "successful", successfulUsers,
+                "failed", failedUsers,
+                "successCount", successfulUsers.size(),
+                "failedCount", failedUsers.size()
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error in bulk approve: ", e);
+            return ResponseEntity.badRequest().body(Map.of("error", "Error processing bulk approval: " + e.getMessage()));
+        }
+    }
+
+    // Bulk reject users
+    @PostMapping("/bulk-reject")
+    public ResponseEntity<?> bulkReject(@RequestBody Map<String, List<Long>> request) {
+        try {
+            List<Long> userIds = request.get("userIds");
+            if (userIds == null || userIds.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No user IDs provided"));
+            }
+
+            List<String> successfulUsers = new ArrayList<>();
+            List<String> failedUsers = new ArrayList<>();
+
+            for (Long userId : userIds) {
+                try {
+                    User user = userRepo.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                    
+                    if (user.isApproved()) {
+                        failedUsers.add(user.getName() + " (already approved)");
+                        continue;
+                    }
+                    
+                    user.setApproved(false);
+                    user.setStatus(UserStatus.REJECTED);
+                    userRepo.save(user);
+                    successfulUsers.add(user.getName());
+
+                    // Send rejection notification email
+                    try {
+                        emailService.sendRejectionNotification(user.getEmail(), user.getName());
+                    } catch (Exception emailError) {
+                        logger.warn("Failed to send rejection email to {}: {}", user.getEmail(), emailError.getMessage());
+                    }
+
+                    // Send notification to user
+                    try {
+                        notificationService.createNotification(
+                            user.getId(),
+                            com.example.demo.model.Notification.NotificationType.ACCOUNT_REJECTED,
+                            "Account Rejected",
+                            "We're sorry, but your Academy account application has been rejected. Please contact support for more information.",
+                            "/contact",
+                            null, null, null, null
+                        );
+                    } catch (Exception notificationError) {
+                        logger.warn("Failed to create rejection notification for user {}: {}", user.getId(), notificationError.getMessage());
+                    }
+
+                } catch (Exception e) {
+                    failedUsers.add("User ID " + userId + " (" + e.getMessage() + ")");
+                }
+            }
+
+            String message = String.format("Bulk rejection completed. %d successful, %d failed.", 
+                successfulUsers.size(), failedUsers.size());
+
+            return ResponseEntity.ok(Map.of(
+                "message", message,
+                "successful", successfulUsers,
+                "failed", failedUsers,
+                "successCount", successfulUsers.size(),
+                "failedCount", failedUsers.size()
+            ));
+
+        } catch (Exception e) {
+            logger.error("Error in bulk reject: ", e);
+            return ResponseEntity.badRequest().body(Map.of("error", "Error processing bulk rejection: " + e.getMessage()));
+        }
+    }
 }

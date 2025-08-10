@@ -1,0 +1,477 @@
+/* Student Attendance View Styles */
+
+.student-attendance-view {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.student-attendance-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.student-attendance-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px dashed #d1d5db;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.student-attendance-empty h3 {
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.student-attendance-empty p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Header Styles */
+.attendance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.header-info h2 {
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.875rem;
+}
+
+.course-info {
+  color: #6b7280;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.view-toggle {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+}
+
+.toggle-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: white;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.toggle-btn:hover {
+  background: #f9fafb;
+}
+
+.toggle-btn.active {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Summary Styles */
+.attendance-summary {
+  margin-bottom: 3rem;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  opacity: 0.8;
+}
+
+.card-content h3 {
+  margin: 0 0 0.5rem 0;
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.summary-card.total .card-value {
+  color: #3b82f6;
+}
+
+.summary-card.present .card-value {
+  color: #10b981;
+}
+
+.summary-card.absent .card-value {
+  color: #dc2626;
+}
+
+.summary-card.percentage .card-value {
+  color: #8b5cf6;
+}
+
+.grade {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* Progress Section */
+.progress-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.progress-section h3 {
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 10px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.attendance-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.warning-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.warning-content strong {
+  color: #92400e;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.warning-content p {
+  color: #92400e;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* Sessions List */
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.session-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.session-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.session-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.session-info {
+  flex: 1;
+}
+
+.session-title {
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.session-date {
+  color: #6b7280;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.session-description {
+  color: #4b5563;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.session-status {
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.status-badge.pending {
+  background: #9ca3af;
+}
+
+.status-icon {
+  font-size: 1rem;
+}
+
+.session-notes {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #f0f9ff;
+  border: 1px solid #0ea5e9;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #0c4a6e;
+}
+
+.session-notes strong {
+  font-weight: 600;
+}
+
+.teacher-override {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.override-icon {
+  font-size: 1rem;
+}
+
+.empty-sessions {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+/* Tips Section */
+.attendance-tips {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.attendance-tips h3 {
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+}
+
+.attendance-tips ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  list-style-type: none;
+}
+
+.attendance-tips li {
+  margin-bottom: 0.75rem;
+  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  position: relative;
+}
+
+.attendance-tips li::before {
+  content: "💡";
+  position: absolute;
+  left: -1.5rem;
+  top: 0;
+}
+
+.attendance-tips li:last-child {
+  margin-bottom: 0;
+}
+
+.attendance-tips strong {
+  color: #1f2937;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .student-attendance-view {
+    padding: 1rem;
+  }
+
+  .attendance-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .view-toggle {
+    align-self: stretch;
+  }
+
+  .toggle-btn {
+    flex: 1;
+  }
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .session-main {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .session-status {
+    align-self: stretch;
+  }
+
+  .status-badge {
+    min-width: auto;
+    align-self: flex-start;
+  }
+
+  .progress-labels {
+    font-size: 0.6875rem;
+  }
+
+  .attendance-warning {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .progress-section {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .student-attendance-view {
+    padding: 0.75rem;
+  }
+
+  .header-info h2 {
+    font-size: 1.5rem;
+  }
+
+  .course-info {
+    font-size: 0.875rem;
+  }
+
+  .session-title {
+    font-size: 1.125rem;
+  }
+
+  .summary-card {
+    padding: 1rem;
+  }
+
+  .card-value {
+    font-size: 1.75rem;
+  }
+}

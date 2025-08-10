@@ -5,6 +5,7 @@ import Layout from './Layout';
 import AssignmentManagement from './AssignmentManagement';
 import ResourceManagement from './ResourceManagement';
 import DiscussionThreads from './DiscussionThreads';
+import AttendanceManagement from './AttendanceManagement';
 
 const CourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -295,7 +296,8 @@ const CourseDetailsPage = () => {
               { id: 'students', label: 'Students', icon: '👥' },
               { id: 'assignments', label: 'Assignments', icon: '📝' },
               { id: 'resources', label: 'Resources', icon: '📚' },
-              { id: 'discussions', label: 'Discussions', icon: '💬' }
+              { id: 'discussions', label: 'Discussions', icon: '💬' },
+              { id: 'attendance', label: 'Attendance', icon: '📋' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -576,6 +578,15 @@ const CourseDetailsPage = () => {
       {/* Discussions Tab */}
       {activeTab === 'discussions' && (
         <DiscussionThreads 
+          courseId={course?.id}
+          user={user}
+          onShowMessage={showMessage}
+        />
+      )}
+
+      {/* Attendance Tab */}
+      {activeTab === 'attendance' && (
+        <AttendanceManagement 
           courseId={course?.id}
           user={user}
           onShowMessage={showMessage}

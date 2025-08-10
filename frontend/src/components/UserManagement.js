@@ -10,6 +10,10 @@ const UserManagement = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   
+  // Bulk operations state
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [bulkOperationLoading, setBulkOperationLoading] = useState(false);
+  
   // Message system state
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success', 'error', 'info'
@@ -86,12 +90,9 @@ const UserManagement = () => {
       await axios.post(`/admin/users/${userId}/toggle-status`);
       
       // Determine the new status for the message
-      let newStatus;
       if (currentStatus === 'ACTIVE') {
-        newStatus = 'DISABLED';
         showMessage(`User "${user.name}" has been disabled successfully`, 'success');
       } else if (currentStatus === 'DISABLED') {
-        newStatus = 'ACTIVE';
         showMessage(`User "${user.name}" has been enabled successfully`, 'success');
       } else {
         showMessage(`User "${user.name}" status updated successfully`, 'success');
@@ -158,6 +159,94 @@ const UserManagement = () => {
       console.error('Error updating user:', error);
       const errorMessage = error.response?.data?.error || error.message;
       showMessage(`Error updating user: ${errorMessage}`, 'error');
+    }
+  };
+
+  // Bulk operations
+  const handleSelectUser = (userId) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const allIds = filteredUsers.map(user => user.id);
+    setSelectedUsers(allIds);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedUsers([]);
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedUsers.length === 0) {
+      showMessage('Please select users to approve', 'error');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to approve ${selectedUsers.length} selected users?`)) {
+      return;
+    }
+
+    setBulkOperationLoading(true);
+    try {
+      const response = await axios.post('/admin/bulk-approve', {
+        userIds: selectedUsers
+      });
+
+      const { message: responseMessage, successCount, failedCount, successful, failed } = response.data;
+      
+      if (failedCount > 0) {
+        showMessage(`${responseMessage} Failed: ${failed.join(', ')}`, 'warning');
+      } else {
+        showMessage(`Successfully approved ${successCount} users: ${successful.join(', ')}`, 'success');
+      }
+
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error in bulk approve:', error);
+      const errorMessage = error.response?.data?.error || 'Error processing bulk approval';
+      showMessage(errorMessage, 'error');
+    } finally {
+      setBulkOperationLoading(false);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (selectedUsers.length === 0) {
+      showMessage('Please select users to reject', 'error');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to reject ${selectedUsers.length} selected users? This action cannot be undone.`)) {
+      return;
+    }
+
+    setBulkOperationLoading(true);
+    try {
+      const response = await axios.post('/admin/bulk-reject', {
+        userIds: selectedUsers
+      });
+
+      const { message: responseMessage, successCount, failedCount, successful, failed } = response.data;
+      
+      if (failedCount > 0) {
+        showMessage(`${responseMessage} Failed: ${failed.join(', ')}`, 'warning');
+      } else {
+        showMessage(`Successfully rejected ${successCount} users: ${successful.join(', ')}`, 'success');
+      }
+
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error in bulk reject:', error);
+      const errorMessage = error.response?.data?.error || 'Error processing bulk rejection';
+      showMessage(errorMessage, 'error');
+    } finally {
+      setBulkOperationLoading(false);
     }
   };
 
@@ -241,6 +330,37 @@ const UserManagement = () => {
         </div>
       </div>
 
+      {/* Bulk Operations Controls */}
+      {selectedUsers.length > 0 && (
+        <div className="bulk-operations">
+          <div className="bulk-info">
+            <span className="selected-count">{selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected</span>
+            <button 
+              className="btn btn-sm btn-secondary"
+              onClick={handleClearSelection}
+            >
+              Clear Selection
+            </button>
+          </div>
+          <div className="bulk-actions">
+            <button
+              className="btn btn-sm btn-success"
+              onClick={handleBulkApprove}
+              disabled={bulkOperationLoading}
+            >
+              {bulkOperationLoading ? '⏳ Processing...' : '✅ Approve Selected'}
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={handleBulkReject}
+              disabled={bulkOperationLoading}
+            >
+              {bulkOperationLoading ? '⏳ Processing...' : '❌ Reject Selected'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="user-filters">
         {['ALL', 'PENDING', 'ACTIVE', 'DISABLED', 'REJECTED'].map(status => (
           <button
@@ -251,6 +371,24 @@ const UserManagement = () => {
             {status} ({statusCounts[status]})
           </button>
         ))}
+      </div>
+
+      {/* Bulk Selection Controls */}
+      <div className="selection-controls">
+        <button
+          className="btn btn-sm btn-secondary"
+          onClick={handleSelectAll}
+          disabled={filteredUsers.length === 0}
+        >
+          Select All Visible ({filteredUsers.length})
+        </button>
+        <button
+          className="btn btn-sm btn-secondary"
+          onClick={handleClearSelection}
+          disabled={selectedUsers.length === 0}
+        >
+          Clear All ({selectedUsers.length})
+        </button>
       </div>
 
       {/* Search Results Counter */}
@@ -271,6 +409,19 @@ const UserManagement = () => {
         <table className="users-table">
           <thead>
             <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      handleSelectAll();
+                    } else {
+                      handleClearSelection();
+                    }
+                  }}
+                  checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.length}
+                />
+              </th>
               <th>User</th>
               <th>Email</th>
               <th>Role</th>
@@ -282,6 +433,13 @@ const UserManagement = () => {
           <tbody>
             {filteredUsers.map(user => (
               <tr key={user.id} className={`user-row ${user.status.toLowerCase()}`}>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={selectedUsers.includes(user.id)}
+                    onChange={() => handleSelectUser(user.id)}
+                  />
+                </td>
                 <td className="user-info">
                   <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
                   <div className="user-details">

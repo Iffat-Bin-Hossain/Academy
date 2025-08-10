@@ -4,6 +4,7 @@ import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import DiscussionThreads from './DiscussionThreads';
 import ResourceManagement from './ResourceManagement';
+import StudentAttendanceView from './StudentAttendanceView';
 
 const StudentCourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -559,6 +560,22 @@ const StudentCourseDetailsPage = () => {
             >
               💬 Discussions ({discussions.length})
             </button>
+            <button
+              className={`tab-button ${activeTab === 'attendance' ? 'active' : ''}`}
+              onClick={() => setActiveTab('attendance')}
+              style={{
+                flex: 1,
+                padding: '1rem',
+                border: 'none',
+                background: activeTab === 'attendance' ? '#f8fafc' : 'transparent',
+                borderBottom: activeTab === 'attendance' ? '2px solid #3b82f6' : '2px solid transparent',
+                cursor: 'pointer',
+                fontWeight: activeTab === 'attendance' ? '600' : '400',
+                color: activeTab === 'attendance' ? '#3b82f6' : '#64748b'
+              }}
+            >
+              📋 Attendance
+            </button>
           </div>
         </div>
 
@@ -875,6 +892,17 @@ const StudentCourseDetailsPage = () => {
           {activeTab === 'discussions' && (
             <div>
               <DiscussionThreads 
+                courseId={course.id}
+                user={user}
+                onShowMessage={showMessage}
+              />
+            </div>
+          )}
+
+          {/* Attendance Tab */}
+          {activeTab === 'attendance' && (
+            <div>
+              <StudentAttendanceView 
                 courseId={course.id}
                 user={user}
                 onShowMessage={showMessage}
