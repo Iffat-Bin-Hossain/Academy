@@ -30,7 +30,7 @@ The Academy platform is a robust educational management system designed to facil
 
 ### 📚 Course Management
 - **Create & manage courses** with detailed information
-- **Multi-teacher support** with role-based permissions
+- **teacher support** with particular teacher assignment
 - **Student enrollment** with approval workflows
 - **Course categories** and search functionality
 
@@ -45,7 +45,6 @@ The Academy platform is a robust educational management system designed to facil
 - **Real-time messaging** between users
 - **Discussion forums** for course collaboration
 - **Announcement system** with priority levels
-- **Email notifications** for important updates
 
 ### 👤 User Profiles & Management
 - **Role-based access control** (Admin, Teacher, Student)
@@ -58,7 +57,6 @@ The Academy platform is a robust educational management system designed to facil
 - **File upload/download** with type validation
 - **Resource categorization** and tagging
 - **Version control** for educational materials
-- **Batch operations** for bulk management
 
 ## 🐳 Docker Setup & Persistent Storage
 
@@ -158,14 +156,15 @@ SMTP_PASSWORD=your-app-password
 #### Admin
 - Full system access and user management
 - Course creation and management across all departments
-- Profile photo management for all users
 - System configuration and monitoring
+- Messaging with teachers and students
 
 #### Teacher
 - Course management for assigned courses
 - Assignment creation and grading
 - Student communication and messaging
 - Resource management and file uploads
+- Messaging with admins and students
 
 #### Student
 - Course enrollment and participation
