@@ -3,63 +3,40 @@ import React, { useState, useEffect } from 'react';
 const TeacherProfileSection = ({ profile, editing, canEdit, onSave }) => {
     const [formData, setFormData] = useState({
         officeRoom: '',
-        researchInterests: '',
         personalWebsite: '',
         scholarProfileUrl: ''
     });
 
-    const [tags, setTags] = useState([]);
-    const [newTag, setNewTag] = useState('');
-
     useEffect(() => {
         if (profile) {
+            console.log('TeacherProfileSection - Profile data:', profile);
+            
             setFormData({
                 officeRoom: profile.officeRoom || '',
-                researchInterests: profile.researchInterests || '',
                 personalWebsite: profile.personalWebsite || '',
                 scholarProfileUrl: profile.scholarProfileUrl || ''
             });
-
-            // Parse research interests into tags
-            if (profile.researchInterests) {
-                const interestTags = profile.researchInterests
-                    .split(',')
-                    .map(tag => tag.trim())
-                    .filter(tag => tag.length > 0);
-                setTags(interestTags);
-            }
         }
     }, [profile]);
+
+    // Reset form when editing mode changes
+    useEffect(() => {
+        if (!editing && profile) {
+            // Reset form data to match current profile
+            setFormData({
+                officeRoom: profile.officeRoom || '',
+                personalWebsite: profile.personalWebsite || '',
+                scholarProfileUrl: profile.scholarProfileUrl || ''
+            });
+        }
+    }, [editing, profile]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleAddTag = (e) => {
-        if (e.key === 'Enter' && newTag.trim()) {
-            e.preventDefault();
-            if (!tags.includes(newTag.trim()) && tags.length < 10) {
-                const updatedTags = [...tags, newTag.trim()];
-                setTags(updatedTags);
-                setFormData(prev => ({ 
-                    ...prev, 
-                    researchInterests: updatedTags.join(', ') 
-                }));
-                setNewTag('');
-            }
-        }
-    };
-
-    const handleRemoveTag = (tagToRemove) => {
-        const updatedTags = tags.filter(tag => tag !== tagToRemove);
-        setTags(updatedTags);
-        setFormData(prev => ({ 
-            ...prev, 
-            researchInterests: updatedTags.join(', ') 
-        }));
-    };
-
     const handleSave = () => {
+        console.log('TeacherProfileSection - handleSave called with:', formData);
         onSave(formData);
     };
 
@@ -95,56 +72,6 @@ const TeacherProfileSection = ({ profile, editing, canEdit, onSave }) => {
                         ) : (
                             <div className="field-value">
                                 {profile.officeRoom || 'Not provided'}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="profile-row">
-                    <div className="profile-field full-width">
-                        <label className="field-label">Research Interests</label>
-                        {editing && canEdit ? (
-                            <div className="tags-container">
-                                <div className="tags-display">
-                                    {tags.map((tag, index) => (
-                                        <span key={index} className="research-tag">
-                                            {tag}
-                                            <button
-                                                type="button"
-                                                className="tag-remove"
-                                                onClick={() => handleRemoveTag(tag)}
-                                            >
-                                                ✕
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                                <input
-                                    type="text"
-                                    className="field-input tag-input"
-                                    value={newTag}
-                                    onChange={(e) => setNewTag(e.target.value)}
-                                    onKeyDown={handleAddTag}
-                                    placeholder="Add research interest and press Enter"
-                                    disabled={tags.length >= 10}
-                                />
-                                <div className="field-note">
-                                    Press Enter to add tags. Maximum 10 tags allowed.
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="field-value">
-                                {tags.length > 0 ? (
-                                    <div className="tags-display">
-                                        {tags.map((tag, index) => (
-                                            <span key={index} className="research-tag readonly">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    'Not provided'
-                                )}
                             </div>
                         )}
                     </div>

@@ -164,9 +164,9 @@
 }
 
 .btn-learn-more {
-  background-color: #3b82f6;
+  background-color: #1e40af;
   color: #ffffff;
-  border: 2px solid #3b82f6;
+  border: 2px solid #1e40af;
   padding: 0.75rem 1.5rem;
   border-radius: 9999px;
   font-size: 0.875rem;
@@ -177,14 +177,14 @@
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
-  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 14px rgba(30, 64, 175, 0.3);
 }
 
 .btn-learn-more:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
 }
 
 @media (max-width: 768px) {

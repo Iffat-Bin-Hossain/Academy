@@ -40,6 +40,8 @@ public class UserProfileService {
     }
 
     public UserProfileResponse updateUserProfile(Long userId, Long currentUserId, UserProfileUpdateRequest request) {
+        log.info("Updating profile for userId: {} by currentUserId: {} with data: {}", userId, currentUserId, request);
+        
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
@@ -51,6 +53,8 @@ public class UserProfileService {
             throw new RuntimeException("Not authorized to edit this profile");
         }
 
+        log.info("User role: {}, Current user role: {}", user.getRole(), currentUser.getRole());
+
         // Update common fields (all users can edit these on their own profile)
         if (userId.equals(currentUserId) || currentUser.getRole() == Role.ADMIN) {
             updateCommonFields(user, request);
@@ -58,10 +62,12 @@ public class UserProfileService {
 
         // Update role-specific fields
         if (user.getRole() == Role.TEACHER && (userId.equals(currentUserId) || currentUser.getRole() == Role.ADMIN)) {
+            log.info("Updating teacher fields for user: {}", userId);
             updateTeacherFields(user, request);
         }
 
         if (user.getRole() == Role.STUDENT && (userId.equals(currentUserId) || currentUser.getRole() == Role.ADMIN)) {
+            log.info("Updating student fields for user: {}", userId);
             updateStudentFields(user, request, currentUser.getRole() == Role.ADMIN);
         }
 
@@ -70,6 +76,7 @@ public class UserProfileService {
         }
 
         User savedUser = userRepository.save(user);
+        log.info("Profile updated successfully for userId: {}", userId);
         return convertToProfileResponse(savedUser);
     }
 

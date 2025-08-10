@@ -51,25 +51,31 @@
 }
 
 .btn-signup {
-  background-color: transparent;
+  background-color: #1e40af;
   color: white;
-  border: 2px solid white;
+  border: 2px solid #1e40af;
 }
 
 .btn-signup:hover {
-  background-color: white;
-  color: #3b82f6;
+  background-color: #1d4ed8;
+  color: white;
+  border-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
 }
 
 .btn-signin {
-  background-color: transparent;
+  background-color: #1e3a8a;
   color: white;
-  border: 2px solid white;
+  border: 2px solid #1e3a8a;
 }
 
 .btn-signin:hover {
-  background-color: white;
-  color: #3b82f6;
+  background-color: #1e40af;
+  color: white;
+  border-color: #1e40af;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
 }
 
 @media (max-width: 768px) {

@@ -58,7 +58,9 @@ const SmartProfile = () => {
 
     const handleSaveProfile = async (updatedData) => {
         try {
+            console.log('SmartProfile - handleSaveProfile called with:', updatedData);
             const response = await axios.put(`/profile/${userId}?currentUserId=${currentUser.id}`, updatedData);
+            console.log('SmartProfile - Profile update response:', response.data);
             setProfile(response.data);
             setEditing(false);
             showMessage('Profile updated successfully!', 'success');
