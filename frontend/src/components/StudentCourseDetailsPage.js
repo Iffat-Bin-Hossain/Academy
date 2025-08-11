@@ -243,10 +243,17 @@ const StudentCourseDetailsPage = () => {
   const openEditModal = async (assignment) => {
     const now = new Date();
     const deadline = new Date(assignment.deadline);
+    const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
     
-    // Only allow editing before deadline
-    if (now > deadline) {
-      showMessage('Cannot edit submission after deadline has passed', 'error');
+    // Check if editing is still allowed based on late submission deadline
+    if (lateDeadline && now > lateDeadline) {
+      showMessage('Cannot edit submission - late submission deadline has passed', 'error');
+      return;
+    }
+    
+    // If no late deadline is set and main deadline has passed, no editing allowed
+    if (!lateDeadline && now > deadline) {
+      showMessage('Cannot edit submission - deadline has passed and no late submission allowed', 'error');
       return;
     }
 
@@ -254,12 +261,6 @@ const StudentCourseDetailsPage = () => {
       // Fetch existing submission data
       const response = await axios.get(`/submissions/assignment/${assignment.id}/student/${user.id}`);
       const submissionData = response.data;
-      
-      // Check if it was a late submission
-      if (submissionData.isLate) {
-        showMessage('Late submissions cannot be edited', 'warning');
-        return;
-      }
 
       setSubmittingAssignment(assignment);
       setSubmissionText(submissionData.submissionText || '');
@@ -913,16 +914,27 @@ const StudentCourseDetailsPage = () => {
                               {/* Show different buttons based on submission status */}
                               {submissionStatuses[assignment.id] ? (
                                 <>
-                                  {/* Edit button - only show if submission was on time and deadline hasn't passed */}
-                                  {!isOverdue && (
-                                    <button 
-                                      className="btn btn-warning btn-sm"
-                                      style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
-                                      onClick={() => openEditModal(assignment)}
-                                    >
-                                      ✏️ Edit Submission
-                                    </button>
-                                  )}
+                                  {/* Edit button - show if submission is still editable */}
+                                  {(() => {
+                                    const now = new Date();
+                                    const deadline = new Date(assignment.deadline);
+                                    const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
+                                    
+                                    // Can edit if:
+                                    // 1. Late deadline exists and hasn't passed, OR
+                                    // 2. No late deadline but main deadline hasn't passed
+                                    const canEdit = (lateDeadline && now <= lateDeadline) || (!lateDeadline && now <= deadline);
+                                    
+                                    return canEdit && (
+                                      <button 
+                                        className="btn btn-warning btn-sm"
+                                        style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                                        onClick={() => openEditModal(assignment)}
+                                      >
+                                        ✏️ Edit Submission
+                                      </button>
+                                    );
+                                  })()}
                                   
                                   {/* Download button - always show for submitted assignments */}
                                   <button 
@@ -1220,25 +1232,69 @@ const StudentCourseDetailsPage = () => {
               marginBottom: '1.5rem',
               padding: '1rem',
               borderRadius: '8px',
-              background: new Date() > new Date(submittingAssignment.deadline) ? '#fef2f2' : '#f0f9ff',
-              border: `1px solid ${new Date() > new Date(submittingAssignment.deadline) ? '#fecaca' : '#bae6fd'}`
+              background: (() => {
+                const now = new Date();
+                const deadline = new Date(submittingAssignment.deadline);
+                if (editMode && now > deadline) {
+                  return '#fef2f2'; // Red background for late edit
+                } else if (now > deadline) {
+                  return '#fef2f2'; // Red background for late submission
+                } else {
+                  return '#f0f9ff'; // Blue background for on-time
+                }
+              })(),
+              border: `1px solid ${(() => {
+                const now = new Date();
+                const deadline = new Date(submittingAssignment.deadline);
+                if (editMode && now > deadline) {
+                  return '#fecaca'; // Red border for late edit
+                } else if (now > deadline) {
+                  return '#fecaca'; // Red border for late submission
+                } else {
+                  return '#bae6fd'; // Blue border for on-time
+                }
+              })()}`
             }}>
               <div style={{ 
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: new Date() > new Date(submittingAssignment.deadline) ? '#dc2626' : '#0369a1',
+                color: (() => {
+                  const now = new Date();
+                  const deadline = new Date(submittingAssignment.deadline);
+                  if (editMode && now > deadline) {
+                    return '#dc2626'; // Red text for late edit
+                  } else if (now > deadline) {
+                    return '#dc2626'; // Red text for late submission
+                  } else {
+                    return '#0369a1'; // Blue text for on-time
+                  }
+                })(),
                 marginBottom: '0.5rem'
               }}>
-                {new Date() > new Date(submittingAssignment.deadline) ? 
-                  '⚠️ Late Submission' : 
-                  '✅ On-Time Submission'
-                }
+                {(() => {
+                  const now = new Date();
+                  const deadline = new Date(submittingAssignment.deadline);
+                  if (editMode && now > deadline) {
+                    return '⚠️ Late Edit Warning';
+                  } else if (now > deadline) {
+                    return '⚠️ Late Submission';
+                  } else {
+                    return '✅ On-Time Submission';
+                  }
+                })()}
               </div>
               <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                {new Date() > new Date(submittingAssignment.deadline) ? 
-                  'This submission will be marked as late.' : 
-                  'You are submitting before the deadline.'
-                }
+                {(() => {
+                  const now = new Date();
+                  const deadline = new Date(submittingAssignment.deadline);
+                  if (editMode && now > deadline) {
+                    return 'Warning: Editing after the deadline will mark your submission as late.';
+                  } else if (now > deadline) {
+                    return 'This submission will be marked as late.';
+                  } else {
+                    return 'You are submitting before the deadline.';
+                  }
+                })()}
               </div>
             </div>
 

@@ -208,17 +208,19 @@ public class StudentSubmissionService {
         StudentSubmission existingSubmission = submissionRepository.findByAssignmentAndStudent(assignment, student)
                 .orElseThrow(() -> new RuntimeException("No submission found to update"));
 
-        // Check if submission can be edited (only on-time submissions can be edited)
-        if (existingSubmission.getIsLate()) {
-            throw new RuntimeException("Late submissions cannot be edited");
-        }
-
-        // Check if deadline has passed
+        // Check if editing is allowed based on deadlines
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime deadline = assignment.getDeadline();
+        LocalDateTime lateDeadline = assignment.getLateSubmissionDeadline();
         
-        if (now.isAfter(deadline)) {
-            throw new RuntimeException("Cannot edit submission after deadline has passed");
+        // Check if late submission deadline has passed (submission is completely closed)
+        if (lateDeadline != null && now.isAfter(lateDeadline)) {
+            throw new RuntimeException("Cannot edit submission - late submission deadline has passed");
+        }
+        
+        // If no late deadline is set and main deadline has passed, no editing allowed
+        if (lateDeadline == null && now.isAfter(deadline)) {
+            throw new RuntimeException("Cannot edit submission - deadline has passed and no late submission allowed");
         }
 
         // Update submission text
@@ -237,6 +239,12 @@ public class StudentSubmissionService {
             // Save new file
             saveSubmissionFile(file, existingSubmission);
         }
+
+        // Update the submittedAt timestamp to current time (important for late marking)
+        existingSubmission.setSubmittedAt(now);
+        
+        // Recalculate submission status after update (important for late marking)
+        existingSubmission.calculateSubmissionStatus();
 
         // Save updated submission
         StudentSubmission updatedSubmission = submissionRepository.save(existingSubmission);
