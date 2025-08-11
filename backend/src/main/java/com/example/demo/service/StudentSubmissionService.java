@@ -171,6 +171,105 @@ public class StudentSubmissionService {
     }
 
     /**
+     * Get student's submission for a specific assignment
+     */
+    public StudentSubmissionResponse getStudentSubmission(Long assignmentId, Long studentId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+        
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        StudentSubmission submission = submissionRepository.findByAssignmentAndStudent(assignment, student)
+                .orElseThrow(() -> new RuntimeException("No submission found for this assignment"));
+
+        List<SubmissionFile> files = submissionFileRepository.findBySubmissionOrderByUploadedAtAsc(submission);
+        return mapToResponse(submission, files);
+    }
+
+    /**
+     * Update assignment submission (only allowed before final deadline and if submission was on-time)
+     */
+    public StudentSubmissionResponse updateSubmission(Long assignmentId, Long studentId, 
+                                                    String submissionText, MultipartFile file) throws IOException {
+        
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+        
+        User student = userRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Check if student is enrolled in the course
+        if (!isStudentEnrolledInCourse(student, assignment.getCourse())) {
+            throw new RuntimeException("Student is not enrolled in this course");
+        }
+
+        // Find existing submission
+        StudentSubmission existingSubmission = submissionRepository.findByAssignmentAndStudent(assignment, student)
+                .orElseThrow(() -> new RuntimeException("No submission found to update"));
+
+        // Check if submission can be edited (only on-time submissions can be edited)
+        if (existingSubmission.getIsLate()) {
+            throw new RuntimeException("Late submissions cannot be edited");
+        }
+
+        // Check if deadline has passed
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime deadline = assignment.getDeadline();
+        
+        if (now.isAfter(deadline)) {
+            throw new RuntimeException("Cannot edit submission after deadline has passed");
+        }
+
+        // Update submission text
+        if (submissionText != null) {
+            existingSubmission.setSubmissionText(submissionText);
+        }
+
+        // Handle file update if provided
+        if (file != null && !file.isEmpty()) {
+            // Delete old files first
+            List<SubmissionFile> oldFiles = submissionFileRepository.findBySubmissionOrderByUploadedAtAsc(existingSubmission);
+            for (SubmissionFile oldFile : oldFiles) {
+                deleteSubmissionFile(oldFile);
+            }
+
+            // Save new file
+            saveSubmissionFile(file, existingSubmission);
+        }
+
+        // Save updated submission
+        StudentSubmission updatedSubmission = submissionRepository.save(existingSubmission);
+
+        // Get all current files (should be just the new one if file was provided)
+        List<SubmissionFile> currentFiles = submissionFileRepository.findBySubmissionOrderByUploadedAtAsc(updatedSubmission);
+
+        return mapToResponse(updatedSubmission, currentFiles);
+    }
+
+    /**
+     * Delete a submission file from filesystem and database
+     */
+    private void deleteSubmissionFile(SubmissionFile submissionFile) {
+        try {
+            // Delete from filesystem
+            Path filePath = Paths.get(submissionFile.getFilePath());
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+                log.debug("Deleted submission file from filesystem: {}", filePath.toAbsolutePath());
+            }
+            
+            // Delete from database
+            submissionFileRepository.delete(submissionFile);
+            log.debug("Deleted submission file from database: {}", submissionFile.getOriginalFilename());
+        } catch (IOException e) {
+            log.error("Failed to delete submission file: {}", submissionFile.getFilePath(), e);
+            // Still delete from database even if filesystem deletion fails
+            submissionFileRepository.delete(submissionFile);
+        }
+    }
+
+    /**
      * Download submission file
      */
     public Resource downloadSubmissionFile(Long fileId) throws MalformedURLException {

@@ -107,6 +107,50 @@ public class StudentSubmissionController {
     }
 
     /**
+     * Get student's submission for a specific assignment
+     * GET /api/submissions/assignment/{assignmentId}/student/{studentId}
+     */
+    @GetMapping("/assignment/{assignmentId}/student/{studentId}")
+    public ResponseEntity<?> getStudentSubmissionForAssignment(
+            @PathVariable Long assignmentId,
+            @PathVariable Long studentId) {
+        try {
+            StudentSubmissionResponse submission = submissionService.getStudentSubmission(assignmentId, studentId);
+            return ResponseEntity.ok(submission);
+        } catch (RuntimeException e) {
+            log.error("Error fetching student submission: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * Update assignment submission
+     * PUT /api/submissions/{assignmentId}
+     */
+    @PutMapping("/{assignmentId}")
+    public ResponseEntity<?> updateSubmission(
+            @PathVariable Long assignmentId,
+            @RequestParam Long studentId,
+            @RequestParam(required = false) String submissionText,
+            @RequestParam(required = false) MultipartFile file) {
+        try {
+            StudentSubmissionResponse updatedSubmission = submissionService.updateSubmission(
+                    assignmentId, studentId, submissionText, file);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Assignment submission updated successfully",
+                "submission", updatedSubmission
+            ));
+        } catch (IOException e) {
+            log.error("Error updating submission: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", "Failed to upload file: " + e.getMessage()));
+        } catch (RuntimeException e) {
+            log.error("Error updating submission: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * Download submission file
      * GET /api/submissions/files/{fileId}/download
      */

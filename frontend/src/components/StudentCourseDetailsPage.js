@@ -28,6 +28,8 @@ const StudentCourseDetailsPage = () => {
   const [submissionFile, setSubmissionFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatuses, setSubmissionStatuses] = useState({});
+  const [editMode, setEditMode] = useState(false);
+  const [currentSubmissionData, setCurrentSubmissionData] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -224,16 +226,91 @@ const StudentCourseDetailsPage = () => {
       return;
     }
 
-    // Check if already submitted
+    // Check if already submitted - this should not happen with the new UI, but keeping as fallback
     if (submissionStatuses[assignment.id]) {
-      showMessage('You have already submitted this assignment', 'warning');
+      showMessage('You have already submitted this assignment. Use the Edit button to modify your submission.', 'info');
       return;
     }
 
     setSubmittingAssignment(assignment);
     setSubmissionText('');
     setSubmissionFile(null);
+    setEditMode(false);
+    setCurrentSubmissionData(null);
     setShowSubmissionModal(true);
+  };
+
+  const openEditModal = async (assignment) => {
+    const now = new Date();
+    const deadline = new Date(assignment.deadline);
+    
+    // Only allow editing before deadline
+    if (now > deadline) {
+      showMessage('Cannot edit submission after deadline has passed', 'error');
+      return;
+    }
+
+    try {
+      // Fetch existing submission data
+      const response = await axios.get(`/submissions/assignment/${assignment.id}/student/${user.id}`);
+      const submissionData = response.data;
+      
+      // Check if it was a late submission
+      if (submissionData.isLate) {
+        showMessage('Late submissions cannot be edited', 'warning');
+        return;
+      }
+
+      setSubmittingAssignment(assignment);
+      setSubmissionText(submissionData.submissionText || '');
+      setSubmissionFile(null); // Will be set if there are existing files
+      setEditMode(true);
+      setCurrentSubmissionData(submissionData);
+      setShowSubmissionModal(true);
+    } catch (error) {
+      console.error('Error fetching submission data:', error);
+      showMessage('Failed to load submission data', 'error');
+    }
+  };
+
+  const downloadSubmissionFile = async (fileId, filename) => {
+    try {
+      const response = await axios.get(`/submissions/files/${fileId}/download`, {
+        responseType: 'blob',
+      });
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading submission file:', error);
+      showMessage('Failed to download file', 'error');
+    }
+  };
+
+  const downloadSubmissionForAssignment = async (assignmentId) => {
+    try {
+      // First fetch the submission data to get file information
+      const response = await axios.get(`/submissions/assignment/${assignmentId}/student/${user.id}`);
+      const submissionData = response.data;
+      
+      if (submissionData.files && submissionData.files.length > 0) {
+        // Download the first file (assuming one file per submission)
+        const file = submissionData.files[0];
+        await downloadSubmissionFile(file.id, file.originalFilename);
+      } else {
+        showMessage('No files found in this submission', 'info');
+      }
+    } catch (error) {
+      console.error('Error downloading submission:', error);
+      showMessage('Failed to download submission', 'error');
+    }
   };
 
   const closeSubmissionModal = () => {
@@ -241,6 +318,8 @@ const StudentCourseDetailsPage = () => {
     setSubmittingAssignment(null);
     setSubmissionText('');
     setSubmissionFile(null);
+    setEditMode(false);
+    setCurrentSubmissionData(null);
   };
 
   const handleFileSelect = (e) => {
@@ -265,7 +344,15 @@ const StudentCourseDetailsPage = () => {
   };
 
   const submitAssignment = async () => {
-    if (!submissionFile && !submissionText.trim()) {
+    // Validation for new submissions
+    if (!editMode && !submissionFile && !submissionText.trim()) {
+      showMessage('Please provide either a file upload or text submission', 'error');
+      return;
+    }
+    
+    // Validation for edit mode - allow if there's existing content or new content is provided
+    if (editMode && !submissionFile && !submissionText.trim() && 
+        (!currentSubmissionData?.files?.length && !currentSubmissionData?.submissionText)) {
       showMessage('Please provide either a file upload or text submission', 'error');
       return;
     }
@@ -273,7 +360,6 @@ const StudentCourseDetailsPage = () => {
     setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('assignmentId', submittingAssignment.id);
       formData.append('studentId', user.id);
       
       if (submissionText.trim()) {
@@ -284,20 +370,33 @@ const StudentCourseDetailsPage = () => {
         formData.append('file', submissionFile);
       }
 
-      await axios.post('/submissions', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      let response;
+      if (editMode) {
+        // Update existing submission
+        response = await axios.put(`/submissions/${submittingAssignment.id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        showMessage('Assignment submission updated successfully!', 'success');
+      } else {
+        // Create new submission
+        formData.append('assignmentId', submittingAssignment.id);
+        response = await axios.post('/submissions', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        showMessage('Assignment submitted successfully!', 'success');
+      }
 
-      showMessage('Assignment submitted successfully!', 'success');
       closeSubmissionModal();
       
       // Refresh submission statuses
       checkSubmissionStatuses();
     } catch (error) {
       console.error('Error submitting assignment:', error);
-      showMessage(error.response?.data?.error || 'Failed to submit assignment', 'error');
+      showMessage(error.response?.data?.error || `Failed to ${editMode ? 'update' : 'submit'} assignment`, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -810,21 +909,62 @@ const StudentCourseDetailsPage = () => {
                               >
                                 📋 View Details
                               </button>
-                              <button 
-                                className={`btn btn-sm ${
-                                  submissionStatuses[assignment.id] ? 'btn-success' :
-                                  isOverdue && !canSubmitLate ? 'btn-secondary' : 
-                                  isOverdue && canSubmitLate ? 'btn-warning' : 'btn-success'
-                                }`}
-                                style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
-                                disabled={isOverdue && !canSubmitLate}
-                                onClick={() => openSubmissionModal(assignment)}
-                              >
-                                {submissionStatuses[assignment.id] ? '✅ Submitted' :
-                                 isOverdue && !canSubmitLate ? '⏰ Closed' : 
-                                 isOverdue && canSubmitLate ? '📤 Submit Late' : 
-                                 '📤 Submit'}
-                              </button>
+                              
+                              {/* Show different buttons based on submission status */}
+                              {submissionStatuses[assignment.id] ? (
+                                <>
+                                  {/* Edit button - only show if submission was on time and deadline hasn't passed */}
+                                  {!isOverdue && (
+                                    <button 
+                                      className="btn btn-warning btn-sm"
+                                      style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                                      onClick={() => openEditModal(assignment)}
+                                    >
+                                      ✏️ Edit Submission
+                                    </button>
+                                  )}
+                                  
+                                  {/* Download button - always show for submitted assignments */}
+                                  <button 
+                                    className="btn btn-info btn-sm"
+                                    style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                                    onClick={() => downloadSubmissionForAssignment(assignment.id)}
+                                  >
+                                    ⬇️ Download
+                                  </button>
+                                  
+                                  {/* Status indicator */}
+                                  <span style={{
+                                    fontSize: '0.7rem',
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '8px',
+                                    textAlign: 'center',
+                                    background: '#dcfce7',
+                                    color: '#16a34a',
+                                    fontWeight: '600'
+                                  }}>
+                                    ✅ Submitted
+                                  </span>
+                                </>
+                              ) : (
+                                <>
+                                  {/* Submit button for non-submitted assignments */}
+                                  <button 
+                                    className={`btn btn-sm ${
+                                      isOverdue && !canSubmitLate ? 'btn-secondary' : 
+                                      isOverdue && canSubmitLate ? 'btn-warning' : 'btn-success'
+                                    }`}
+                                    style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
+                                    disabled={isOverdue && !canSubmitLate}
+                                    onClick={() => openSubmissionModal(assignment)}
+                                  >
+                                    {isOverdue && !canSubmitLate ? '⏰ Closed' : 
+                                     isOverdue && canSubmitLate ? '📤 Submit Late' : 
+                                     '📤 Submit'}
+                                  </button>
+                                </>
+                              )}
+                              
                               {assignment.assignmentType === 'EXAM' && (
                                 <button 
                                   className="btn btn-warning btn-sm"
@@ -937,7 +1077,9 @@ const StudentCourseDetailsPage = () => {
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0, color: '#1e293b' }}>Submit Assignment</h3>
+              <h3 style={{ margin: 0, color: '#1e293b' }}>
+                {editMode ? 'Edit Assignment Submission' : 'Submit Assignment'}
+              </h3>
               <button 
                 onClick={closeSubmissionModal}
                 style={{
@@ -1007,7 +1149,48 @@ const StudentCourseDetailsPage = () => {
               />
               <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
                 📦 Only ZIP files are allowed (Max 50MB)
+                {editMode && ' - Uploading a new file will replace the existing one'}
               </div>
+
+              {/* Show existing file in edit mode */}
+              {editMode && currentSubmissionData?.files?.length > 0 && !submissionFile && (
+                <div style={{ 
+                  marginTop: '0.75rem', 
+                  padding: '0.75rem', 
+                  background: '#f0f9ff', 
+                  borderRadius: '6px',
+                  border: '1px solid #3b82f6',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  <span style={{ fontSize: '1.2rem' }}>📦</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Current: {currentSubmissionData.files[0].originalFilename}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      {formatFileSize(currentSubmissionData.files[0].fileSize)} • Uploaded: {formatDate(currentSubmissionData.files[0].uploadedAt)}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => downloadSubmissionFile(currentSubmissionData.files[0].id, currentSubmissionData.files[0].originalFilename)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      border: '1px solid #3b82f6',
+                      background: '#3b82f6',
+                      color: 'white',
+                      borderRadius: '6px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ⬇️ Download Current
+                  </button>
+                </div>
+              )}
+
               {submissionFile && (
                 <div style={{ 
                   marginTop: '0.75rem', 
@@ -1089,12 +1272,13 @@ const StudentCourseDetailsPage = () => {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}
-                disabled={isSubmitting || (!submissionFile && !submissionText.trim())}
+                disabled={isSubmitting || (!editMode && !submissionFile && !submissionText.trim()) || 
+                         (editMode && !submissionFile && !submissionText.trim() && !currentSubmissionData?.files?.length)}
               >
                 {isSubmitting ? (
-                  <>⏳ Submitting...</>
+                  <>⏳ {editMode ? 'Updating...' : 'Submitting...'}</>
                 ) : (
-                  <>📤 Submit Assignment</>
+                  <>{editMode ? '💾 Update Submission' : '📤 Submit Assignment'}</>
                 )}
               </button>
             </div>
