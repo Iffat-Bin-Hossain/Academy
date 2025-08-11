@@ -82,6 +82,19 @@ const UserManagement = () => {
     return statusMatch && searchMatch;
   });
 
+  // Helper function to determine if current filter supports bulk operations
+  const supportsBulkOperations = () => {
+    return ['PENDING', 'ACTIVE', 'DISABLED'].includes(filter);
+  };
+
+  // Clear selections when switching to a filter that doesn't support bulk operations
+  useEffect(() => {
+    if (!supportsBulkOperations()) {
+      setSelectedUsers([]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
+
   const handleToggleStatus = async (userId) => {
     try {
       const user = users.find(u => u.id === userId);
@@ -164,6 +177,12 @@ const UserManagement = () => {
 
   // Bulk operations
   const handleSelectUser = (userId) => {
+    // Don't allow selection of rejected users
+    const user = users.find(u => u.id === userId);
+    if (user && user.status === 'REJECTED') {
+      return;
+    }
+    
     setSelectedUsers(prev => 
       prev.includes(userId) 
         ? prev.filter(id => id !== userId)
@@ -172,12 +191,25 @@ const UserManagement = () => {
   };
 
   const handleSelectAll = () => {
-    const allIds = filteredUsers.map(user => user.id);
+    // Only select non-rejected users
+    const selectableUsers = filteredUsers.filter(user => user.status !== 'REJECTED');
+    const allIds = selectableUsers.map(user => user.id);
     setSelectedUsers(allIds);
   };
 
   const handleClearSelection = () => {
     setSelectedUsers([]);
+  };
+
+  // Helper function to get the status of selected users
+  const getSelectedUsersStatus = () => {
+    const selectedUserObjects = users.filter(user => selectedUsers.includes(user.id));
+    const statuses = [...new Set(selectedUserObjects.map(user => user.status))];
+    
+    if (statuses.length === 1) {
+      return statuses[0]; // All selected users have the same status
+    }
+    return 'MIXED'; // Mixed statuses
   };
 
   const handleBulkApprove = async () => {
@@ -186,14 +218,31 @@ const UserManagement = () => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to approve ${selectedUsers.length} selected users?`)) {
+    // Only allow bulk approve for PENDING users
+    const validUserIds = selectedUsers.filter(userId => {
+      const user = users.find(u => u.id === userId);
+      return user && user.status === 'PENDING';
+    });
+
+    if (validUserIds.length === 0) {
+      showMessage('No pending users selected for approval', 'error');
+      return;
+    }
+
+    if (validUserIds.length !== selectedUsers.length) {
+      showMessage('Only pending users can be approved in bulk', 'warning');
+      setSelectedUsers(validUserIds);
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to approve ${validUserIds.length} pending users?`)) {
       return;
     }
 
     setBulkOperationLoading(true);
     try {
       const response = await axios.post('/admin/bulk-approve', {
-        userIds: selectedUsers
+        userIds: validUserIds
       });
 
       const { message: responseMessage, successCount, failedCount, successful, failed } = response.data;
@@ -221,14 +270,31 @@ const UserManagement = () => {
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to reject ${selectedUsers.length} selected users? This action cannot be undone.`)) {
+    // Only allow bulk reject for PENDING users
+    const validUserIds = selectedUsers.filter(userId => {
+      const user = users.find(u => u.id === userId);
+      return user && user.status === 'PENDING';
+    });
+
+    if (validUserIds.length === 0) {
+      showMessage('No pending users selected for rejection', 'error');
+      return;
+    }
+
+    if (validUserIds.length !== selectedUsers.length) {
+      showMessage('Only pending users can be rejected in bulk', 'warning');
+      setSelectedUsers(validUserIds);
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to reject ${validUserIds.length} pending users? This action cannot be undone.`)) {
       return;
     }
 
     setBulkOperationLoading(true);
     try {
       const response = await axios.post('/admin/bulk-reject', {
-        userIds: selectedUsers
+        userIds: validUserIds
       });
 
       const { message: responseMessage, successCount, failedCount, successful, failed } = response.data;
@@ -245,6 +311,130 @@ const UserManagement = () => {
       console.error('Error in bulk reject:', error);
       const errorMessage = error.response?.data?.error || 'Error processing bulk rejection';
       showMessage(errorMessage, 'error');
+    } finally {
+      setBulkOperationLoading(false);
+    }
+  };
+
+  // New bulk disable function
+  const handleBulkDisable = async () => {
+    if (selectedUsers.length === 0) {
+      showMessage('Please select users to disable', 'error');
+      return;
+    }
+
+    // Only allow bulk disable for ACTIVE users (excluding ADMIN role)
+    const validUserIds = selectedUsers.filter(userId => {
+      const user = users.find(u => u.id === userId);
+      return user && user.status === 'ACTIVE' && user.role !== 'ADMIN';
+    });
+
+    if (validUserIds.length === 0) {
+      showMessage('No active non-admin users selected for disabling', 'error');
+      return;
+    }
+
+    if (validUserIds.length !== selectedUsers.length) {
+      showMessage('Only active non-admin users can be disabled in bulk', 'warning');
+      setSelectedUsers(validUserIds);
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to disable ${validUserIds.length} active users?`)) {
+      return;
+    }
+
+    setBulkOperationLoading(true);
+    try {
+      // Use individual toggle-status calls for bulk disable
+      let successCount = 0;
+      let failedCount = 0;
+      const failed = [];
+
+      for (const userId of validUserIds) {
+        try {
+          await axios.post(`/admin/users/${userId}/toggle-status`);
+          successCount++;
+        } catch (error) {
+          failedCount++;
+          const user = users.find(u => u.id === userId);
+          failed.push(user?.name || `ID ${userId}`);
+        }
+      }
+
+      if (failedCount > 0) {
+        showMessage(`Bulk disable completed. ${successCount} successful, ${failedCount} failed. Failed: ${failed.join(', ')}`, 'warning');
+      } else {
+        showMessage(`Successfully disabled ${successCount} users`, 'success');
+      }
+
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error in bulk disable:', error);
+      showMessage('Error processing bulk disable', 'error');
+    } finally {
+      setBulkOperationLoading(false);
+    }
+  };
+
+  // New bulk enable function
+  const handleBulkEnable = async () => {
+    if (selectedUsers.length === 0) {
+      showMessage('Please select users to enable', 'error');
+      return;
+    }
+
+    // Only allow bulk enable for DISABLED users
+    const validUserIds = selectedUsers.filter(userId => {
+      const user = users.find(u => u.id === userId);
+      return user && user.status === 'DISABLED';
+    });
+
+    if (validUserIds.length === 0) {
+      showMessage('No disabled users selected for enabling', 'error');
+      return;
+    }
+
+    if (validUserIds.length !== selectedUsers.length) {
+      showMessage('Only disabled users can be enabled in bulk', 'warning');
+      setSelectedUsers(validUserIds);
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to enable ${validUserIds.length} disabled users?`)) {
+      return;
+    }
+
+    setBulkOperationLoading(true);
+    try {
+      // Use individual toggle-status calls for bulk enable
+      let successCount = 0;
+      let failedCount = 0;
+      const failed = [];
+
+      for (const userId of validUserIds) {
+        try {
+          await axios.post(`/admin/users/${userId}/toggle-status`);
+          successCount++;
+        } catch (error) {
+          failedCount++;
+          const user = users.find(u => u.id === userId);
+          failed.push(user?.name || `ID ${userId}`);
+        }
+      }
+
+      if (failedCount > 0) {
+        showMessage(`Bulk enable completed. ${successCount} successful, ${failedCount} failed. Failed: ${failed.join(', ')}`, 'warning');
+      } else {
+        showMessage(`Successfully enabled ${successCount} users`, 'success');
+      }
+
+      setSelectedUsers([]);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error in bulk enable:', error);
+      showMessage('Error processing bulk enable', 'error');
     } finally {
       setBulkOperationLoading(false);
     }
@@ -330,8 +520,8 @@ const UserManagement = () => {
         </div>
       </div>
 
-      {/* Bulk Operations Controls */}
-      {selectedUsers.length > 0 && (
+      {/* Bulk Operations Controls - Only show for specific filters */}
+      {selectedUsers.length > 0 && supportsBulkOperations() && (
         <div className="bulk-operations">
           <div className="bulk-info">
             <span className="selected-count">{selectedUsers.length} user{selectedUsers.length !== 1 ? 's' : ''} selected</span>
@@ -343,20 +533,56 @@ const UserManagement = () => {
             </button>
           </div>
           <div className="bulk-actions">
-            <button
-              className="btn btn-sm btn-success"
-              onClick={handleBulkApprove}
-              disabled={bulkOperationLoading}
-            >
-              {bulkOperationLoading ? '⏳ Processing...' : '✅ Approve Selected'}
-            </button>
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={handleBulkReject}
-              disabled={bulkOperationLoading}
-            >
-              {bulkOperationLoading ? '⏳ Processing...' : '❌ Reject Selected'}
-            </button>
+            {(() => {
+              const selectedStatus = getSelectedUsersStatus();
+              
+              if (selectedStatus === 'PENDING') {
+                return (
+                  <>
+                    <button
+                      className="btn btn-sm btn-success"
+                      onClick={handleBulkApprove}
+                      disabled={bulkOperationLoading}
+                    >
+                      {bulkOperationLoading ? '⏳ Processing...' : '✅ Approve Selected'}
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={handleBulkReject}
+                      disabled={bulkOperationLoading}
+                    >
+                      {bulkOperationLoading ? '⏳ Processing...' : '❌ Reject Selected'}
+                    </button>
+                  </>
+                );
+              } else if (selectedStatus === 'ACTIVE') {
+                return (
+                  <button
+                    className="btn btn-sm btn-warning"
+                    onClick={handleBulkDisable}
+                    disabled={bulkOperationLoading}
+                  >
+                    {bulkOperationLoading ? '⏳ Processing...' : '🔒 Disable Selected'}
+                  </button>
+                );
+              } else if (selectedStatus === 'DISABLED') {
+                return (
+                  <button
+                    className="btn btn-sm btn-info"
+                    onClick={handleBulkEnable}
+                    disabled={bulkOperationLoading}
+                  >
+                    {bulkOperationLoading ? '⏳ Processing...' : '🔓 Enable Selected'}
+                  </button>
+                );
+              } else {
+                return (
+                  <span className="bulk-mixed-status">
+                    Mixed user statuses - no bulk actions available
+                  </span>
+                );
+              }
+            })()}
           </div>
         </div>
       )}
@@ -373,23 +599,30 @@ const UserManagement = () => {
         ))}
       </div>
 
-      {/* Bulk Selection Controls */}
-      <div className="selection-controls">
-        <button
-          className="btn btn-sm btn-secondary"
-          onClick={handleSelectAll}
-          disabled={filteredUsers.length === 0}
-        >
-          Select All Visible ({filteredUsers.length})
-        </button>
-        <button
-          className="btn btn-sm btn-secondary"
-          onClick={handleClearSelection}
-          disabled={selectedUsers.length === 0}
-        >
-          Clear All ({selectedUsers.length})
-        </button>
-      </div>
+      {/* Bulk Selection Controls - Only show for specific filters */}
+      {supportsBulkOperations() && (
+        <div className="selection-controls">
+          <button
+            className="btn btn-sm btn-secondary"
+            onClick={handleSelectAll}
+            disabled={filteredUsers.length === 0}
+          >
+            Select All Selectable ({filteredUsers.filter(user => user.status !== 'REJECTED').length})
+          </button>
+          <button
+            className="btn btn-sm btn-secondary"
+            onClick={handleClearSelection}
+            disabled={selectedUsers.length === 0}
+          >
+            Clear All ({selectedUsers.length})
+          </button>
+          {filteredUsers.filter(user => user.status === 'REJECTED').length > 0 && (
+            <small className="selection-note">
+              * Rejected users ({filteredUsers.filter(user => user.status === 'REJECTED').length}) cannot be selected
+            </small>
+          )}
+        </div>
+      )}
 
       {/* Search Results Counter */}
       {searchTerm && (
@@ -410,17 +643,21 @@ const UserManagement = () => {
           <thead>
             <tr>
               <th>
-                <input
-                  type="checkbox"
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      handleSelectAll();
-                    } else {
-                      handleClearSelection();
-                    }
-                  }}
-                  checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.length}
-                />
+                {supportsBulkOperations() ? (
+                  <input
+                    type="checkbox"
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        handleSelectAll();
+                      } else {
+                        handleClearSelection();
+                      }
+                    }}
+                    checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.filter(user => user.status !== 'REJECTED').length}
+                  />
+                ) : (
+                  <span style={{ width: '16px', display: 'inline-block' }}></span>
+                )}
               </th>
               <th>User</th>
               <th>Email</th>
@@ -434,11 +671,17 @@ const UserManagement = () => {
             {filteredUsers.map(user => (
               <tr key={user.id} className={`user-row ${user.status.toLowerCase()}`}>
                 <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.id)}
-                    onChange={() => handleSelectUser(user.id)}
-                  />
+                  {supportsBulkOperations() ? (
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={() => handleSelectUser(user.id)}
+                      disabled={user.status === 'REJECTED'}
+                      title={user.status === 'REJECTED' ? 'Rejected users cannot be selected for bulk operations' : ''}
+                    />
+                  ) : (
+                    <span style={{ width: '16px', display: 'inline-block' }}></span>
+                  )}
                 </td>
                 <td className="user-info">
                   <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
@@ -462,45 +705,54 @@ const UserManagement = () => {
                   {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="user-actions">
-                  {user.status === 'PENDING' && (
+                  {user.status === 'REJECTED' ? (
+                    // No actions available for rejected users
+                    <span className="no-actions" title="No actions available for rejected users">
+                      —
+                    </span>
+                  ) : (
                     <>
+                      {user.status === 'PENDING' && (
+                        <>
+                          <button
+                            className="action-btn approve"
+                            onClick={() => handleApproveUser(user.id)}
+                            title="Approve User"
+                          >
+                            ✅
+                          </button>
+                          <button
+                            className="action-btn reject"
+                            onClick={() => handleRejectUser(user.id)}
+                            title="Reject User"
+                          >
+                            ❌
+                          </button>
+                        </>
+                      )}
+                      {(user.status === 'ACTIVE' || user.status === 'DISABLED') && (
+                        <button
+                          className={`action-btn toggle ${user.status === 'ACTIVE' ? 'disable' : 'enable'} ${user.role === 'ADMIN' ? 'disabled' : ''}`}
+                          onClick={() => user.role !== 'ADMIN' ? handleToggleStatus(user.id) : null}
+                          disabled={user.role === 'ADMIN'}
+                          title={
+                            user.role === 'ADMIN' 
+                              ? 'Admin users cannot be disabled for security reasons' 
+                              : (user.status === 'ACTIVE' ? 'Disable User' : 'Enable User')
+                          }
+                        >
+                          {user.role === 'ADMIN' ? '🛡️' : (user.status === 'ACTIVE' ? '🔒' : '🔓')}
+                        </button>
+                      )}
                       <button
-                        className="action-btn approve"
-                        onClick={() => handleApproveUser(user.id)}
-                        title="Approve User"
+                        className="action-btn edit"
+                        onClick={() => handleEditUser(user)}
+                        title="Edit User"
                       >
-                        ✅
-                      </button>
-                      <button
-                        className="action-btn reject"
-                        onClick={() => handleRejectUser(user.id)}
-                        title="Reject User"
-                      >
-                        ❌
+                        ✏️
                       </button>
                     </>
                   )}
-                  {(user.status === 'ACTIVE' || user.status === 'DISABLED') && (
-                    <button
-                      className={`action-btn toggle ${user.status === 'ACTIVE' ? 'disable' : 'enable'} ${user.role === 'ADMIN' ? 'disabled' : ''}`}
-                      onClick={() => user.role !== 'ADMIN' ? handleToggleStatus(user.id) : null}
-                      disabled={user.role === 'ADMIN'}
-                      title={
-                        user.role === 'ADMIN' 
-                          ? 'Admin users cannot be disabled for security reasons' 
-                          : (user.status === 'ACTIVE' ? 'Disable User' : 'Enable User')
-                      }
-                    >
-                      {user.role === 'ADMIN' ? '🛡️' : (user.status === 'ACTIVE' ? '🔒' : '🔓')}
-                    </button>
-                  )}
-                  <button
-                    className="action-btn edit"
-                    onClick={() => handleEditUser(user)}
-                    title="Edit User"
-                  >
-                    ✏️
-                  </button>
                 </td>
               </tr>
             ))}

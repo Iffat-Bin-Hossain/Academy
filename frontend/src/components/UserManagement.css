@@ -251,6 +251,62 @@
   background-color: #f8f9fa;
 }
 
+/* Styling for rejected users - disabled checkbox */
+.user-row.rejected input[type="checkbox"] {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* No actions available styling */
+.no-actions {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.9em;
+  padding: 4px 8px;
+}
+
+/* Selection note for rejected users */
+.selection-note {
+  color: #6c757d;
+  font-style: italic;
+  margin-left: 10px;
+  font-size: 0.85em;
+}
+
+/* Mixed status message for bulk operations */
+.bulk-mixed-status {
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.9em;
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+/* Additional button styles for new bulk operations */
+.btn.btn-warning {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
+}
+
+.btn.btn-warning:hover {
+  background-color: #e0a800;
+  border-color: #d39e00;
+}
+
+.btn.btn-info {
+  background-color: #17a2b8;
+  border-color: #17a2b8;
+  color: white;
+}
+
+.btn.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+}
+
 .user-info {
   display: flex;
   align-items: center;

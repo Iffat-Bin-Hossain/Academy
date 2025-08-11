@@ -21,6 +21,13 @@ public class CourseService {
     private final AnnouncementRepository announcementRepo;
     private final ResourceRepository resourceRepo;
     private final DiscussionThreadRepository discussionThreadRepo;
+    private final DiscussionPostRepository discussionPostRepo;
+    private final PostReactionRepository postReactionRepo;
+    private final AssignmentFileRepository assignmentFileRepo;
+    private final StudentSubmissionRepository studentSubmissionRepo;
+    private final SubmissionFileRepository submissionFileRepo;
+    private final AttendanceSessionRepository attendanceSessionRepo;
+    private final AttendanceRecordRepository attendanceRecordRepo;
     private final NotificationService notificationService;
 
     // ============ BASIC CRUD OPERATIONS ============
@@ -76,8 +83,20 @@ public class CourseService {
         List<Notification> courseNotifications = notificationRepo.findByRelatedCourse(course);
         notificationRepo.deleteAll(courseNotifications);
         
-        // 2. Delete all discussion threads for this course
+        // 2. Delete all discussion data for this course in proper order
         List<DiscussionThread> discussionThreads = discussionThreadRepo.findByCourse(course);
+        for (DiscussionThread thread : discussionThreads) {
+            // First, delete all post reactions for posts in this thread
+            List<DiscussionPost> allPosts = discussionPostRepo.findByThreadAndIsDeletedFalseOrderByCreatedAtAsc(thread);
+            for (DiscussionPost post : allPosts) {
+                List<PostReaction> reactions = postReactionRepo.findByPost(post);
+                postReactionRepo.deleteAll(reactions);
+            }
+            
+            // Then, delete all discussion posts in this thread (including replies)
+            discussionPostRepo.deleteAll(allPosts);
+        }
+        // Finally, delete all discussion threads
         discussionThreadRepo.deleteAll(discussionThreads);
         
         // 3. Delete all resources for this course (active and inactive)
@@ -88,24 +107,51 @@ public class CourseService {
         List<Announcement> announcements = announcementRepo.findByCourse(course);
         announcementRepo.deleteAll(announcements);
         
-        // 5. Delete all enrollments for this course
+        // 5. Delete all attendance data for this course
+        List<AttendanceSession> attendanceSessions = attendanceSessionRepo.findByCourseOrderBySessionDateDesc(course);
+        for (AttendanceSession session : attendanceSessions) {
+            // First delete all attendance records for this session
+            List<AttendanceRecord> attendanceRecords = attendanceRecordRepo.findBySessionOrderByStudentNameAsc(session);
+            attendanceRecordRepo.deleteAll(attendanceRecords);
+        }
+        // Then delete all attendance sessions
+        attendanceSessionRepo.deleteAll(attendanceSessions);
+        
+        // 6. Delete all enrollments for this course
         List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
         enrollmentRepo.deleteAll(enrollments);
         
-        // 6. Delete ALL assignments for this course (both active and inactive)
+        // 7. Delete assignment-related data in correct order
         List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
+        for (Assignment assignment : allAssignments) {
+            // First, delete all submission files for student submissions of this assignment
+            List<StudentSubmission> submissions = studentSubmissionRepo.findByAssignmentOrderBySubmittedAtAsc(assignment);
+            for (StudentSubmission submission : submissions) {
+                List<SubmissionFile> submissionFiles = submissionFileRepo.findBySubmissionOrderByUploadedAtAsc(submission);
+                submissionFileRepo.deleteAll(submissionFiles);
+            }
+            
+            // Then, delete all student submissions for this assignment
+            studentSubmissionRepo.deleteAll(submissions);
+            
+            // Next, delete all assignment files for this assignment
+            List<AssignmentFile> assignmentFiles = assignmentFileRepo.findByAssignmentOrderByUploadedAtDesc(assignment);
+            assignmentFileRepo.deleteAll(assignmentFiles);
+        }
+        
+        // 8. Now safely delete all assignments
         assignmentRepo.deleteAll(allAssignments);
         
-        // 7. Delete all course-teacher assignments (active and inactive)
+        // 9. Delete all course-teacher assignments (active and inactive)
         List<CourseTeacher> activeCourseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
         List<CourseTeacher> inactiveCourseTeachers = courseTeacherRepo.findByCourseAndActiveFalse(course);
         courseTeacherRepo.deleteAll(activeCourseTeachers);
         courseTeacherRepo.deleteAll(inactiveCourseTeachers);
         
-        // 8. Finally, delete the course itself
+        // 10. Finally, delete the course itself
         courseRepo.delete(course);
         
-        return "✅ Course deleted successfully with all related data (notifications, discussions, resources, announcements, enrollments, assignments, and teacher assignments)";
+        return "✅ Course deleted successfully with all related data (notifications, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, assignment files, student submissions, submission files, assignments, and teacher assignments)";
     }
 
     // ============ ENROLLMENT MANAGEMENT ============
@@ -318,8 +364,20 @@ public class CourseService {
             List<Notification> courseNotifications = notificationRepo.findByRelatedCourse(course);
             notificationRepo.deleteAll(courseNotifications);
             
-            // 2. Delete all discussion threads for this course
+            // 2. Delete all discussion data for this course in proper order
             List<DiscussionThread> discussionThreads = discussionThreadRepo.findByCourse(course);
+            for (DiscussionThread thread : discussionThreads) {
+                // First, delete all post reactions for posts in this thread
+                List<DiscussionPost> allPosts = discussionPostRepo.findByThreadAndIsDeletedFalseOrderByCreatedAtAsc(thread);
+                for (DiscussionPost post : allPosts) {
+                    List<PostReaction> reactions = postReactionRepo.findByPost(post);
+                    postReactionRepo.deleteAll(reactions);
+                }
+                
+                // Then, delete all discussion posts in this thread (including replies)
+                discussionPostRepo.deleteAll(allPosts);
+            }
+            // Finally, delete all discussion threads
             discussionThreadRepo.deleteAll(discussionThreads);
             
             // 3. Delete all resources for this course (active and inactive)
@@ -330,25 +388,52 @@ public class CourseService {
             List<Announcement> announcements = announcementRepo.findByCourse(course);
             announcementRepo.deleteAll(announcements);
             
-            // 5. Delete all enrollments for this course
+            // 5. Delete all attendance data for this course
+            List<AttendanceSession> attendanceSessions = attendanceSessionRepo.findByCourseOrderBySessionDateDesc(course);
+            for (AttendanceSession session : attendanceSessions) {
+                // First delete all attendance records for this session
+                List<AttendanceRecord> attendanceRecords = attendanceRecordRepo.findBySessionOrderByStudentNameAsc(session);
+                attendanceRecordRepo.deleteAll(attendanceRecords);
+            }
+            // Then delete all attendance sessions
+            attendanceSessionRepo.deleteAll(attendanceSessions);
+            
+            // 6. Delete all enrollments for this course
             List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
             enrollmentRepo.deleteAll(enrollments);
             
-            // 6. Delete ALL assignments for this course (both active and inactive)
+            // 7. Delete assignment-related data in correct order
             List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
+            for (Assignment assignment : allAssignments) {
+                // First, delete all submission files for student submissions of this assignment
+                List<StudentSubmission> submissions = studentSubmissionRepo.findByAssignmentOrderBySubmittedAtAsc(assignment);
+                for (StudentSubmission submission : submissions) {
+                    List<SubmissionFile> submissionFiles = submissionFileRepo.findBySubmissionOrderByUploadedAtAsc(submission);
+                    submissionFileRepo.deleteAll(submissionFiles);
+                }
+                
+                // Then, delete all student submissions for this assignment
+                studentSubmissionRepo.deleteAll(submissions);
+                
+                // Next, delete all assignment files for this assignment
+                List<AssignmentFile> assignmentFiles = assignmentFileRepo.findByAssignmentOrderByUploadedAtDesc(assignment);
+                assignmentFileRepo.deleteAll(assignmentFiles);
+            }
+            
+            // 8. Now safely delete all assignments
             assignmentRepo.deleteAll(allAssignments);
             
-            // 7. Delete all course-teacher assignments (active and inactive)
+            // 9. Delete all course-teacher assignments (active and inactive)
             List<CourseTeacher> activeCourseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
             List<CourseTeacher> inactiveCourseTeachers = courseTeacherRepo.findByCourseAndActiveFalse(course);
             courseTeacherRepo.deleteAll(activeCourseTeachers);
             courseTeacherRepo.deleteAll(inactiveCourseTeachers);
         }
         
-        // 8. Finally, delete all courses
+        // 10. Finally, delete all courses
         courseRepo.deleteAll(allCourses);
         
         return "✅ All courses and related data cleared successfully. Total courses removed: " + allCourses.size() + 
-               " (including notifications, discussions, resources, announcements, enrollments, assignments, and teacher assignments)";
+               " (including notifications, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, assignment files, student submissions, submission files, assignments, and teacher assignments)";
     }
 }

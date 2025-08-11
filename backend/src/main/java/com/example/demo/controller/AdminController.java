@@ -139,6 +139,13 @@ public class AdminController {
                 ));
             }
             
+            // Protect rejected users - they cannot be modified
+            if (user.getStatus() == UserStatus.REJECTED) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Rejected users cannot be modified. No operations are allowed."
+                ));
+            }
+            
             // Store original status for notification
             UserStatus originalStatus = user.getStatus();
             
@@ -185,6 +192,13 @@ public class AdminController {
         try {
             User user = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Protect rejected users - they cannot be modified
+            if (user.getStatus() == UserStatus.REJECTED) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Rejected users cannot be modified. No operations are allowed."
+                ));
+            }
             
             String roleStr = request.get("role");
             if (roleStr == null || roleStr.trim().isEmpty()) {
@@ -236,6 +250,13 @@ public class AdminController {
         try {
             User user = userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Protect rejected users - they cannot be modified
+            if (user.getStatus() == UserStatus.REJECTED) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "error", "Rejected users cannot be modified. No operations are allowed."
+                ));
+            }
             
             // Store original values for notification purposes
             String originalName = user.getName();
@@ -369,8 +390,15 @@ public class AdminController {
                     User user = userRepo.findById(userId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
                     
+                    // Skip rejected users entirely - they should not be processed
                     if (user.getStatus() == UserStatus.REJECTED) {
-                        failedUsers.add(user.getName() + " (already rejected)");
+                        failedUsers.add(user.getName() + " (rejected users cannot be modified)");
+                        continue;
+                    }
+                    
+                    // Skip already approved users
+                    if (user.isApproved()) {
+                        failedUsers.add(user.getName() + " (already approved)");
                         continue;
                     }
                     
@@ -439,6 +467,13 @@ public class AdminController {
                     User user = userRepo.findById(userId)
                         .orElseThrow(() -> new RuntimeException("User not found"));
                     
+                    // Skip already rejected users entirely - they should not be processed
+                    if (user.getStatus() == UserStatus.REJECTED) {
+                        failedUsers.add(user.getName() + " (already rejected - cannot be modified)");
+                        continue;
+                    }
+                    
+                    // Skip already approved users
                     if (user.isApproved()) {
                         failedUsers.add(user.getName() + " (already approved)");
                         continue;
