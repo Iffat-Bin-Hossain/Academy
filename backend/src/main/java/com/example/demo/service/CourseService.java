@@ -295,6 +295,11 @@ public class CourseService {
         User teacher = userRepo.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
+        // Enhanced security: Verify teacher role and assignment
+        if (teacher.getRole() != Role.TEACHER) {
+            return "❌ Only teachers can approve/reject enrollments";
+        }
+
         if (!enrollment.getCourse().getAssignedTeacher().getId().equals(teacherId)) {
             return "❌ You are not the assigned teacher for this course";
         }

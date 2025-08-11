@@ -17,8 +17,7 @@ const CourseManagement = ({ courseId, onBack }) => {
   const [showTeacherHistory, setShowTeacherHistory] = useState(false);
   const [teacherSearchTerm, setTeacherSearchTerm] = useState('');
   const [enrollmentFilter, setEnrollmentFilter] = useState('ALL'); // ALL, PENDING, APPROVED, REJECTED
-  const [selectedEnrollments, setSelectedEnrollments] = useState([]);
-  const [showBulkActions, setShowBulkActions] = useState(false);
+  // Removed bulk actions state variables - Admin can only view enrollment status
 
   useEffect(() => {
     // Get user info from token
@@ -168,78 +167,11 @@ const CourseManagement = ({ courseId, onBack }) => {
     );
   };
 
-  const toggleEnrollmentSelection = (enrollmentId) => {
-    setSelectedEnrollments(prev => 
-      prev.includes(enrollmentId) 
-        ? prev.filter(id => id !== enrollmentId)
-        : [...prev, enrollmentId]
-    );
-  };
+  // Removed bulk selection functionality - Only teachers should manage enrollments
+  // Admin can only view enrollment status
 
-  const selectAllEnrollments = () => {
-    const filteredEnrollments = getFilteredEnrollments();
-    setSelectedEnrollments(filteredEnrollments.map(e => e.id));
-  };
-
-  const clearSelection = () => {
-    setSelectedEnrollments([]);
-  };
-
-  const bulkApproveEnrollments = async () => {
-    if (selectedEnrollments.length === 0) {
-      showMessage('No enrollments selected', 'error');
-      return;
-    }
-
-    if (!course.assignedTeacher) {
-      showMessage('Please assign a teacher first before approving enrollments', 'error');
-      return;
-    }
-
-    try {
-      const promises = selectedEnrollments.map(enrollmentId =>
-        axios.post(`/courses/decide?enrollmentId=${enrollmentId}&approve=true&teacherId=${course.assignedTeacher.id}`)
-      );
-      
-      await Promise.all(promises);
-      showMessage(`${selectedEnrollments.length} enrollment(s) approved successfully!`, 'success');
-      clearSelection();
-      fetchCourseData();
-    } catch (error) {
-      console.error('Error bulk approving enrollments:', error);
-      showMessage('Failed to approve some enrollments', 'error');
-    }
-  };
-
-  const bulkRejectEnrollments = async () => {
-    if (selectedEnrollments.length === 0) {
-      showMessage('No enrollments selected', 'error');
-      return;
-    }
-
-    if (!course.assignedTeacher) {
-      showMessage('Please assign a teacher first before rejecting enrollments', 'error');
-      return;
-    }
-
-    if (!window.confirm(`Are you sure you want to reject ${selectedEnrollments.length} enrollment(s)?`)) {
-      return;
-    }
-
-    try {
-      const promises = selectedEnrollments.map(enrollmentId =>
-        axios.post(`/courses/decide?enrollmentId=${enrollmentId}&approve=false&teacherId=${course.assignedTeacher.id}`)
-      );
-      
-      await Promise.all(promises);
-      showMessage(`${selectedEnrollments.length} enrollment(s) rejected successfully!`, 'success');
-      clearSelection();
-      fetchCourseData();
-    } catch (error) {
-      console.error('Error bulk rejecting enrollments:', error);
-      showMessage('Failed to reject some enrollments', 'error');
-    }
-  };
+  // Removed bulk enrollment actions - Only teachers should manage student enrollments
+  // Admin role is limited to viewing enrollment status and managing course-teacher assignments
 
   if (loading) {
     return (
@@ -473,7 +405,7 @@ const CourseManagement = ({ courseId, onBack }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3 className="card-title">👨‍🎓 Student Enrollments</h3>
-              <p className="card-subtitle">Manage student access to this course</p>
+              <p className="card-subtitle">View student enrollment status and activity</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <select
@@ -487,14 +419,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                 <option value="APPROVED">Approved ({stats.approved})</option>
                 <option value="REJECTED">Rejected ({stats.rejected})</option>
               </select>
-              {selectedEnrollments.length > 0 && (
-                <button 
-                  className="btn btn-secondary btn-sm"
-                  onClick={() => setShowBulkActions(!showBulkActions)}
-                >
-                  Bulk Actions ({selectedEnrollments.length})
-                </button>
-              )}
+              {/* Removed Bulk Actions - Only teachers should manage student enrollments */}
             </div>
           </div>
         </div>
@@ -512,89 +437,13 @@ const CourseManagement = ({ courseId, onBack }) => {
             </div>
           ) : (
             <>
-              {/* Bulk Actions Bar */}
-              {showBulkActions && selectedEnrollments.length > 0 && (
-                <div style={{ 
-                  padding: '1rem', 
-                  background: '#f8fafc', 
-                  borderRadius: '8px', 
-                  marginBottom: '1rem',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                      {selectedEnrollments.length} enrollment(s) selected
-                    </span>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button 
-                        className="btn btn-success btn-sm"
-                        onClick={bulkApproveEnrollments}
-                        disabled={!course.assignedTeacher}
-                      >
-                        ✅ Approve All
-                      </button>
-                      <button 
-                        className="btn btn-danger btn-sm"
-                        onClick={bulkRejectEnrollments}
-                        disabled={!course.assignedTeacher}
-                      >
-                        ❌ Reject All
-                      </button>
-                      <button 
-                        className="btn btn-secondary btn-sm"
-                        onClick={clearSelection}
-                      >
-                        Clear Selection
-                      </button>
-                    </div>
-                  </div>
-                  {!course.assignedTeacher && (
-                    <p style={{ margin: '0.5rem 0 0 0', color: '#dc2626', fontSize: '0.875rem' }}>
-                      Please assign a teacher first to approve/reject enrollments
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Selection Controls */}
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center', 
-                marginBottom: '1rem',
-                padding: '0.5rem 0',
-                borderBottom: '1px solid #e2e8f0'
-              }}>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={selectedEnrollments.length === getFilteredEnrollments().length && getFilteredEnrollments().length > 0}
-                      onChange={() => {
-                        if (selectedEnrollments.length === getFilteredEnrollments().length) {
-                          clearSelection();
-                        } else {
-                          selectAllEnrollments();
-                        }
-                      }}
-                    />
-                    Select All
-                  </label>
-                  <span style={{ color: '#64748b', fontSize: '0.875rem' }}>
-                    Showing {getFilteredEnrollments().length} enrollment(s)
-                  </span>
-                </div>
-              </div>
-
+              {/* Admin can only view enrollment status - Teachers manage approvals/rejections */}
+              
               <div className="enrollment-list">
                 {getFilteredEnrollments().map(enrollment => (
                   <div key={enrollment.id} className="enrollment-item">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedEnrollments.includes(enrollment.id)}
-                        onChange={() => toggleEnrollmentSelection(enrollment.id)}
-                      />
+                      {/* Removed checkbox - Admin can only view enrollment status */}
                       <div className="student-info">
                         <div className="student-avatar">
                           {enrollment.student.name.charAt(0)}
@@ -607,8 +456,14 @@ const CourseManagement = ({ courseId, onBack }) => {
                             {enrollment.student.email}
                           </p>
                           <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                            Requested: {formatDate(enrollment.requestedAt)}
+                            Requested: {formatDate(enrollment.enrolledAt)}
                           </span>
+                          {enrollment.decisionAt && (
+                            <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>
+                              Decision: {formatDate(enrollment.decisionAt)}
+                              {enrollment.actionBy && ` by ${enrollment.actionBy.name}`}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -617,9 +472,15 @@ const CourseManagement = ({ courseId, onBack }) => {
                         {enrollment.status === 'APPROVED' && '✅'}
                         {enrollment.status === 'PENDING' && '⏳'}
                         {enrollment.status === 'REJECTED' && '❌'}
+                        {enrollment.status === 'RETAKING' && '🔄'}
                         {' '}
                         {enrollment.status}
                       </span>
+                      {enrollment.status === 'PENDING' && course.assignedTeacher && (
+                        <p style={{ margin: '0.5rem 0 0 0', color: '#64748b', fontSize: '0.75rem', fontStyle: 'italic' }}>
+                          Awaiting {course.assignedTeacher.name}'s approval
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
