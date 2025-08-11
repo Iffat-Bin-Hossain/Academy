@@ -107,6 +107,21 @@ public class CourseController {
         return courseService.decideEnrollment(enrollmentId, approve, teacherId);
     }
 
+    // TEACHER bulk approves/rejects
+    @PostMapping("/decide-bulk")
+    public ResponseEntity<?> decideBulk(
+            @RequestParam List<Long> enrollmentIds,
+            @RequestParam boolean approve,
+            @RequestParam Long teacherId
+    ) {
+        try {
+            String result = courseService.decideEnrollmentsBulk(enrollmentIds, approve, teacherId);
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // STUDENT: view enrolled
     @GetMapping("/student/{studentId}")
     public List<CourseEnrollment> getEnrolled(@PathVariable Long studentId) {

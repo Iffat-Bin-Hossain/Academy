@@ -19,6 +19,11 @@ const CourseDetailsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [activeTab, setActiveTab] = useState('students');
+  
+  // Bulk selection states
+  const [selectedEnrollments, setSelectedEnrollments] = useState(new Set());
+  const [selectAll, setSelectAll] = useState(false);
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -121,6 +126,114 @@ const CourseDetailsPage = () => {
     }
   };
 
+  // Bulk selection functions
+  const toggleSelectEnrollment = (enrollmentId) => {
+    const newSelected = new Set(selectedEnrollments);
+    if (newSelected.has(enrollmentId)) {
+      newSelected.delete(enrollmentId);
+    } else {
+      newSelected.add(enrollmentId);
+    }
+    setSelectedEnrollments(newSelected);
+    setSelectAll(newSelected.size === getFilteredEnrollments().filter(e => e.status === 'PENDING' || e.status === 'RETAKING').length);
+  };
+
+  const toggleSelectAll = () => {
+    const actionableEnrollments = getFilteredEnrollments().filter(e => e.status === 'PENDING' || e.status === 'RETAKING');
+    if (selectAll) {
+      setSelectedEnrollments(new Set());
+      setSelectAll(false);
+    } else {
+      const allIds = new Set(actionableEnrollments.map(e => e.id));
+      setSelectedEnrollments(allIds);
+      setSelectAll(true);
+    }
+  };
+
+  const bulkApproveEnrollments = async () => {
+    if (selectedEnrollments.size === 0) {
+      showMessage('Please select enrollments to approve', 'warning');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to approve ${selectedEnrollments.size} enrollment${selectedEnrollments.size !== 1 ? 's' : ''}?`)) {
+      return;
+    }
+
+    if (!user || !user.id) {
+      showMessage('User information not available', 'error');
+      return;
+    }
+
+    try {
+      setIsProcessingBulk(true);
+      const enrollmentIds = Array.from(selectedEnrollments);
+      
+      const response = await axios.post('/courses/decide-bulk', null, {
+        params: {
+          enrollmentIds: enrollmentIds,
+          approve: true,
+          teacherId: user.id
+        },
+        paramsSerializer: {
+          indexes: null // This formats array as enrollmentIds=1&enrollmentIds=2 etc.
+        }
+      });
+      
+      showMessage(response.data.message, 'success');
+      setSelectedEnrollments(new Set());
+      setSelectAll(false);
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error bulk approving enrollments:', error);
+      showMessage(error.response?.data?.error || 'Failed to bulk approve enrollments', 'error');
+    } finally {
+      setIsProcessingBulk(false);
+    }
+  };
+
+  const bulkRejectEnrollments = async () => {
+    if (selectedEnrollments.size === 0) {
+      showMessage('Please select enrollments to reject', 'warning');
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to reject ${selectedEnrollments.size} enrollment${selectedEnrollments.size !== 1 ? 's' : ''}?`)) {
+      return;
+    }
+
+    if (!user || !user.id) {
+      showMessage('User information not available', 'error');
+      return;
+    }
+
+    try {
+      setIsProcessingBulk(true);
+      const enrollmentIds = Array.from(selectedEnrollments);
+      
+      const response = await axios.post('/courses/decide-bulk', null, {
+        params: {
+          enrollmentIds: enrollmentIds,
+          approve: false,
+          teacherId: user.id
+        },
+        paramsSerializer: {
+          indexes: null // This formats array as enrollmentIds=1&enrollmentIds=2 etc.
+        }
+      });
+      
+      showMessage(response.data.message, 'success');
+      setSelectedEnrollments(new Set());
+      setSelectAll(false);
+      fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error bulk rejecting enrollments:', error);
+      showMessage(error.response?.data?.error || 'Failed to bulk reject enrollments', 'error');
+    } finally {
+      setIsProcessingBulk(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
@@ -202,12 +315,21 @@ const CourseDetailsPage = () => {
   const stats = getStats();
 
   return (
-    <Layout 
-      user={user} 
-      onLogout={handleLogout}
-      pageTitle={`Course: ${course.title}`}
-      pageSubtitle={`Manage students and enrollments for ${course.courseCode}`}
-    >
+    <>
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+      <Layout 
+        user={user} 
+        onLogout={handleLogout}
+        pageTitle={`Course: ${course.title}`}
+        pageSubtitle={`Manage students and enrollments for ${course.courseCode}`}
+      >
       {/* Message Alert */}
       {message && (
         <div className={`alert alert-${messageType}`}>
@@ -403,6 +525,128 @@ const CourseDetailsPage = () => {
               </button>
             )}
           </div>
+
+          {/* Bulk Actions Section */}
+          {getFilteredEnrollments().some(e => e.status === 'PENDING' || e.status === 'RETAKING') && (
+            <div style={{
+              marginTop: '1rem',
+              padding: '1rem',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectAll}
+                    onChange={toggleSelectAll}
+                    style={{ transform: 'scale(1.2)' }}
+                  />
+                  <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>
+                    Select All Actionable ({getFilteredEnrollments().filter(e => e.status === 'PENDING' || e.status === 'RETAKING').length})
+                  </span>
+                </label>
+                {selectedEnrollments.size > 0 && (
+                  <span style={{ 
+                    fontSize: '0.875rem', 
+                    color: '#3b82f6', 
+                    padding: '0.25rem 0.5rem',
+                    background: '#dbeafe',
+                    borderRadius: '12px',
+                    fontWeight: '500'
+                  }}>
+                    {selectedEnrollments.size} selected
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={bulkApproveEnrollments}
+                  disabled={selectedEnrollments.size === 0 || isProcessingBulk}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: 'none',
+                    borderRadius: '6px',
+                    background: selectedEnrollments.size === 0 || isProcessingBulk ? '#d1d5db' : '#10b981',
+                    color: 'white',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: selectedEnrollments.size === 0 || isProcessingBulk ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedEnrollments.size > 0 && !isProcessingBulk) {
+                      e.target.style.background = '#059669';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedEnrollments.size > 0 && !isProcessingBulk) {
+                      e.target.style.background = '#10b981';
+                    }
+                  }}
+                >
+                  {isProcessingBulk ? (
+                    <>
+                      <div style={{ 
+                        width: '12px', 
+                        height: '12px', 
+                        border: '2px solid #ffffff',
+                        borderTop: '2px solid transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                      }}></div>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      ✅ Bulk Approve
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={bulkRejectEnrollments}
+                  disabled={selectedEnrollments.size === 0 || isProcessingBulk}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    border: 'none',
+                    borderRadius: '6px',
+                    background: selectedEnrollments.size === 0 || isProcessingBulk ? '#d1d5db' : '#ef4444',
+                    color: 'white',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: selectedEnrollments.size === 0 || isProcessingBulk ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedEnrollments.size > 0 && !isProcessingBulk) {
+                      e.target.style.background = '#dc2626';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedEnrollments.size > 0 && !isProcessingBulk) {
+                      e.target.style.background = '#ef4444';
+                    }
+                  }}
+                >
+                  ❌ Bulk Reject
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         <div className="card-body">
           {getFilteredEnrollments().length === 0 ? (
@@ -465,6 +709,18 @@ const CourseDetailsPage = () => {
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Bulk selection checkbox - only show for actionable enrollments */}
+                    {(enrollment.status === 'PENDING' || enrollment.status === 'RETAKING') && (
+                      <input
+                        type="checkbox"
+                        checked={selectedEnrollments.has(enrollment.id)}
+                        onChange={() => toggleSelectEnrollment(enrollment.id)}
+                        style={{
+                          transform: 'scale(1.2)',
+                          cursor: 'pointer'
+                        }}
+                      />
+                    )}
                     <div style={{
                       width: '48px',
                       height: '48px',
@@ -594,6 +850,7 @@ const CourseDetailsPage = () => {
       )}
 
     </Layout>
+    </>
   );
 };
 

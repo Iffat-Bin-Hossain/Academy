@@ -315,6 +315,60 @@ public class CourseService {
         return approve ? "✅ Enrollment approved" : "❌ Enrollment rejected";
     }
 
+    // TEACHER bulk approves/rejects students
+    public String decideEnrollmentsBulk(List<Long> enrollmentIds, boolean approve, Long teacherId) {
+        User teacher = userRepo.findById(teacherId)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+        // Enhanced security: Verify teacher role
+        if (teacher.getRole() != Role.TEACHER) {
+            return "❌ Only teachers can approve/reject enrollments";
+        }
+
+        List<CourseEnrollment> enrollments = enrollmentRepo.findAllById(enrollmentIds);
+        
+        if (enrollments.size() != enrollmentIds.size()) {
+            return "❌ Some enrollment requests not found";
+        }
+
+        // Verify teacher is assigned to all courses
+        for (CourseEnrollment enrollment : enrollments) {
+            if (!enrollment.getCourse().getAssignedTeacher().getId().equals(teacherId)) {
+                return "❌ You are not the assigned teacher for all selected courses";
+            }
+        }
+
+        int processedCount = 0;
+        LocalDateTime decisionTime = LocalDateTime.now();
+
+        for (CourseEnrollment enrollment : enrollments) {
+            // Only process pending or retaking enrollments
+            if (enrollment.getStatus() == EnrollmentStatus.PENDING || 
+                enrollment.getStatus() == EnrollmentStatus.RETAKING) {
+                
+                enrollment.setStatus(approve ? EnrollmentStatus.APPROVED : EnrollmentStatus.REJECTED);
+                enrollment.setActionBy(teacher);
+                enrollment.setDecisionAt(decisionTime);
+                enrollmentRepo.save(enrollment);
+
+                // Notify student about enrollment decision
+                try {
+                    notificationService.createEnrollmentDecisionNotification(
+                        enrollment.getStudent(), enrollment.getCourse(), approve);
+                } catch (Exception e) {
+                    // Log error but don't fail the bulk operation
+                    System.err.println("Failed to send notification for enrollment " + 
+                                     enrollment.getId() + ": " + e.getMessage());
+                }
+
+                processedCount++;
+            }
+        }
+
+        String action = approve ? "approved" : "rejected";
+        return "✅ " + processedCount + " enrollment" + (processedCount != 1 ? "s" : "") + " " + action;
+    }
+
     // STUDENT: view all enrollments (approved, pending, retaking)
     public List<CourseEnrollment> getMyCourses(Long studentId) {
         User student = userRepo.findById(studentId).orElseThrow();
