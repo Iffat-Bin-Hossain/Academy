@@ -1,30 +1,21 @@
 # Use OpenJDK 17 as base image
 FROM openjdk:17-jdk-slim
 
-# Install wget and unzip for Gradle installation
-RUN apt-get update && apt-get install -y wget unzip && rm -rf /var/lib/apt/lists/*
-
-# Download and install Gradle
-RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip && \
-    unzip gradle-8.5-bin.zip && \
-    mv gradle-8.5 /opt/gradle && \
-    rm gradle-8.5-bin.zip
-
-# Add Gradle to PATH
-ENV PATH=/opt/gradle/bin:$PATH
-
 # Set working directory
 WORKDIR /app
 
-# Copy gradle configuration files
+# Copy your Gradle 8.5 installation
+COPY gradle-8.5 gradle-8.5
+
+# Copy gradle files
 COPY build.gradle .
 COPY settings.gradle .
 
 # Copy source code
 COPY src src
 
-# Build the application
-RUN gradle clean build -x test
+# Build the application using your Gradle 8.5
+RUN ./gradle-8.5/bin/gradle clean build -x test
 
 # Create upload directory with proper permissions
 RUN mkdir -p /app/data/uploads && chmod 755 /app/data/uploads
