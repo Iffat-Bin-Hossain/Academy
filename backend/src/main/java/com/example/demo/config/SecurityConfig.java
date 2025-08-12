@@ -78,13 +78,24 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/assignments/**").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/courses/*/assignments").authenticated()
 
-                // 4.7 Notification endpoints - all authenticated users
+                // 4.6 Submission endpoints - Students can submit, Teachers can view
+                .requestMatchers(HttpMethod.POST, "/api/submissions").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.PUT, "/api/submissions/*").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.GET, "/api/submissions/assignment/*").hasRole("TEACHER")
+                .requestMatchers(HttpMethod.GET, "/api/submissions/student/*").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.GET, "/api/submissions/check").hasRole("STUDENT")
+                .requestMatchers(HttpMethod.GET, "/api/submissions/files/*/download").authenticated()
+
+                // 4.7 Plagiarism endpoints - Teacher-only
+                .requestMatchers("/api/plagiarism/**").hasRole("TEACHER")
+
+                // 4.8 Notification endpoints - all authenticated users
                 .requestMatchers("/api/notifications/**").authenticated()
 
-                // 4.8 Messaging endpoints - all authenticated users
+                // 4.9 Messaging endpoints - all authenticated users
                 .requestMatchers("/api/messages/**").authenticated()
 
-                // 4.9 Any other route requires authentication
+                // 4.10 Any other route requires authentication
                 .anyRequest().authenticated()
             )
 
@@ -103,6 +114,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
             "http://localhost:3000", // React frontend
+            "http://localhost:3001", // Alternative React frontend port
             "http://localhost:8080", // Optional (for Swagger or direct backend access)
             "http://localhost:8081"  // Current backend port
         ));

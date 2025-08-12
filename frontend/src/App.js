@@ -6,6 +6,7 @@ import ModernTeacherDashboard from './components/ModernTeacherDashboard';
 import CourseDetailsPage from './components/CourseDetailsPage';
 import ModernStudentDashboard from './components/ModernStudentDashboard';
 import StudentCourseDetailsPage from './components/StudentCourseDetailsPage';
+import PlagiarismChecker from './components/PlagiarismChecker';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -79,6 +80,22 @@ function App() {
           element={
             <ProtectedRoute roleRequired="TEACHER">
               <CourseDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/assignment/:assignmentId/plagiarism"
+          element={
+            <ProtectedRoute roleRequired="TEACHER">
+              <PlagiarismChecker />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teacher/assignment/:assignmentId/:assignmentName/plagiarism"
+          element={
+            <ProtectedRoute roleRequired="TEACHER">
+              <PlagiarismChecker />
             </ProtectedRoute>
           }
         />
