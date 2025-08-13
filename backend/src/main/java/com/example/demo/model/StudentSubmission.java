@@ -31,7 +31,7 @@ public class StudentSubmission {
     private String submissionText; // Optional text submission
 
     @CreationTimestamp
-    @Column(name = "submitted_at", updatable = true)
+    @Column(name = "submitted_at", updatable = false) // Never update original submission time
     private LocalDateTime submittedAt;
 
     @Enumerated(EnumType.STRING)

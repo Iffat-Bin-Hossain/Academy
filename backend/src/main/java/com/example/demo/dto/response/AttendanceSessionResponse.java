@@ -29,6 +29,7 @@ public class AttendanceSessionResponse {
     private LocalDateTime updatedAt;
     private List<AttendanceRecordResponse> attendanceRecords;
     private Integer totalEnrolledStudents;
+    private Integer totalSessions;
     private Integer presentCount;
     private Integer absentCount;
     private Double attendancePercentage;

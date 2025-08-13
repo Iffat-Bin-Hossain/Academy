@@ -260,7 +260,7 @@ public class AttendanceService {
                 .courseId(courseId)
                 .courseCode(course.getCourseCode())
                 .courseTitle(course.getTitle())
-                .totalEnrolledStudents(1)
+                .totalSessions((int) totalSessions)
                 .presentCount((int) presentSessions)
                 .absentCount((int) (totalSessions - presentSessions))
                 .attendancePercentage(attendancePercentage)

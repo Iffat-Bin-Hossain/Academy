@@ -134,7 +134,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
               <div className="card-icon">📚</div>
               <div className="card-content">
                 <h3>Total Sessions</h3>
-                <div className="card-value">{summary.totalEnrolledStudents || 0}</div>
+                <div className="card-value">{summary.totalSessions || 0}</div>
               </div>
             </div>
             <div className="summary-card present">

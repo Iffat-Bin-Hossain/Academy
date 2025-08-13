@@ -240,11 +240,14 @@ public class StudentSubmissionService {
             saveSubmissionFile(file, existingSubmission);
         }
 
-        // Update the submittedAt timestamp to current time (important for late marking)
-        existingSubmission.setSubmittedAt(now);
-        
-        // Recalculate submission status after update (important for late marking)
-        existingSubmission.calculateSubmissionStatus();
+        // Check if editing after deadline should mark as late
+        LocalDateTime originalDeadline = assignment.getDeadline();
+        if (now.isAfter(originalDeadline)) {
+            // If editing after the original deadline, mark as late
+            existingSubmission.setIsLate(true);
+            existingSubmission.setSubmissionStatus(StudentSubmission.SubmissionStatus.LATE);
+        }
+        // Otherwise preserve original submission status
 
         // Save updated submission
         StudentSubmission updatedSubmission = submissionRepository.save(existingSubmission);

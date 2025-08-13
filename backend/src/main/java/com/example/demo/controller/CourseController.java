@@ -140,6 +140,21 @@ public class CourseController {
         return courseService.getAllEnrollments(courseId);
     }
 
+    // ADMIN: cleanup existing teacher-student conflicts (one-time fix) - LEGACY ENDPOINT
+    // Note: This cleanup is now handled automatically during teacher assignment
+    // Keeping this endpoint commented out for future reference if needed
+    /*
+    @PostMapping("/cleanup-teacher-enrollments")
+    public ResponseEntity<?> cleanupTeacherEnrollments() {
+        try {
+            String result = courseService.cleanupExistingTeacherEnrollments();
+            return ResponseEntity.ok(Map.of("message", result));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+    */
+
     // STUDENT: retake course
     @PostMapping("/retake")
     public ResponseEntity<?> retakeCourse(@RequestParam Long courseId, @RequestParam Long studentId) {

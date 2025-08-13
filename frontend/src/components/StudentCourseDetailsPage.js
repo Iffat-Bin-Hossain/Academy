@@ -47,10 +47,26 @@ const StudentCourseDetailsPage = () => {
     for (const assignment of assignments) {
       try {
         const response = await axios.get(`/submissions/check?assignmentId=${assignment.id}&studentId=${user.id}`);
-        statuses[assignment.id] = response.data.hasSubmitted;
+        if (response.data.hasSubmitted) {
+          // If submitted, get the full submission data to check actual status
+          try {
+            const submissionResponse = await axios.get(`/submissions/assignment/${assignment.id}/student/${user.id}`);
+            statuses[assignment.id] = {
+              hasSubmitted: true,
+              isLate: submissionResponse.data.isLate,
+              submissionStatus: submissionResponse.data.submissionStatus,
+              submittedAt: submissionResponse.data.submittedAt
+            };
+          } catch (submissionError) {
+            console.error(`Error fetching submission details for assignment ${assignment.id}:`, submissionError);
+            statuses[assignment.id] = { hasSubmitted: true, isLate: false, submissionStatus: 'ON_TIME' };
+          }
+        } else {
+          statuses[assignment.id] = { hasSubmitted: false };
+        }
       } catch (error) {
         console.error(`Error checking submission status for assignment ${assignment.id}:`, error);
-        statuses[assignment.id] = false;
+        statuses[assignment.id] = { hasSubmitted: false };
       }
     }
     setSubmissionStatuses(statuses);
@@ -227,7 +243,7 @@ const StudentCourseDetailsPage = () => {
     }
 
     // Check if already submitted - this should not happen with the new UI, but keeping as fallback
-    if (submissionStatuses[assignment.id]) {
+    if (submissionStatuses[assignment.id]?.hasSubmitted) {
       showMessage('You have already submitted this assignment. Use the Edit button to modify your submission.', 'info');
       return;
     }
@@ -740,6 +756,11 @@ const StudentCourseDetailsPage = () => {
                     const isNearDue = new Date(assignment.deadline) < new Date(Date.now() + 86400000 * 3); // 3 days
                     const canSubmitLate = assignment.lateSubmissionDeadline && new Date(assignment.lateSubmissionDeadline) > new Date();
                     
+                    // Get submission status data
+                    const submissionStatus = submissionStatuses[assignment.id];
+                    const hasSubmitted = submissionStatus?.hasSubmitted || false;
+                    const isActuallyLate = hasSubmitted ? (submissionStatus?.isLate || false) : false;
+                    
                     return (
                       <div key={assignment.id} className="card" style={{ 
                         border: '1px solid #e2e8f0',
@@ -912,7 +933,7 @@ const StudentCourseDetailsPage = () => {
                               </button>
                               
                               {/* Show different buttons based on submission status */}
-                              {submissionStatuses[assignment.id] ? (
+                              {hasSubmitted ? (
                                 <>
                                   {/* Edit button - show if submission is still editable */}
                                   {(() => {
@@ -994,17 +1015,17 @@ const StudentCourseDetailsPage = () => {
                               <span style={{
                                 padding: '0.25rem 0.75rem',
                                 borderRadius: '12px',
-                                background: submissionStatuses[assignment.id] ? 
-                                  (isOverdue ? '#fee2e2' : '#dcfce7') : '#f0f9ff',
-                                color: submissionStatuses[assignment.id] ? 
-                                  (isOverdue ? '#dc2626' : '#16a34a') : '#0369a1',
+                                background: hasSubmitted ? 
+                                  (isActuallyLate ? '#fee2e2' : '#dcfce7') : '#f0f9ff',
+                                color: hasSubmitted ? 
+                                  (isActuallyLate ? '#dc2626' : '#16a34a') : '#0369a1',
                                 fontWeight: '600'
                               }}>
-                                {submissionStatuses[assignment.id] ? 
-                                  (isOverdue ? '📤 Submitted Late' : '✅ Submitted On Time') : 
+                                {hasSubmitted ? 
+                                  (isActuallyLate ? '📤 Submitted Late' : '✅ Submitted On Time') : 
                                   '❌ Not Submitted'}
                               </span>
-                              {isNearDue && !isOverdue && !submissionStatuses[assignment.id] && (
+                              {isNearDue && !isOverdue && !hasSubmitted && (
                                 <span style={{
                                   padding: '0.25rem 0.75rem',
                                   borderRadius: '12px',

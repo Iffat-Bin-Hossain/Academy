@@ -399,6 +399,8 @@ const CourseManagement = ({ courseId, onBack }) => {
         </div>
       </div>
 
+
+
       {/* Student Enrollments Section */}
       <div className="card">
         <div className="card-header">

@@ -5,8 +5,12 @@ import com.example.demo.dto.PlagiarismAnalysisResponse;
 import com.example.demo.model.Assignment;
 import com.example.demo.model.StudentSubmission;
 import com.example.demo.model.SubmissionFile;
+import com.example.demo.model.User;
+import com.example.demo.model.Course;
 import com.example.demo.repository.AssignmentRepository;
 import com.example.demo.repository.StudentSubmissionRepository;
+import com.example.demo.repository.CourseTeacherRepository;
+import com.example.demo.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Async;
@@ -15,6 +19,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
@@ -28,6 +33,8 @@ public class PlagiarismService {
     private final AssignmentRepository assignmentRepository;
     private final StudentSubmissionRepository submissionRepository;
     private final com.example.demo.repository.SubmissionFileRepository submissionFileRepository;
+    private final CourseTeacherRepository courseTeacherRepository;
+    private final UserRepository userRepository;
     
     // In-memory storage for analysis status (in production, use Redis or database)
     private final Map<String, PlagiarismAnalysisResponse> analysisResults = new ConcurrentHashMap<>();
@@ -47,10 +54,14 @@ public class PlagiarismService {
     // Constructor to initialize ALL_EXTENSIONS
     public PlagiarismService(AssignmentRepository assignmentRepository, 
                            StudentSubmissionRepository submissionRepository,
-                           com.example.demo.repository.SubmissionFileRepository submissionFileRepository) {
+                           com.example.demo.repository.SubmissionFileRepository submissionFileRepository,
+                           CourseTeacherRepository courseTeacherRepository,
+                           UserRepository userRepository) {
         this.assignmentRepository = assignmentRepository;
         this.submissionRepository = submissionRepository;
         this.submissionFileRepository = submissionFileRepository;
+        this.courseTeacherRepository = courseTeacherRepository;
+        this.userRepository = userRepository;
         
         // Combine all extension sets
         this.ALL_EXTENSIONS = new HashSet<>();
@@ -63,9 +74,28 @@ public class PlagiarismService {
         Assignment assignment = assignmentRepository.findById(assignmentId)
             .orElseThrow(() -> new RuntimeException("Assignment not found"));
         
-        // Verify teacher has access to this assignment
-        if (!assignment.getCreatedBy().getId().equals(request.getTeacherId())) {
-            throw new RuntimeException("You don't have permission to analyze this assignment");
+        // Get the teacher and course
+        User teacher = userRepository.findById(request.getTeacherId())
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+        Course course = assignment.getCourse();
+        
+        // Verify teacher has access to this assignment's course (same pattern as AssignmentService)
+        boolean isAssigned = courseTeacherRepository.existsByCourseAndTeacherAndActiveTrue(course, teacher) ||
+                           (course.getAssignedTeacher() != null && course.getAssignedTeacher().getId().equals(request.getTeacherId()));
+
+        if (!isAssigned) {
+            throw new RuntimeException("Teacher is not assigned to the course containing this assignment");
+        }
+        
+        // Check if assignment deadline has passed - plagiarism check only allowed after deadline
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime effectiveDeadline = assignment.getLateSubmissionDeadline() != null ? 
+                                         assignment.getLateSubmissionDeadline() : 
+                                         assignment.getDeadline();
+        
+        if (now.isBefore(effectiveDeadline)) {
+            throw new RuntimeException("Copy checker can only be run after the assignment deadline has passed. Assignment deadline: " + 
+                                     effectiveDeadline.toString());
         }
         
         // Generate unique analysis ID

@@ -163,12 +163,46 @@ public class CourseService {
         User teacher = userRepo.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
+        // Log current enrollment count before making changes
+        List<CourseEnrollment> allCurrentEnrollments = enrollmentRepo.findByCourse(course);
+        long currentEnrollmentCount = allCurrentEnrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED)
+                .count();
+        System.out.println("📊 BEFORE teacher assignment - Course '" + course.getTitle() + "' has " + currentEnrollmentCount + " approved enrolled students");
+
         // Check if there's already a teacher assigned (for replacement notification)
         User previousTeacher = course.getAssignedTeacher();
+        
+        // Check if the new teacher is currently enrolled as a student in this course
+        Optional<CourseEnrollment> existingEnrollment = enrollmentRepo.findByStudentAndCourse(teacher, course);
+        boolean wasStudent = false;
+        if (existingEnrollment.isPresent()) {
+            CourseEnrollment enrollment = existingEnrollment.get();
+            wasStudent = true;
+            
+            // Log the transition for audit purposes
+            System.out.println("🔄 User role transition: " + teacher.getName() + " (" + teacher.getEmail() + ") is being promoted from STUDENT to TEACHER for course: " + course.getTitle());
+            System.out.println("📋 Previous enrollment status: " + enrollment.getStatus() + ", enrolled since: " + enrollment.getEnrolledAt());
+            
+            // Remove the teacher from student enrollment since they are now a teacher
+            enrollmentRepo.delete(enrollment);
+            System.out.println("✅ Removed user " + teacher.getName() + " from student enrollment in course " + course.getTitle());
+            System.out.println("📊 Course enrollment count will be automatically updated (decreased by 1)");
+            
+            // Note: We preserve historical data like attendance records and submissions
+            // as they represent the user's past performance as a student
+        }
         
         // Update the legacy assignedTeacher field
         course.setAssignedTeacher(teacher);
         courseRepo.save(course);
+        
+        // Log final enrollment count after making changes
+        List<CourseEnrollment> allFinalEnrollments = enrollmentRepo.findByCourse(course);
+        long finalEnrollmentCount = allFinalEnrollments.stream()
+                .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED)
+                .count();
+        System.out.println("📊 AFTER teacher assignment - Course '" + course.getTitle() + "' now has " + finalEnrollmentCount + " approved enrolled students");
         
         // Also ensure there's an active CourseTeacher entry
         // First, deactivate any existing CourseTeacher entries for this course
@@ -217,7 +251,12 @@ public class CourseService {
             System.err.println("Failed to send teacher assignment notification: " + e.getMessage());
         }
         
-        return "✅ Teacher assigned to course";
+        // Return appropriate message based on whether student enrollment was removed
+        if (wasStudent) {
+            return "✅ Teacher assigned to course (and removed from student enrollment)";
+        } else {
+            return "✅ Teacher assigned to course";
+        }
     }
 
     // ADMIN removes teacher from course
@@ -494,5 +533,44 @@ public class CourseService {
         
         return "✅ All courses and related data cleared successfully. Total courses removed: " + allCourses.size() + 
                " (including notifications, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, assignment files, student submissions, submission files, assignments, and teacher assignments)";
+    }
+
+    // ADMIN: One-time cleanup to fix existing teacher-student enrollment conflicts
+    public String cleanupExistingTeacherEnrollments() {
+        System.out.println("🧹 Starting cleanup of existing teacher-student enrollment conflicts...");
+        
+        // Get all courses that have assigned teachers
+        List<Course> coursesWithTeachers = courseRepo.findAll().stream()
+                .filter(course -> course.getAssignedTeacher() != null)
+                .toList();
+        
+        int totalConflictsFound = 0;
+        int totalConflictsResolved = 0;
+        
+        for (Course course : coursesWithTeachers) {
+            User assignedTeacher = course.getAssignedTeacher();
+            
+            // Check if this teacher is also enrolled as a student in the same course
+            Optional<CourseEnrollment> conflictingEnrollment = enrollmentRepo.findByStudentAndCourse(assignedTeacher, course);
+            
+            if (conflictingEnrollment.isPresent()) {
+                CourseEnrollment enrollment = conflictingEnrollment.get();
+                totalConflictsFound++;
+                
+                System.out.println("🔧 CONFLICT FOUND: " + assignedTeacher.getName() + " (" + assignedTeacher.getEmail() + ") is both TEACHER and STUDENT in course: " + course.getTitle());
+                System.out.println("📋 Student enrollment status: " + enrollment.getStatus() + ", enrolled since: " + enrollment.getEnrolledAt());
+                
+                // Remove the conflicting student enrollment
+                enrollmentRepo.delete(enrollment);
+                totalConflictsResolved++;
+                
+                System.out.println("✅ RESOLVED: Removed " + assignedTeacher.getName() + " from student enrollment in course: " + course.getTitle());
+            }
+        }
+        
+        String result = "🧹 Cleanup completed! Found " + totalConflictsFound + " teacher-student enrollment conflicts, resolved " + totalConflictsResolved + " conflicts.";
+        System.out.println(result);
+        
+        return result;
     }
 }

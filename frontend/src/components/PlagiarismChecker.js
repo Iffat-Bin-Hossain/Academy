@@ -16,10 +16,9 @@ const PlagiarismChecker = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   
-  // Plagiarism settings
+    // Plagiarism settings
   const [settings, setSettings] = useState({
     threshold: 70, // Similarity threshold percentage
-    useAI: false, // Use AI similarity detection
     fileFilters: ['cpp', 'c', 'h', 'java', 'py', 'js', 'ts', 'kt', 'sh', 'txt'], // Supported file extensions
     fastSimilarityOnly: true // Use only fast local similarity first
   });
@@ -423,20 +422,6 @@ const PlagiarismChecker = () => {
                   <span>95%</span>
                 </div>
               </div>
-
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={settings.useAI}
-                    onChange={(e) => setSettings({ ...settings, useAI: e.target.checked })}
-                  />
-                  <span style={{ fontWeight: '600' }}>Enable AI Similarity Detection</span>
-                </label>
-                <small style={{ color: '#64748b', marginLeft: '1.5rem' }}>
-                  Uses Google Gemini for better detection of renamed variables and light obfuscation
-                </small>
-              </div>
             </div>
 
             <div>
@@ -609,9 +594,6 @@ const PlagiarismChecker = () => {
                             <span style={{ marginRight: '2rem' }}>
                               🔍 Method: {pair.detectionMethod || 'Local Similarity'}
                             </span>
-                            {pair.aiConfidence && (
-                              <span>🤖 AI Confidence: {(pair.aiConfidence * 100).toFixed(1)}%</span>
-                            )}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>

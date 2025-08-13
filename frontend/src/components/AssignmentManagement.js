@@ -619,6 +619,51 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     });
   };
 
+  const formatDetailedDateTime = (dateString) => {
+    if (!dateString) return 'Not set';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    });
+  };
+
+  const isAssignmentDeadlinePassed = (assignment) => {
+    const now = new Date();
+    const effectiveDeadline = assignment.lateSubmissionDeadline ? 
+                             new Date(assignment.lateSubmissionDeadline) : 
+                             new Date(assignment.deadline);
+    return now > effectiveDeadline;
+  };
+
+  const handleCopyCheckerClick = (assignment) => {
+    if (!isAssignmentDeadlinePassed(assignment)) {
+      const effectiveDeadline = assignment.lateSubmissionDeadline ? 
+                               assignment.lateSubmissionDeadline : 
+                               assignment.deadline;
+      const deadlineType = assignment.lateSubmissionDeadline ? 'late submission deadline' : 'main deadline';
+      
+      onShowMessage(
+        `⚠️ Copy Checker Not Available Yet\n\nThe copy checker can only be run after the assignment ${deadlineType} has passed.\n\n📅 ${deadlineType.charAt(0).toUpperCase() + deadlineType.slice(1)}: ${formatDetailedDateTime(effectiveDeadline)}\n\nPlease wait until after this time to run plagiarism detection.`, 
+        'warning'
+      );
+      return;
+    }
+    
+    // Create URL-safe assignment name
+    const assignmentName = assignment.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    navigate(`/teacher/assignment/${assignment.id}/${assignmentName}/plagiarism`);
+  };
+
   const getFilteredAssignments = () => {
     if (!searchTerm) return assignments;
     
@@ -909,19 +954,15 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                           <button 
-                            className="btn btn-warning btn-sm"
-                            onClick={() => {
-                              // Create URL-safe assignment name
-                              const assignmentName = assignment.title
-                                .toLowerCase()
-                                .replace(/[^a-z0-9]+/g, '-')
-                                .replace(/^-+|-+$/g, '');
-                              navigate(`/teacher/assignment/${assignment.id}/${assignmentName}/plagiarism`);
-                            }}
+                            className={`btn btn-sm ${isAssignmentDeadlinePassed(assignment) ? 'btn-warning' : 'btn-secondary'}`}
+                            onClick={() => handleCopyCheckerClick(assignment)}
                             style={{ fontSize: '0.75rem' }}
-                            title="Smart Copy Checker - Detect plagiarism in submissions"
+                            title={isAssignmentDeadlinePassed(assignment) ? 
+                              "Smart Copy Checker - Detect plagiarism in submissions" : 
+                              `Copy checker will be available after: ${formatDetailedDateTime(assignment.lateSubmissionDeadline || assignment.deadline)}`}
+                            disabled={!isAssignmentDeadlinePassed(assignment)}
                           >
-                            🔍 Smart Copy Check
+                            {isAssignmentDeadlinePassed(assignment) ? '🔍 Smart Copy Check' : '� Copy Check (Locked)'}
                           </button>
                           <button 
                             className="btn btn-info btn-sm"
