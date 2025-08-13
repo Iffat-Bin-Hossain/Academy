@@ -11,7 +11,10 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry
             .addMapping("/**")
-            .allowedOrigins("http://localhost:3000") // your React frontend
+            .allowedOrigins(
+                "http://localhost:3000", // Docker frontend port
+                "http://localhost:3001"  // Development frontend port
+            )
             .allowedMethods("*")
             .allowedHeaders("*")
             .allowCredentials(true);

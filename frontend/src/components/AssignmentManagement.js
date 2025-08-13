@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 
 const AssignmentManagement = ({ user, courses, onShowMessage }) => {
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState('');
@@ -906,6 +908,21 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           )}
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                          <button 
+                            className="btn btn-warning btn-sm"
+                            onClick={() => {
+                              // Create URL-safe assignment name
+                              const assignmentName = assignment.title
+                                .toLowerCase()
+                                .replace(/[^a-z0-9]+/g, '-')
+                                .replace(/^-+|-+$/g, '');
+                              navigate(`/teacher/assignment/${assignment.id}/${assignmentName}/plagiarism`);
+                            }}
+                            style={{ fontSize: '0.75rem' }}
+                            title="Smart Copy Checker - Detect plagiarism in submissions"
+                          >
+                            🔍 Smart Copy Check
+                          </button>
                           <button 
                             className="btn btn-info btn-sm"
                             onClick={() => openSubmissionsModal(assignment)}

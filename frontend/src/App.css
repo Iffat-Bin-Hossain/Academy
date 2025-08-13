@@ -36,3 +36,207 @@
     transform: rotate(360deg);
   }
 }
+
+/* Plagiarism Detection Diff Highlighting */
+.match-highlight,
+span.match-highlight,
+*[class*="match-highlight"] {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  border-left: 3px solid #28a745 !important;
+  margin: 1px 0 !important;
+  display: inline-block !important;
+  font-weight: normal !important;
+}
+
+.diff-highlight,
+span.diff-highlight,
+*[class*="diff-highlight"] {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  border-left: 3px solid #dc3545 !important;
+  margin: 1px 0 !important;
+  display: inline-block !important;
+  font-weight: normal !important;
+}
+
+/* Additional fallback selectors */
+[class="match-highlight"] {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+[class="diff-highlight"] {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+/* Diff viewer container styling */
+.diff-viewer {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 5px;
+  padding: 15px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+/* Code comparison styling */
+.code-comparison {
+  display: flex;
+  gap: 20px;
+}
+
+.code-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.code-column h4 {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  background-color: #6c757d;
+  color: white;
+  border-radius: 5px 5px 0 0;
+  font-size: 14px;
+}
+
+.code-content {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  padding: 15px;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Force highlighting in code content areas */
+.code-content .match-highlight,
+.code-content span[class="match-highlight"],
+.diff-viewer .match-highlight,
+.diff-viewer span[class="match-highlight"] {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  padding: 1px 3px !important;
+  border-radius: 2px !important;
+  border-left: 2px solid #28a745 !important;
+}
+
+.code-content .diff-highlight,
+.code-content span[class="diff-highlight"],
+.diff-viewer .diff-highlight,
+.diff-viewer span[class="diff-highlight"] {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  padding: 1px 3px !important;
+  border-radius: 2px !important;
+  border-left: 2px solid #dc3545 !important;
+}
+
+/* Similarity score badge */
+.similarity-score {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.similarity-high {
+  background-color: #dc3545;
+  color: white;
+}
+
+.similarity-medium {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.similarity-low {
+  background-color: #28a745;
+  color: white;
+}
+
+/* Global override for plagiarism highlighting - MUST work */
+* span[class*="match-highlight"] {
+  background: #d4edda !important;
+  color: #155724 !important;
+  padding: 2px !important;
+  border-left: 3px solid #28a745 !important;
+}
+
+* span[class*="diff-highlight"] {
+  background: #f8d7da !important;
+  color: #721c24 !important;
+  padding: 2px !important;
+  border-left: 3px solid #dc3545 !important;
+}
+
+/* Even more specific targeting */
+body .match-highlight,
+body span.match-highlight,
+html .match-highlight {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  display: inline !important;
+}
+
+body .diff-highlight,
+body span.diff-highlight,
+html .diff-highlight {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  display: inline !important;
+}
+
+/* CSS for any element containing the exact class text */
+*[class="match-highlight"],
+*[class='match-highlight'] {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+}
+
+*[class="diff-highlight"],
+*[class='diff-highlight'] {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+}
+
+/* Specific styles for diff-container */
+.diff-container .match-highlight,
+.diff-container span[class="match-highlight"],
+pre.diff-container .match-highlight,
+pre.diff-container span[class="match-highlight"] {
+  background-color: #d4edda !important;
+  color: #155724 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  font-weight: bold !important;
+  display: inline !important;
+}
+
+.diff-container .diff-highlight,
+.diff-container span[class="diff-highlight"],
+pre.diff-container .diff-highlight,
+pre.diff-container span[class="diff-highlight"] {
+  background-color: #f8d7da !important;
+  color: #721c24 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  font-weight: bold !important;
+  display: inline !important;
+}
