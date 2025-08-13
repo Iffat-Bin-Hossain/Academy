@@ -24,8 +24,8 @@ cd Academy && chmod +x run-docker.sh && ./run-docker.sh start
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | **Frontend** | http://localhost:3000 | admin@academy.com / admin123 |
-| **Backend API** | http://localhost:**8081** | teacher@academy.com / teacher123 |
-| **Database** | localhost:5433 | student@academy.com / student123 |
+| **Backend API** | http://localhost:8081 |  |
+| **Database** | localhost:5433 | |
 
 ### Docker Management Commands
 ```bash
