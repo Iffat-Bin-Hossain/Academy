@@ -29,6 +29,7 @@ public class DiscussionService {
     private final CourseTeacherRepository courseTeacherRepository;
     private final CourseEnrollmentRepository enrollmentRepository;
     private final NotificationService notificationService;
+    private final AnnouncementService announcementService;
 
     /**
      * Create a new discussion thread (Teachers only)
@@ -98,6 +99,15 @@ public class DiscussionService {
 
         DiscussionThread savedThread = threadRepository.save(thread);
         log.info("Discussion thread '{}' created successfully with ID: {}", savedThread.getTitle(), savedThread.getId());
+
+        // Create announcement for the new discussion thread
+        try {
+            announcementService.createDiscussionThreadAnnouncement(
+                    course.getId(), teacherId, savedThread.getTitle(), savedThread.getId());
+            log.info("Announcement created for new discussion thread '{}'", savedThread.getTitle());
+        } catch (Exception e) {
+            log.warn("Failed to create announcement for new discussion thread '{}': {}", savedThread.getTitle(), e.getMessage());
+        }
 
         // Send notifications to enrolled students
         try {

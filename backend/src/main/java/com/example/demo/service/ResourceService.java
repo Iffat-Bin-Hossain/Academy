@@ -30,6 +30,7 @@ public class ResourceService {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final AnnouncementService announcementService;
 
     @Value("${app.upload.dir:uploads}")
     private String UPLOAD_DIR;
@@ -263,6 +264,11 @@ public class ResourceService {
         }
 
         Resource savedResource = resourceRepository.save(resource);
+        
+        // Create announcement for the new resource
+        announcementService.createResourceAnnouncement(
+                course.getId(), teacherId, savedResource.getTitle(), savedResource.getId(), 
+                savedResource.getResourceType().toString());
         
         // Send notification about new resource
         notificationService.sendResourceCreatedNotification(course, savedResource, teacherId);

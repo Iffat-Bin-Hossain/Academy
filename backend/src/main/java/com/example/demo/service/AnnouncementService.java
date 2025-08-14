@@ -123,6 +123,39 @@ public class AnnouncementService {
         }
     }
 
+    /**
+     * Auto-create announcement when a new discussion thread is created
+     */
+    @Transactional
+    public void createDiscussionThreadAnnouncement(Long courseId, Long teacherId, String threadTitle, Long threadId) {
+        try {
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new RuntimeException("Course not found"));
+            
+            User teacher = userRepository.findById(teacherId)
+                    .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+            String title = "💬 New Discussion Thread: " + threadTitle;
+            String content = "A new discussion thread \"" + threadTitle + "\" has been started. Join the conversation in the discussions section.";
+
+            Announcement announcement = Announcement.builder()
+                    .title(title)
+                    .content(content)
+                    .type(Announcement.AnnouncementType.GENERAL)
+                    .course(course)
+                    .createdBy(teacher)
+                    .referenceId(threadId)
+                    .referenceType("DISCUSSION")
+                    .build();
+
+            announcementRepository.save(announcement);
+            log.info("Auto-created discussion thread announcement for '{}' in course {} by teacher {}", threadTitle, courseId, teacherId);
+        } catch (Exception e) {
+            log.error("Failed to create discussion thread announcement: {}", e.getMessage());
+            // Don't throw exception to avoid breaking thread creation
+        }
+    }
+
     private String getResourceEmoji(String resourceType) {
         switch (resourceType.toUpperCase()) {
             case "FILE":
