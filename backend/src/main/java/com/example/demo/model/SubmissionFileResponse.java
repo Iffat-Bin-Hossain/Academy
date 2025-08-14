@@ -15,4 +15,5 @@ public class SubmissionFileResponse {
     private Long fileSize;
     private String contentType;
     private LocalDateTime uploadedAt;
+    private String downloadUrl;
 }

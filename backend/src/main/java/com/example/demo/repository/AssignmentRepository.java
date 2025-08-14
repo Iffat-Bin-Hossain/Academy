@@ -68,4 +68,9 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     @Query("SELECT a FROM Assignment a WHERE a.id = :assignmentId AND a.createdBy.id = :teacherId")
     Optional<Assignment> findByIdAndCreatedById(@Param("assignmentId") Long assignmentId, 
                                                @Param("teacherId") Long teacherId);
+
+    // Find active assignments for course by courseId and created by teacherId, ordered by deadline
+    @Query("SELECT a FROM Assignment a WHERE a.course.id = :courseId AND a.createdBy.id = :teacherId AND a.isActive = true ORDER BY a.deadline ASC")
+    List<Assignment> findByCourseIdAndCreatedByIdOrderByDeadlineAsc(@Param("courseId") Long courseId, 
+                                                                   @Param("teacherId") Long teacherId);
 }

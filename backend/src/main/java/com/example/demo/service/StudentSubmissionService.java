@@ -37,6 +37,7 @@ public class StudentSubmissionService {
     private final AssignmentRepository assignmentRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final AssessmentGridRepository assessmentGridRepository;
 
     @Value("${app.upload.dir:/app/data/uploads}")
     private String uploadDir;
@@ -113,6 +114,9 @@ public class StudentSubmissionService {
 
         // Notify teacher about the new submission
         notificationService.createAssignmentSubmissionNotification(assignment, student);
+
+        // Update assessment grid to link this submission
+        updateAssessmentGridWithSubmission(assignment, student, savedSubmission);
 
         return mapToResponse(savedSubmission, submissionFile != null ? List.of(submissionFile) : List.of());
     }
@@ -251,6 +255,9 @@ public class StudentSubmissionService {
 
         // Save updated submission
         StudentSubmission updatedSubmission = submissionRepository.save(existingSubmission);
+
+        // Update assessment grid to link this submission (in case it wasn't linked before)
+        updateAssessmentGridWithSubmission(assignment, student, updatedSubmission);
 
         // Get all current files (should be just the new one if file was provided)
         List<SubmissionFile> currentFiles = submissionFileRepository.findBySubmissionOrderByUploadedAtAsc(updatedSubmission);
@@ -428,6 +435,32 @@ public class StudentSubmissionService {
                 .contentType(file.getContentType())
                 .uploadedAt(file.getUploadedAt())
                 .build();
+    }
+
+    /**
+     * Update assessment grid to link the submission when it's created
+     */
+    private void updateAssessmentGridWithSubmission(Assignment assignment, User student, StudentSubmission submission) {
+        try {
+            // Find existing assessment grid entry for this assignment and student
+            AssessmentGrid assessmentGrid = assessmentGridRepository.findByAssignmentAndStudent(assignment, student)
+                    .orElse(null);
+            
+            if (assessmentGrid != null && assessmentGrid.getSubmission() == null) {
+                // Update the assessment grid to link the submission
+                assessmentGrid.setSubmission(submission);
+                assessmentGridRepository.save(assessmentGrid);
+                log.info("Updated assessment grid {} to link submission {}", assessmentGrid.getId(), submission.getId());
+            } else if (assessmentGrid == null) {
+                log.info("No assessment grid found for assignment {} and student {}, it will be created when needed", 
+                        assignment.getId(), student.getId());
+            } else {
+                log.info("Assessment grid {} already has submission linked", assessmentGrid.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to update assessment grid with submission: {}", e.getMessage(), e);
+            // Don't fail the submission creation if assessment grid update fails
+        }
     }
 
     @Data

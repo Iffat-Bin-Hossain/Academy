@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
+    Optional<User> findByNameIgnoreCase(String name);
+    List<User> findByNameContainingIgnoreCase(String name);
     List<User> findByIsApprovedFalseOrderByCreatedAtDesc();
     List<User> findByStatusOrderByCreatedAtDesc(UserStatus status);
     List<User> findByStatus(UserStatus status);

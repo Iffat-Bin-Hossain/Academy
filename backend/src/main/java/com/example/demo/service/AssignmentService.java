@@ -4,6 +4,7 @@ import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,8 @@ public class AssignmentService {
     private final AssignmentFileRepository assignmentFileRepository;
     private final AnnouncementService announcementService;
     private final NotificationService notificationService;
+    @Lazy
+    private final AssessmentGridService assessmentGridService;
 
     /**
      * Create a new assignment for a course
@@ -252,6 +255,15 @@ public class AssignmentService {
 
         if (!isAssigned) {
             throw new RuntimeException("You are not assigned to this course, cannot delete assignment");
+        }
+
+        // Remove all assessment grid entries for this assignment before marking as inactive
+        try {
+            assessmentGridService.removeAssessmentGridForAssignment(assignment);
+            log.info("Assessment grid entries removed for assignment '{}'", assignment.getTitle());
+        } catch (Exception e) {
+            log.error("Error removing assessment grid entries for assignment '{}': {}", assignment.getTitle(), e.getMessage());
+            // Continue with deletion even if assessment grid cleanup fails
         }
 
         assignment.setIsActive(false);

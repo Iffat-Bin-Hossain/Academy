@@ -6,6 +6,7 @@ import AssignmentManagement from './AssignmentManagement';
 import ResourceManagement from './ResourceManagement';
 import DiscussionThreads from './DiscussionThreads';
 import AttendanceManagement from './AttendanceManagement';
+import AssessmentGrid from './AssessmentGrid';
 
 const CourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -417,6 +418,7 @@ const CourseDetailsPage = () => {
             {[
               { id: 'students', label: 'Students', icon: '👥' },
               { id: 'assignments', label: 'Assignments', icon: '📝' },
+              { id: 'assessment-grid', label: 'Assessment', icon: '📊' },
               { id: 'resources', label: 'Resources', icon: '📚' },
               { id: 'discussions', label: 'Discussions', icon: '💬' },
               { id: 'attendance', label: 'Attendance', icon: '📋' }
@@ -819,6 +821,15 @@ const CourseDetailsPage = () => {
           user={user}
           courses={course ? [course] : []}
           onShowMessage={showMessage}
+        />
+      )}
+
+      {/* Assessment Grid Tab */}
+      {activeTab === 'assessment-grid' && (
+        <AssessmentGrid 
+          courseId={course?.id} 
+          userId={user?.id}
+          courseName={course?.courseName}
         />
       )}
 

@@ -68,7 +68,7 @@ main() {
     print_success "Academy Project is running!"
     print_status "Access points:"
     echo "  - Frontend: http://localhost:3000"
-    echo "  - Backend API: http://localhost:8080"
+    echo "  - Backend API: http://localhost:8081"
     echo "  - Database: localhost:5433"
     echo ""
     print_status "Default Admin Login:"
