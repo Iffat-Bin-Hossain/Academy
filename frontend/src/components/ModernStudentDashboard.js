@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
+import FacultyFeedbackStudent from './feedback/FacultyFeedbackStudent';
 
 const ModernStudentDashboard = () => {
   const navigate = useNavigate();
@@ -297,7 +298,7 @@ const ModernStudentDashboard = () => {
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'courses', label: 'Courses', icon: '📚' },
-              { id: 'assignments', label: 'Assignments', icon: '📝' }
+              { id: 'feedback', label: 'Faculty Feedback', icon: '⭐' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -368,8 +369,8 @@ const ModernStudentDashboard = () => {
               <div className="card-body" style={{ padding: '1.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
-                    <p className="card-subtitle" style={{ margin: '0 0 0.5rem 0' }}>Assignments</p>
-                    <h3 style={{ margin: 0, color: '#f59e0b' }}>{stats.completedAssignments}</h3>
+                    <p className="card-subtitle" style={{ margin: '0 0 0.5rem 0' }}>Faculty Feedback</p>
+                    <h3 style={{ margin: 0, color: '#f59e0b' }}>{enrolledCourses.filter(e => e.course.assignedTeacher).length}</h3>
                   </div>
                   <div style={{ 
                     width: '48px', 
@@ -381,7 +382,7 @@ const ModernStudentDashboard = () => {
                     justifyContent: 'center',
                     fontSize: '1.5rem'
                   }}>
-                    📝
+                    ⭐
                   </div>
                 </div>
               </div>
@@ -435,14 +436,14 @@ const ModernStudentDashboard = () => {
                 
                 <button 
                   className="btn btn-secondary btn-lg"
-                  onClick={() => setActiveTab('courses')}
+                  onClick={() => setActiveTab('feedback')}
                   style={{ textAlign: 'left' }}
                 >
                   <div>
-                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>📚</span>
-                    <strong>My Courses</strong>
+                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>⭐</span>
+                    <strong>Faculty Feedback</strong>
                     <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
-                      View enrolled courses
+                      Rate your instructors
                     </div>
                   </div>
                 </button>
@@ -768,6 +769,15 @@ const ModernStudentDashboard = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Faculty Feedback Tab */}
+      {activeTab === 'feedback' && (
+        <FacultyFeedbackStudent 
+          user={user}
+          enrolledCourses={enrolledCourses}
+          onShowMessage={showMessage}
+        />
       )}
 
       {/* Assignments Tab */}

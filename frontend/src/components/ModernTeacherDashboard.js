@@ -4,6 +4,7 @@ import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
 import AssignmentManagement from './AssignmentManagement';
+import FacultyFeedbackTeacher from './feedback/FacultyFeedbackTeacher';
 
 const ModernTeacherDashboard = () => {
   const navigate = useNavigate();
@@ -190,7 +191,8 @@ const ModernTeacherDashboard = () => {
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'courses', label: 'Courses', icon: '📚' },
-              { id: 'assignments', label: 'Assignments', icon: '📝' }
+              { id: 'assignments', label: 'Assignments', icon: '📝' },
+              { id: 'feedback', label: 'Feedback', icon: '⭐' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -470,6 +472,14 @@ const ModernTeacherDashboard = () => {
         <AssignmentManagement 
           user={user}
           courses={courses}
+          onShowMessage={showMessage}
+        />
+      )}
+
+      {/* Faculty Feedback Tab */}
+      {activeTab === 'feedback' && (
+        <FacultyFeedbackTeacher 
+          user={user}
           onShowMessage={showMessage}
         />
       )}

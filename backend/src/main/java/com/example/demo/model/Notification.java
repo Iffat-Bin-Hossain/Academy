@@ -77,6 +77,7 @@ public class Notification {
         STUDENT_ENROLLMENT_REQUEST,
         ASSIGNMENT_SUBMISSION,
         DISCUSSION_POST,
+        FACULTY_FEEDBACK,
         
         // Student notifications
         ENROLLMENT_APPROVED,
