@@ -5,6 +5,7 @@ import Layout from './Layout';
 import DiscussionThreads from './DiscussionThreads';
 import ResourceManagement from './ResourceManagement';
 import StudentAttendanceView from './StudentAttendanceView';
+import StudentGrades from './StudentGrades';
 
 const StudentCourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -608,93 +609,34 @@ const StudentCourseDetailsPage = () => {
         </div>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Navigation Tabs */}
       <div className="card" style={{ marginBottom: '2rem' }}>
-        <div className="card-header" style={{ padding: 0 }}>
-          <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
-            <button
-              className={`tab-button ${activeTab === 'announcements' ? 'active' : ''}`}
-              onClick={() => setActiveTab('announcements')}
-              style={{
-                flex: 1,
-                padding: '1rem',
-                border: 'none',
-                background: activeTab === 'announcements' ? '#f8fafc' : 'transparent',
-                borderBottom: activeTab === 'announcements' ? '2px solid #3b82f6' : '2px solid transparent',
-                cursor: 'pointer',
-                fontWeight: activeTab === 'announcements' ? '600' : '400',
-                color: activeTab === 'announcements' ? '#3b82f6' : '#64748b'
-              }}
-            >
-              📢 Announcements ({getFilteredContent(announcements).length})
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'assignments' ? 'active' : ''}`}
-              onClick={() => setActiveTab('assignments')}
-              style={{
-                flex: 1,
-                padding: '1rem',
-                border: 'none',
-                background: activeTab === 'assignments' ? '#f8fafc' : 'transparent',
-                borderBottom: activeTab === 'assignments' ? '2px solid #3b82f6' : '2px solid transparent',
-                cursor: 'pointer',
-                fontWeight: activeTab === 'assignments' ? '600' : '400',
-                color: activeTab === 'assignments' ? '#3b82f6' : '#64748b'
-              }}
-            >
-              📝 Assignments ({getFilteredContent(assignments).length})
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'resources' ? 'active' : ''}`}
-              onClick={() => setActiveTab('resources')}
-              style={{
-                flex: 1,
-                padding: '1rem',
-                border: 'none',
-                background: activeTab === 'resources' ? '#f8fafc' : 'transparent',
-                borderBottom: activeTab === 'resources' ? '2px solid #3b82f6' : '2px solid transparent',
-                cursor: 'pointer',
-                fontWeight: activeTab === 'resources' ? '600' : '400',
-                color: activeTab === 'resources' ? '#3b82f6' : '#64748b'
-              }}
-            >
-              📁 Resources ({resources.length})
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'discussions' ? 'active' : ''}`}
-              onClick={() => setActiveTab('discussions')}
-              style={{
-                flex: 1,
-                padding: '1rem',
-                border: 'none',
-                background: activeTab === 'discussions' ? '#f8fafc' : 'transparent',
-                borderBottom: activeTab === 'discussions' ? '2px solid #3b82f6' : '2px solid transparent',
-                cursor: 'pointer',
-                fontWeight: activeTab === 'discussions' ? '600' : '400',
-                color: activeTab === 'discussions' ? '#3b82f6' : '#64748b'
-              }}
-            >
-              💬 Discussions ({discussions.length})
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'attendance' ? 'active' : ''}`}
-              onClick={() => setActiveTab('attendance')}
-              style={{
-                flex: 1,
-                padding: '1rem',
-                border: 'none',
-                background: activeTab === 'attendance' ? '#f8fafc' : 'transparent',
-                borderBottom: activeTab === 'attendance' ? '2px solid #3b82f6' : '2px solid transparent',
-                cursor: 'pointer',
-                fontWeight: activeTab === 'attendance' ? '600' : '400',
-                color: activeTab === 'attendance' ? '#3b82f6' : '#64748b'
-              }}
-            >
-              📋 Attendance
-            </button>
+        <div className="card-header">
+          <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
+            {[
+              { id: 'announcements', label: 'Announcements', icon: '📢' },
+              { id: 'assignments', label: 'Assignments', icon: '📝' },
+              { id: 'resources', label: 'Resources', icon: '📚' },
+              { id: 'discussions', label: 'Discussions', icon: '💬' },
+              { id: 'attendance', label: 'Attendance', icon: '📋' },
+              { id: 'grades', label: 'Grades', icon: '🏆' }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+                style={{ textTransform: 'none', letterSpacing: 'normal' }}
+              >
+                <span style={{ marginRight: '0.5rem' }}>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
+      {/* Tab Content */}
+      <div className="card">
         <div className="card-body">
           {/* Announcements Tab */}
           {activeTab === 'announcements' && (
@@ -1076,6 +1018,17 @@ const StudentCourseDetailsPage = () => {
           {activeTab === 'attendance' && (
             <div>
               <StudentAttendanceView 
+                courseId={course.id}
+                user={user}
+                onShowMessage={showMessage}
+              />
+            </div>
+          )}
+
+          {/* Grades Tab */}
+          {activeTab === 'grades' && (
+            <div>
+              <StudentGrades 
                 courseId={course.id}
                 user={user}
                 onShowMessage={showMessage}

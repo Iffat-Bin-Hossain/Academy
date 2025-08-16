@@ -17,6 +17,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
   min-height: 100vh;
+  font-feature-settings: "liga" 1;
+  -webkit-font-feature-settings: "liga";
+  -moz-font-feature-settings: "liga=1";
 }
 
 code {

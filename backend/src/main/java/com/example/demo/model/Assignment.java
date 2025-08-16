@@ -61,4 +61,8 @@ public class Assignment {
     @Column(name = "assignment_type")
     @Builder.Default
     private AssignmentType assignmentType = AssignmentType.HOMEWORK;
+
+    @Column(name = "grades_visible")
+    @Builder.Default
+    private Boolean gradesVisible = false; // Teacher controls whether grades are visible to students
 }

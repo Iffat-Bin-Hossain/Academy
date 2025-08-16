@@ -4,6 +4,7 @@ import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
 import FacultyFeedbackStudent from './feedback/FacultyFeedbackStudent';
+import StudentPerformanceAnalytics from './StudentPerformanceAnalytics';
 
 const ModernStudentDashboard = () => {
   const navigate = useNavigate();
@@ -296,17 +297,27 @@ const ModernStudentDashboard = () => {
         <div className="card-header">
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'courses', label: 'Courses', icon: '📚' },
-              { id: 'feedback', label: 'Faculty Feedback', icon: '⭐' }
+              { id: 'overview', label: 'Overview', icon: '📊', fallback: '[📊]' },
+              { id: 'courses', label: 'Courses', icon: '📚', fallback: '[📚]' },
+              { id: 'performance', label: 'Performance', icon: '🎯', fallback: '[🎯]' },
+              { id: 'feedback', label: 'Faculty Feedback', icon: '⭐', fallback: '[⭐]' }
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  console.log(`Tab clicked: ${tab.id}`);
+                  setActiveTab(tab.id);
+                }}
                 className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
                 style={{ textTransform: 'none', letterSpacing: 'normal' }}
               >
-                <span style={{ marginRight: '0.5rem' }}>{tab.icon}</span>
+                <span style={{ 
+                  marginRight: '0.5rem',
+                  fontFamily: '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", serif',
+                  fontSize: '1.1rem'
+                }}>
+                  {tab.icon}
+                </span>
                 {tab.label}
               </button>
             ))}
@@ -419,7 +430,7 @@ const ModernStudentDashboard = () => {
               <p className="card-subtitle">Common tasks and shortcuts</p>
             </div>
             <div className="card-body">
-              <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: '1rem' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4" style={{ gap: '1rem' }}>
                 <button 
                   className="btn btn-primary btn-lg"
                   onClick={() => setActiveTab('courses')}
@@ -430,6 +441,23 @@ const ModernStudentDashboard = () => {
                     <strong>Browse Courses</strong>
                     <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
                       Discover new learning opportunities
+                    </div>
+                  </div>
+                </button>
+                
+                <button 
+                  className="btn btn-success btn-lg"
+                  onClick={() => {
+                    console.log('Performance tab clicked!');
+                    setActiveTab('performance');
+                  }}
+                  style={{ textAlign: 'left' }}
+                >
+                  <div>
+                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>🎯</span>
+                    <strong>Performance Analytics</strong>
+                    <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
+                      View your academic progress
                     </div>
                   </div>
                 </button>
@@ -778,6 +806,16 @@ const ModernStudentDashboard = () => {
           enrolledCourses={enrolledCourses}
           onShowMessage={showMessage}
         />
+      )}
+
+      {/* Performance Analytics Tab */}
+      {activeTab === 'performance' && (
+        <div>
+          <StudentPerformanceAnalytics 
+            user={user}
+            onShowMessage={showMessage}
+          />
+        </div>
       )}
 
       {/* Assignments Tab */}

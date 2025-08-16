@@ -7,6 +7,7 @@ import ResourceManagement from './ResourceManagement';
 import DiscussionThreads from './DiscussionThreads';
 import AttendanceManagement from './AttendanceManagement';
 import AssessmentGrid from './AssessmentGrid';
+import GradeVisibilityControl from './GradeVisibilityControl';
 
 const CourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -419,6 +420,7 @@ const CourseDetailsPage = () => {
               { id: 'students', label: 'Students', icon: '👥' },
               { id: 'assignments', label: 'Assignments', icon: '📝' },
               { id: 'assessment-grid', label: 'Assessment', icon: '📊' },
+              { id: 'grades', label: 'Grade Control', icon: '🏆' },
               { id: 'resources', label: 'Resources', icon: '📚' },
               { id: 'discussions', label: 'Discussions', icon: '💬' },
               { id: 'attendance', label: 'Attendance', icon: '📋' }
@@ -845,6 +847,15 @@ const CourseDetailsPage = () => {
       {/* Discussions Tab */}
       {activeTab === 'discussions' && (
         <DiscussionThreads 
+          courseId={course?.id}
+          user={user}
+          onShowMessage={showMessage}
+        />
+      )}
+
+      {/* Grades Control Tab */}
+      {activeTab === 'grades' && (
+        <GradeVisibilityControl 
           courseId={course?.id}
           user={user}
           onShowMessage={showMessage}

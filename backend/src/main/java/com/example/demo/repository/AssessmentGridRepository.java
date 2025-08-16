@@ -15,6 +15,8 @@ public interface AssessmentGridRepository extends JpaRepository<AssessmentGrid, 
     Optional<AssessmentGrid> findByAssignmentAndStudent(Assignment assignment, User student);
 
     List<AssessmentGrid> findByAssignmentOrderByStudentNameAsc(Assignment assignment);
+    
+    List<AssessmentGrid> findByAssignment(Assignment assignment);
 
     @Query("SELECT ag FROM AssessmentGrid ag WHERE ag.assignment.course.id = :courseId ORDER BY ag.assignment.deadline DESC, ag.student.name ASC")
     List<AssessmentGrid> findByCourseIdOrderByAssignmentAndStudent(@Param("courseId") Long courseId);
@@ -34,6 +36,8 @@ public interface AssessmentGridRepository extends JpaRepository<AssessmentGrid, 
     List<AssessmentGrid> findByAssignmentIn(List<Assignment> assignments);
 
     List<AssessmentGrid> findByCourseId(Long courseId);
+    
+    List<AssessmentGrid> findByCourseIdAndStudentId(Long courseId, Long studentId);
 
     List<AssessmentGrid> findByAssignmentId(Long assignmentId);
 

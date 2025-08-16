@@ -4,6 +4,7 @@ import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +29,9 @@ public class CourseService {
     private final SubmissionFileRepository submissionFileRepo;
     private final AttendanceSessionRepository attendanceSessionRepo;
     private final AttendanceRecordRepository attendanceRecordRepo;
+    private final FacultyFeedbackRepository facultyFeedbackRepo;
+    private final AssessmentGridRepository assessmentGridRepo;
+    private final MessageRepository messageRepo;
     private final NotificationService notificationService;
 
     // ============ BASIC CRUD OPERATIONS ============
@@ -73,85 +77,148 @@ public class CourseService {
         return courseRepo.save(existingCourse);
     }
     
+    @Transactional
     public String deleteCourse(Long courseId) {
         Course course = getCourseById(courseId);
         
-        // Delete all related entities to avoid foreign key constraint violations
-        // Order is important to prevent FK constraint issues
-        
-        // 1. Delete all notifications related to this course
-        List<Notification> courseNotifications = notificationRepo.findByRelatedCourse(course);
-        notificationRepo.deleteAll(courseNotifications);
-        
-        // 2. Delete all discussion data for this course in proper order
-        List<DiscussionThread> discussionThreads = discussionThreadRepo.findByCourse(course);
-        for (DiscussionThread thread : discussionThreads) {
-            // First, delete all post reactions for posts in this thread
-            List<DiscussionPost> allPosts = discussionPostRepo.findByThreadAndIsDeletedFalseOrderByCreatedAtAsc(thread);
-            for (DiscussionPost post : allPosts) {
-                List<PostReaction> reactions = postReactionRepo.findByPost(post);
-                postReactionRepo.deleteAll(reactions);
+        try {
+            // Delete all related entities to avoid foreign key constraint violations
+            // Order is important to prevent FK constraint issues
+            
+            // 1. Delete all notifications related to this course
+            List<Notification> courseNotifications = notificationRepo.findByRelatedCourse(course);
+            if (!courseNotifications.isEmpty()) {
+                notificationRepo.deleteAll(courseNotifications);
+                notificationRepo.flush(); // Force immediate deletion
             }
             
-            // Then, delete all discussion posts in this thread (including replies)
-            discussionPostRepo.deleteAll(allPosts);
-        }
-        // Finally, delete all discussion threads
-        discussionThreadRepo.deleteAll(discussionThreads);
+            // 2. Delete all messages related to this course
+            List<Message> courseMessages = messageRepo.findByRelatedCourse(course);
+            if (!courseMessages.isEmpty()) {
+                messageRepo.deleteAll(courseMessages);
+                messageRepo.flush(); // Force immediate deletion
+            }
         
-        // 3. Delete all resources for this course (active and inactive)
-        List<Resource> allCourseResources = resourceRepo.findByCourse(course);
-        resourceRepo.deleteAll(allCourseResources);
-        
-        // 4. Delete all announcements for this course
-        List<Announcement> announcements = announcementRepo.findByCourse(course);
-        announcementRepo.deleteAll(announcements);
-        
-        // 5. Delete all attendance data for this course
-        List<AttendanceSession> attendanceSessions = attendanceSessionRepo.findByCourseOrderBySessionDateDesc(course);
-        for (AttendanceSession session : attendanceSessions) {
-            // First delete all attendance records for this session
-            List<AttendanceRecord> attendanceRecords = attendanceRecordRepo.findBySessionOrderByStudentNameAsc(session);
-            attendanceRecordRepo.deleteAll(attendanceRecords);
-        }
-        // Then delete all attendance sessions
-        attendanceSessionRepo.deleteAll(attendanceSessions);
-        
-        // 6. Delete all enrollments for this course
-        List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
-        enrollmentRepo.deleteAll(enrollments);
-        
-        // 7. Delete assignment-related data in correct order
-        List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
-        for (Assignment assignment : allAssignments) {
-            // First, delete all submission files for student submissions of this assignment
-            List<StudentSubmission> submissions = studentSubmissionRepo.findByAssignmentOrderBySubmittedAtAsc(assignment);
-            for (StudentSubmission submission : submissions) {
-                List<SubmissionFile> submissionFiles = submissionFileRepo.findBySubmissionOrderByUploadedAtAsc(submission);
-                submissionFileRepo.deleteAll(submissionFiles);
+            // 3. Delete all discussion data for this course in proper order
+            List<DiscussionThread> discussionThreads = discussionThreadRepo.findByCourse(course);
+            for (DiscussionThread thread : discussionThreads) {
+                // First, delete all post reactions for posts in this thread
+                List<DiscussionPost> allPosts = discussionPostRepo.findByThreadAndIsDeletedFalseOrderByCreatedAtAsc(thread);
+                for (DiscussionPost post : allPosts) {
+                    List<PostReaction> reactions = postReactionRepo.findByPost(post);
+                    if (!reactions.isEmpty()) {
+                        postReactionRepo.deleteAll(reactions);
+                    }
+                }
+                
+                // Then, delete all discussion posts in this thread (including replies)
+                if (!allPosts.isEmpty()) {
+                    discussionPostRepo.deleteAll(allPosts);
+                }
+            }
+            // Finally, delete all discussion threads
+            if (!discussionThreads.isEmpty()) {
+                discussionThreadRepo.deleteAll(discussionThreads);
+                discussionThreadRepo.flush(); // Force immediate deletion
             }
             
-            // Then, delete all student submissions for this assignment
-            studentSubmissionRepo.deleteAll(submissions);
+            // 4. Delete all resources for this course (active and inactive)
+            List<Resource> allCourseResources = resourceRepo.findByCourse(course);
+            if (!allCourseResources.isEmpty()) {
+                resourceRepo.deleteAll(allCourseResources);
+                resourceRepo.flush(); // Force immediate deletion
+            }
             
-            // Next, delete all assignment files for this assignment
-            List<AssignmentFile> assignmentFiles = assignmentFileRepo.findByAssignmentOrderByUploadedAtDesc(assignment);
-            assignmentFileRepo.deleteAll(assignmentFiles);
+            // 5. Delete all announcements for this course
+            List<Announcement> announcements = announcementRepo.findByCourse(course);
+            if (!announcements.isEmpty()) {
+                announcementRepo.deleteAll(announcements);
+                announcementRepo.flush(); // Force immediate deletion
+            }
+            
+            // 6. Delete all attendance data for this course
+            List<AttendanceSession> attendanceSessions = attendanceSessionRepo.findByCourseOrderBySessionDateDesc(course);
+            for (AttendanceSession session : attendanceSessions) {
+                // First delete all attendance records for this session
+                List<AttendanceRecord> attendanceRecords = attendanceRecordRepo.findBySessionOrderByStudentNameAsc(session);
+                if (!attendanceRecords.isEmpty()) {
+                    attendanceRecordRepo.deleteAll(attendanceRecords);
+                }
+            }
+            // Then delete all attendance sessions
+            if (!attendanceSessions.isEmpty()) {
+                attendanceSessionRepo.deleteAll(attendanceSessions);
+                attendanceSessionRepo.flush(); // Force immediate deletion
+            }
+            
+            // 7. Delete all enrollments for this course
+            List<CourseEnrollment> enrollments = enrollmentRepo.findByCourse(course);
+            if (!enrollments.isEmpty()) {
+                enrollmentRepo.deleteAll(enrollments);
+                enrollmentRepo.flush(); // Force immediate deletion
+            }
+            
+            // 8. Delete all faculty feedback for this course
+            facultyFeedbackRepo.deleteByCourseId(courseId);
+            facultyFeedbackRepo.flush(); // Force immediate deletion
+            
+            // 9. Delete assignment-related data in correct order
+            List<Assignment> allAssignments = assignmentRepo.findByCourseOrderByCreatedAtDesc(course);
+            for (Assignment assignment : allAssignments) {
+                // First, delete all assessment grid entries for this assignment
+                List<AssessmentGrid> assessmentGrids = assessmentGridRepo.findByAssignment(assignment);
+                if (!assessmentGrids.isEmpty()) {
+                    assessmentGridRepo.deleteAll(assessmentGrids);
+                }
+                
+                // Then, delete all submission files for student submissions of this assignment
+                List<StudentSubmission> submissions = studentSubmissionRepo.findByAssignmentOrderBySubmittedAtAsc(assignment);
+                for (StudentSubmission submission : submissions) {
+                    List<SubmissionFile> submissionFiles = submissionFileRepo.findBySubmissionOrderByUploadedAtAsc(submission);
+                    if (!submissionFiles.isEmpty()) {
+                        submissionFileRepo.deleteAll(submissionFiles);
+                    }
+                }
+                
+                // Then, delete all student submissions for this assignment
+                if (!submissions.isEmpty()) {
+                    studentSubmissionRepo.deleteAll(submissions);
+                }
+                
+                // Next, delete all assignment files for this assignment
+                List<AssignmentFile> assignmentFiles = assignmentFileRepo.findByAssignmentOrderByUploadedAtDesc(assignment);
+                if (!assignmentFiles.isEmpty()) {
+                    assignmentFileRepo.deleteAll(assignmentFiles);
+                }
+            }
+            
+            // 10. Now safely delete all assignments
+            if (!allAssignments.isEmpty()) {
+                assignmentRepo.deleteAll(allAssignments);
+                assignmentRepo.flush(); // Force immediate deletion
+            }
+            
+            // 11. Delete all course-teacher assignments (active and inactive)
+            List<CourseTeacher> activeCourseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
+            List<CourseTeacher> inactiveCourseTeachers = courseTeacherRepo.findByCourseAndActiveFalse(course);
+            if (!activeCourseTeachers.isEmpty()) {
+                courseTeacherRepo.deleteAll(activeCourseTeachers);
+                courseTeacherRepo.flush(); // Force immediate deletion
+            }
+            if (!inactiveCourseTeachers.isEmpty()) {
+                courseTeacherRepo.deleteAll(inactiveCourseTeachers);
+                courseTeacherRepo.flush(); // Force immediate deletion
+            }
+            
+            // 12. Finally, delete the course itself
+            courseRepo.delete(course);
+            courseRepo.flush(); // Force immediate deletion
+            
+            return "✅ Course deleted successfully with all related data (notifications, messages, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, faculty feedback, assessment grids, assignment files, student submissions, submission files, assignments, and teacher assignments)";
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete course: " + e.getMessage(), e);
         }
-        
-        // 8. Now safely delete all assignments
-        assignmentRepo.deleteAll(allAssignments);
-        
-        // 9. Delete all course-teacher assignments (active and inactive)
-        List<CourseTeacher> activeCourseTeachers = courseTeacherRepo.findByCourseAndActiveTrue(course);
-        List<CourseTeacher> inactiveCourseTeachers = courseTeacherRepo.findByCourseAndActiveFalse(course);
-        courseTeacherRepo.deleteAll(activeCourseTeachers);
-        courseTeacherRepo.deleteAll(inactiveCourseTeachers);
-        
-        // 10. Finally, delete the course itself
-        courseRepo.delete(course);
-        
-        return "✅ Course deleted successfully with all related data (notifications, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, assignment files, student submissions, submission files, assignments, and teacher assignments)";
     }
 
     // ============ ENROLLMENT MANAGEMENT ============
