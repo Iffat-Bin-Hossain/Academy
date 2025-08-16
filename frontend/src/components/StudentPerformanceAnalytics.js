@@ -19,14 +19,14 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     }
   }, [user]);
 
-  // Auto-refresh analytics every 15 seconds to catch grade updates
+  // Auto-refresh analytics every 1 seconds to catch grade updates
   useEffect(() => {
     if (!user || !user.id) return;
     
     const interval = setInterval(() => {
       console.log('🔄 Auto-refreshing analytics for grade updates...');
       fetchAnalytics();
-    }, 15000); // Refresh every 15 seconds
+    }, 30000); // Refresh every 30 seconds
 
     return () => clearInterval(interval);
   }, [user]);
