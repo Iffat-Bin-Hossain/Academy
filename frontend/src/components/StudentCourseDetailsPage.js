@@ -6,6 +6,7 @@ import DiscussionThreads from './DiscussionThreads';
 import ResourceManagement from './ResourceManagement';
 import StudentAttendanceView from './StudentAttendanceView';
 import StudentGrades from './StudentGrades';
+import AIHelper from './AIHelper';
 
 const StudentCourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -619,7 +620,8 @@ const StudentCourseDetailsPage = () => {
               { id: 'resources', label: 'Resources', icon: '📚' },
               { id: 'discussions', label: 'Discussions', icon: '💬' },
               { id: 'attendance', label: 'Attendance', icon: '📋' },
-              { id: 'grades', label: 'Grades', icon: '🏆' }
+              { id: 'grades', label: 'Grades', icon: '🏆' },
+              { id: 'ai-helper', label: 'AI Helper', icon: '🤖' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -1029,6 +1031,17 @@ const StudentCourseDetailsPage = () => {
           {activeTab === 'grades' && (
             <div>
               <StudentGrades 
+                courseId={course.id}
+                user={user}
+                onShowMessage={showMessage}
+              />
+            </div>
+          )}
+
+          {/* AI Helper Tab */}
+          {activeTab === 'ai-helper' && (
+            <div>
+              <AIHelper 
                 courseId={course.id}
                 user={user}
                 onShowMessage={showMessage}

@@ -31,6 +31,7 @@ public class AuthController {
     
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+        System.out.println("Login attempt with username: ");
         try {
             String token = authService.login(req);
             return ResponseEntity.ok(new LoginResponse(token));

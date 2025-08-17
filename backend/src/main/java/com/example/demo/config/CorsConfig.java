@@ -15,7 +15,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 "http://localhost:3000", // Docker frontend port
                 "http://localhost:3001"  // Development frontend port
             )
-            .allowedMethods("*")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
             .allowedHeaders("*")
             .allowCredentials(true);
     }
