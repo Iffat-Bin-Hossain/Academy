@@ -22,7 +22,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   // Auto-refresh analytics every 1 seconds to catch grade updates
   useEffect(() => {
     if (!user || !user.id) return;
-    
+
     const interval = setInterval(() => {
       console.log('🔄 Auto-refreshing analytics for grade updates...');
       fetchAnalytics();
@@ -48,7 +48,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     console.log('🔍 === PERFORMANCE ANALYTICS CALCULATION PROCESS ===');
     console.log('📊 Step 1: Fetching analytics for user ID:', user?.id);
     console.log('📊 User Email/Username: iffat@gmail.com/iffat123 (if this is the current user)');
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -59,7 +59,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
       console.log('   - Timestamp:', timestamp);
       console.log('   - Random ID:', randomId);
       console.log('   - API Endpoint:', `/grades/student/${user.id}/performance?_t=${timestamp}&_r=${randomId}&_v=2`);
-      
+
       const response = await axios.get(`/grades/student/${user.id}/performance?_t=${timestamp}&_r=${randomId}&_v=2`);
       console.log('📊 Step 3: Analytics response received successfully at:', new Date().toISOString());
       console.log('📊 Step 4: Raw response data structure:', response.data);
@@ -75,7 +75,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
           ...analyticsData,
           overallSummary: data.overallSummary || { overallGPA: 0, coursesEnrolled: 0, coursesWithGrades: 0 }
         };
-        
+
         console.log('📊 Step 6: Extracted and processed analytics data:', fullAnalyticsData);
         console.log('📊 Step 7: Breaking down the data components:');
         console.log('   🎯 Overall Summary:', fullAnalyticsData.overallSummary);
@@ -83,7 +83,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
         console.log('   📝 Assignment Type Performance:', fullAnalyticsData.assignmentTypePerformance);
         console.log('   📊 Grade Distribution:', fullAnalyticsData.gradeDistribution);
         console.log('   💡 Insights:', fullAnalyticsData.insights);
-        
+
         setAnalytics(fullAnalyticsData);
         setLastUpdated(new Date()); // Update timestamp
         console.log('📊 Step 8: Analytics data successfully stored in component state');
@@ -103,14 +103,14 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   const getGradeInfo = (percentage) => {
     // Ensure percentage is a number
     const numPercentage = typeof percentage === 'number' ? percentage : 0;
-    
+
     // Log the grade calculation process
     console.log('🎯 Grade Calculation (Percentage to Letter):', {
       input: percentage,
       processedInput: numPercentage,
       inputType: typeof percentage
     });
-    
+
     let gradeResult;
     if (numPercentage >= 80) gradeResult = { letter: 'A+', gpa: 4.00, color: '#059669', emoji: '🎯', description: 'Outstanding' };
     else if (numPercentage >= 75) gradeResult = { letter: 'A', gpa: 3.75, color: '#16a34a', emoji: '⭐', description: 'Excellent' };
@@ -122,7 +122,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     else if (numPercentage >= 45) gradeResult = { letter: 'D', gpa: 2.25, color: '#f97316', emoji: '🔥', description: 'Poor' };
     else if (numPercentage >= 40) gradeResult = { letter: 'E', gpa: 2.00, color: '#f97316', emoji: '🔥', description: 'Very Poor' };
     else gradeResult = { letter: 'F', gpa: 0.00, color: '#ef4444', emoji: '📖', description: 'Fail' };
-    
+
     console.log('🎯 Grade Result:', numPercentage + '% →', gradeResult.letter, '(' + gradeResult.description + ')');
     return gradeResult;
   };
@@ -130,14 +130,14 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   // Function to convert GPA to letter grade directly
   const getGradeFromGPA = (gpa) => {
     const numGPA = typeof gpa === 'number' ? gpa : 0;
-    
+
     // Log the GPA to grade conversion process
     console.log('🎯 GPA to Letter Grade Conversion:', {
       input: gpa,
       processedInput: numGPA,
       inputType: typeof gpa
     });
-    
+
     let gradeResult;
     if (numGPA >= 4.00) gradeResult = { letter: 'A+', color: '#059669', description: 'Outstanding' };
     else if (numGPA >= 3.75) gradeResult = { letter: 'A', color: '#16a34a', description: 'Excellent' };
@@ -149,7 +149,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     else if (numGPA >= 2.25) gradeResult = { letter: 'D', color: '#f97316', description: 'Poor' };
     else if (numGPA >= 2.00) gradeResult = { letter: 'E', color: '#ef4444', description: 'Very Poor' };
     else gradeResult = { letter: 'F', color: '#ef4444', description: 'Fail' };
-    
+
     console.log('🎯 GPA Result:', numGPA, 'GPA →', gradeResult.letter, '(' + gradeResult.description + ')');
     return gradeResult;
   };
@@ -157,79 +157,79 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   // Performance trend visualization component
   const renderProgressChart = (courses) => {
     if (!courses || courses.length === 0) return null;
-    
+
     console.log('📊 === PERFORMANCE CHART CALCULATIONS FOR USER ===');
     console.log('🔍 Step 1: Input courses data:', courses);
     console.log('🔍 Step 2: Filtering valid courses...');
-    
+
     // Ensure we only calculate with valid percentages - more robust filtering
-    const validCourses = courses.filter(c => 
-      typeof c.percentage === 'number' && 
-      !isNaN(c.percentage) && 
-      c.percentage >= 0 && 
+    const validCourses = courses.filter(c =>
+      typeof c.percentage === 'number' &&
+      !isNaN(c.percentage) &&
+      c.percentage >= 0 &&
       c.percentage <= 100
     );
-    
+
     console.log('🔍 Step 3: Valid courses after filtering:', validCourses);
     console.log('🔍 Step 4: Course filtering results:');
     console.log('   - Total courses provided:', courses.length);
     console.log('   - Valid courses after filtering:', validCourses.length);
     console.log('   - Filtered out courses:', courses.length - validCourses.length);
-    
+
     if (validCourses.length === 0) {
       console.log('❌ No valid courses found for calculations');
       return null;
     }
-    
+
     console.log('🔍 Step 5: Calculating performance metrics...');
-    
+
     // Enhanced calculations with proper precision
     const maxPercentage = Math.max(...validCourses.map(c => c.percentage));
     const avgPercentage = validCourses.reduce((sum, c) => sum + c.percentage, 0) / validCourses.length;
-    
+
     // Round to 2 decimal places for accuracy, then display 1 decimal place
     const roundedMaxPercentage = Math.round(maxPercentage * 100) / 100;
     const roundedAvgPercentage = Math.round(avgPercentage * 100) / 100;
-    
+
     console.log('� Step 6: Detailed calculation breakdown:');
     console.log('   📈 HIGHEST SCORE CALCULATION:');
     console.log('      - Individual percentages:', validCourses.map(c => `${c.courseCode}: ${c.percentage}%`));
     console.log('      - Math.max() result:', maxPercentage);
     console.log('      - Rounded highest score:', roundedMaxPercentage, '%');
-    
+
     console.log('   📊 AVERAGE SCORE CALCULATION:');
     console.log('      - Sum of all percentages:', validCourses.reduce((sum, c) => sum + c.percentage, 0));
     console.log('      - Number of courses:', validCourses.length);
     console.log('      - Raw average:', avgPercentage);
     console.log('      - Rounded average score:', roundedAvgPercentage, '%');
-    
+
     console.log('   🎯 AVERAGE GRADE CALCULATION:');
     const avgGradeInfo = getGradeInfo(roundedAvgPercentage);
     console.log('      - Average percentage input:', roundedAvgPercentage, '%');
     console.log('      - Grade calculation result:', avgGradeInfo);
     console.log('      - Final average grade:', avgGradeInfo.letter);
-    
+
     console.log('🔍 Step 7: Final performance metrics:');
     console.log('   🏆 Highest Score:', roundedMaxPercentage.toFixed(1) + '%');
     console.log('   📊 Average Score:', roundedAvgPercentage.toFixed(1) + '%');
     console.log('   🎯 Average Grade:', avgGradeInfo.letter);
     console.log('📊 === END OF PERFORMANCE CHART CALCULATIONS ===\n');
-    
+
     return (
-      <div style={{ 
+      <div style={{
         marginBottom: '2rem',
-        padding: '1.5rem', 
-        backgroundColor: 'white', 
-        borderRadius: '12px', 
+        padding: '1.5rem',
+        backgroundColor: 'white',
+        borderRadius: '12px',
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
         border: '1px solid #e2e8f0'
       }}>
         <h5 style={{ margin: '0 0 1rem 0', color: '#374151' }}>📈 Performance Trend Analysis</h5>
-        
+
         {/* Summary Stats */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
           gap: '1rem',
           marginBottom: '1.5rem'
         }}>
@@ -252,11 +252,11 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Average Grade</div>
           </div>
         </div>
-        
+
         {/* Visual Chart */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: `repeat(${Math.min(validCourses.length, 8)}, 1fr)`, 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${Math.min(validCourses.length, 8)}, 1fr)`,
           gap: '0.5rem',
           alignItems: 'end',
           height: '150px',
@@ -269,11 +269,11 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             const percentage = Math.round(course.percentage * 100) / 100; // Round for accuracy
             const height = Math.max((percentage / 100) * 120, 2); // Min height 2px, max 120px
             const gradeInfo = getGradeInfo(percentage);
-            
+
             return (
-              <div key={course.courseId || index} style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
+              <div key={course.courseId || index} style={{
+                display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 height: '140px',
                 justifyContent: 'flex-end'
@@ -300,9 +300,9 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     {percentage.toFixed(0)}%
                   </div>
                 </div>
-                <div style={{ 
-                  fontSize: '0.6rem', 
-                  color: '#64748b', 
+                <div style={{
+                  fontSize: '0.6rem',
+                  color: '#64748b',
                   textAlign: 'center',
                   transform: 'rotate(-45deg)',
                   transformOrigin: 'center',
@@ -318,7 +318,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             );
           })}
         </div>
-        
+
         {courses.length > 8 && (
           <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
             Showing first 8 of {courses.length} courses
@@ -345,41 +345,41 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
       const percentage = item?.percentage || item?.averagePercentage || 0;
       return typeof percentage === 'number' ? percentage : 0;
     }), 100);
-    
+
     return (
       <div style={{ marginBottom: '2rem' }}>
         <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>{title}</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {data.map((item, index) => {
             // Safety checks for item properties
-            const percentage = typeof (item?.percentage || item?.averagePercentage) === 'number' 
-              ? (item.percentage || item.averagePercentage) 
+            const percentage = typeof (item?.percentage || item?.averagePercentage) === 'number'
+              ? (item.percentage || item.averagePercentage)
               : 0;
             const gradeInfo = getGradeInfo(percentage);
             const courseCode = item?.courseCode || item?.assignmentType || `Item ${index + 1}`;
             const courseTitle = item?.courseTitle || item?.name || '';
-            
+
             return (
-              <div key={index} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
+              <div key={index} style={{
+                display: 'flex',
+                alignItems: 'center',
                 gap: '1rem',
                 padding: '1rem',
                 background: '#f8fafc',
                 borderRadius: '12px',
                 border: '1px solid #e2e8f0'
               }}>
-                <div style={{ 
-                  minWidth: '140px', 
-                  fontSize: '0.875rem', 
+                <div style={{
+                  minWidth: '140px',
+                  fontSize: '0.875rem',
                   fontWeight: '600',
                   color: '#1e293b'
                 }}>
                   <div>{String(courseCode || '')}</div>
                   {courseTitle && (
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      color: '#64748b', 
+                    <div style={{
+                      fontSize: '0.75rem',
+                      color: '#64748b',
                       fontWeight: '400',
                       marginTop: '0.25rem'
                     }}>
@@ -418,9 +418,9 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     </div>
                   </div>
                 </div>
-                <div style={{ 
-                  minWidth: '100px', 
-                  fontSize: '0.875rem', 
+                <div style={{
+                  minWidth: '100px',
+                  fontSize: '0.875rem',
                   fontWeight: '600',
                   color: gradeInfo.color,
                   display: 'flex',
@@ -428,20 +428,20 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   alignItems: 'center',
                   textAlign: 'center'
                 }}>
-                  <span style={{ 
-                    fontSize: '1.25rem', 
+                  <span style={{
+                    fontSize: '1.25rem',
                     fontWeight: '700',
                     marginBottom: '0.25rem'
                   }}>
                     {gradeInfo.letter}
                   </span>
-                  <span style={{ 
+                  <span style={{
                     fontSize: '0.75rem',
                     color: '#64748b'
                   }}>
                     GPA: {Number(gradeInfo.gpa).toFixed(2)}
                   </span>
-                  <span style={{ 
+                  <span style={{
                     fontSize: '0.7rem',
                     color: '#64748b',
                     marginTop: '0.25rem'
@@ -463,9 +463,9 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
       return (
         <div style={{ marginBottom: '2rem' }}>
           <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>📊 Grade Distribution</h4>
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '3rem', 
+          <div style={{
+            textAlign: 'center',
+            padding: '3rem',
             color: '#64748b',
             backgroundColor: '#f8fafc',
             borderRadius: '12px',
@@ -499,7 +499,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
       const numCount = typeof count === 'number' ? count : 0;
       return sum + numCount;
     }, 0);
-    
+
     // Enhanced grade colors and info
     const gradeColors = {
       'A+': { color: '#059669', gpa: '4.00' },
@@ -517,16 +517,16 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     return (
       <div style={{ marginBottom: '2rem' }}>
         <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>📊 Grade Distribution</h4>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
           gap: '1rem'
         }}>
           {Object.entries(distribution).map(([grade, count]) => {
             const numCount = typeof count === 'number' ? count : 0;
             const percentage = total > 0 ? (numCount / total * 100) : 0;
             const gradeInfo = gradeColors[grade] || { color: '#64748b', gpa: '0.00' };
-            
+
             return (
               <div key={grade} style={{
                 textAlign: 'center',
@@ -548,34 +548,34 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   opacity: 0.15,
                   transition: 'height 0.8s ease'
                 }} />
-                <div style={{ 
-                  fontSize: '1.75rem', 
-                  fontWeight: '700', 
+                <div style={{
+                  fontSize: '1.75rem',
+                  fontWeight: '700',
                   color: gradeInfo.color,
                   marginBottom: '0.5rem',
                   position: 'relative'
                 }}>
                   {grade}
                 </div>
-                <div style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: '600', 
+                <div style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '600',
                   color: '#1e293b',
                   marginBottom: '0.25rem',
                   position: 'relative'
                 }}>
                   {numCount}
                 </div>
-                <div style={{ 
-                  fontSize: '0.75rem', 
+                <div style={{
+                  fontSize: '0.75rem',
                   color: '#64748b',
                   marginBottom: '0.25rem',
                   position: 'relative'
                 }}>
                   {percentage.toFixed(1)}%
                 </div>
-                <div style={{ 
-                  fontSize: '0.7rem', 
+                <div style={{
+                  fontSize: '0.7rem',
                   color: '#64748b',
                   position: 'relative'
                 }}>
@@ -593,15 +593,15 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     return (
       <div style={{ marginBottom: '2rem' }}>
         <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>📚 Detailed Course Performance</h4>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: '1.5rem'
         }}>
           {performanceTrends.map((course, index) => {
             const percentage = course.percentage || course.averagePercentage || 0;
             const gradeInfo = getGradeInfo(percentage);
-            
+
             return (
               <div key={index} style={{
                 padding: '1.5rem',
@@ -621,19 +621,19 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   height: '4px',
                   background: gradeInfo.color
                 }} />
-                
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                   <div style={{ flex: 1 }}>
-                    <h5 style={{ 
-                      margin: '0 0 0.5rem 0', 
+                    <h5 style={{
+                      margin: '0 0 0.5rem 0',
                       color: '#1e293b',
                       fontSize: '1.1rem',
                       fontWeight: '600'
                     }}>
                       {course.courseCode}
                     </h5>
-                    <p style={{ 
-                      margin: '0 0 1rem 0', 
+                    <p style={{
+                      margin: '0 0 1rem 0',
                       color: '#64748b',
                       fontSize: '0.875rem',
                       lineHeight: '1.4'
@@ -671,7 +671,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div style={{ marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <span style={{ fontSize: '0.875rem', color: '#64748b' }}>Performance</span>
@@ -695,7 +695,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     }} />
                   </div>
                 </div>
-                
+
                 <div style={{
                   padding: '0.75rem',
                   background: '#f8fafc',
@@ -743,7 +743,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>⚠️</span>
             <h4>Error Loading Analytics</h4>
             <p style={{ marginBottom: '2rem', color: '#64748b' }}>{error}</p>
-            <button 
+            <button
               className="btn btn-primary"
               onClick={fetchAnalytics}
             >
@@ -784,7 +784,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   console.log('🔍 Grade Distribution:', gradeDistribution);
   console.log('🔍 Overall Summary (GPA Data):', overallSummary);
   console.log('🔍 Insights (Strengths & Areas for Improvement):', insights);
-  
+
   console.log('📊 === DETAILED GPA CALCULATION ANALYSIS ===');
   if (overallSummary && overallSummary.overallGPA) {
     console.log('🎯 Current GPA Analysis:');
@@ -792,49 +792,49 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     console.log('   - GPA rounded for display:', overallSummary.overallGPA.toFixed(2));
     console.log('   - Number of courses enrolled:', overallSummary.coursesEnrolled);
     console.log('   - Number of courses with grades:', overallSummary.coursesWithGrades);
-    
+
     // Show individual course GPA breakdown if we have performance trends data
     if (performanceTrends && performanceTrends.length > 0) {
       console.log('🔍 === INDIVIDUAL COURSE GPA BREAKDOWN ===');
       console.log('   📚 Step-by-step calculation showing how Current GPA is derived:');
-      
+
       let totalGPA = 0;
       let validCourses = 0;
-      
+
       performanceTrends.forEach((course, index) => {
         const percentage = typeof course?.percentage === 'number' && course.percentage >= 0 ? course.percentage : 0;
         const gradeInfo = getGradeInfo(percentage);
         const courseCode = String(course?.courseCode || `Course ${index + 1}`);
-        
+
         console.log(`   📖 Course ${index + 1}: ${courseCode}`);
         console.log(`      - Course Percentage: ${percentage.toFixed(2)}%`);
         console.log(`      - Converted to GPA: ${gradeInfo.gpa.toFixed(2)} (${gradeInfo.letter} grade)`);
         console.log(`      - GPA Conversion Logic: ${percentage.toFixed(1)}% → ${gradeInfo.gpa.toFixed(2)} GPA`);
-        
+
         if (percentage > 0) {
           totalGPA += gradeInfo.gpa;
           validCourses++;
         }
       });
-      
+
       const calculatedAvgGPA = validCourses > 0 ? totalGPA / validCourses : 0;
-      
+
       console.log('   🧮 === FINAL GPA CALCULATION ===');
       console.log(`   📊 Sum of all individual course GPAs: ${totalGPA.toFixed(4)}`);
       console.log(`   📊 Number of courses with grades: ${validCourses}`);
       console.log(`   📊 Calculated Average GPA: ${totalGPA.toFixed(4)} ÷ ${validCourses} = ${calculatedAvgGPA.toFixed(4)}`);
       console.log(`   📊 Backend provided GPA: ${overallSummary.overallGPA.toFixed(4)}`);
       console.log(`   📊 Match between frontend/backend: ${Math.abs(calculatedAvgGPA - overallSummary.overallGPA) < 0.01 ? '✅ YES' : '❌ NO'}`);
-      
+
       if (Math.abs(calculatedAvgGPA - overallSummary.overallGPA) >= 0.01) {
         console.log('   ⚠️  NOTE: Backend may include courses not shown in performance trends');
       }
     }
-    
+
     const gpaGradeInfo = getGradeFromGPA(overallSummary.overallGPA);
     console.log('   🎯 GPA to Letter Grade conversion:', gpaGradeInfo);
     console.log('   🎯 Letter Grade shown to user:', gpaGradeInfo.letter);
-    
+
     console.log('📋 === GPA SCALE REFERENCE ===');
     console.log('   - 80%+ → 4.00 GPA → A+');
     console.log('   - 75%+ → 3.75 GPA → A');
@@ -847,7 +847,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     console.log('   - 40%+ → 2.00 GPA → E');
     console.log('   - <40% → 0.00 GPA → F');
     console.log(`   🎯 User's GPA ${overallSummary.overallGPA.toFixed(2)} maps to: ${gpaGradeInfo.letter}`);
-    
+
     console.log('✅ === FORMULA CONFIRMATION ===');
     console.log('   Current GPA = (Sum of All Course GPAs) ÷ (Number of Courses with Grades)');
     console.log('   This is the correct standard GPA calculation method.');
@@ -866,26 +866,26 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
           }
         `}
       </style>
-      
+
       {/* Header */}
       <div style={{ marginBottom: '2rem', textAlign: 'center', position: 'relative' }}>
         <h2 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>📊 Performance Analytics</h2>
         <p style={{ margin: 0, color: '#64748b' }}>
           Comprehensive overview of your academic performance across all courses
         </p>
-        
+
         {/* Last updated indicator */}
         {lastUpdated && (
-          <div style={{ 
-            fontSize: '0.75rem', 
-            color: '#94a3b8', 
+          <div style={{
+            fontSize: '0.75rem',
+            color: '#94a3b8',
             marginTop: '0.5rem',
             fontStyle: 'italic'
           }}>
             Last updated: {lastUpdated.toLocaleTimeString()}
           </div>
         )}
-        
+
         {/* Refresh Button */}
         <button
           onClick={() => {
@@ -912,7 +912,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}
         >
-          <span style={{ 
+          <span style={{
             display: 'inline-block',
             animation: loading ? 'spin 1s linear infinite' : 'none'
           }}>
@@ -950,23 +950,23 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             ))}
           </div>
         </div>
-        
+
         <div className="card-body">
           {activeTab === 'overview' && (
             <div>
               {/* Overall Summary */}
-              <div style={{ 
+              <div style={{
                 marginBottom: '2rem',
-                padding: '2rem', 
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+                padding: '2rem',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 borderRadius: '16px',
                 color: 'white',
                 textAlign: 'center'
               }}>
                 <h3 style={{ margin: '0 0 1.5rem 0', color: 'white' }}>🎓 Academic Journey Overview</h3>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', 
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
                   gap: '1.5rem'
                 }}>
                   <div>
@@ -992,7 +992,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   </div>
                   <div>
                     <div style={{ fontSize: '2.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>
-                      {overallSummary.coursesEnrolled > 0 
+                      {overallSummary.coursesEnrolled > 0
                         ? ((overallSummary.coursesWithGrades / overallSummary.coursesEnrolled) * 100).toFixed(0)
                         : '0'}%
                     </div>
@@ -1003,41 +1003,66 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
               {/* Quick Course Performance Overview */}
               {performanceTrends.length > 0 && (
-                <div style={{ 
+                <div style={{
                   marginBottom: '2rem',
-                  padding: '1.5rem', 
-                  backgroundColor: 'white', 
-                  borderRadius: '12px', 
+                  padding: '1.5rem',
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                   border: '1px solid #e2e8f0'
                 }}>
                   <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>📊 Course Performance Summary</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                     {performanceTrends.slice(0, 6).map((course, index) => {
                       const percentage = typeof course?.percentage === 'number' && course.percentage >= 0 ? course.percentage : 0;
                       const gradeInfo = getGradeInfo(percentage);
                       const courseCode = String(course?.courseCode || `Course ${index + 1}`);
-                      
+                      const attendancePercentage = typeof course?.attendancePercentage === 'number' ? course.attendancePercentage : 0;
+                      const attendanceMarks = typeof course?.attendanceMarks === 'number' ? course.attendanceMarks : 0;
+
                       return (
                         <div key={index} style={{
                           padding: '1rem',
                           background: `${gradeInfo.color}10`,
                           borderRadius: '8px',
-                          border: `2px solid ${gradeInfo.color}30`,
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
+                          border: `2px solid ${gradeInfo.color}30`
                         }}>
-                          <div>
-                            <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{courseCode}</div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{gradeInfo.description}</div>
-                          </div>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: gradeInfo.color }}>
-                              {gradeInfo.letter}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                            <div>
+                              <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{courseCode}</div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{gradeInfo.description}</div>
                             </div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                              {percentage.toFixed(1)}%
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: gradeInfo.color }}>
+                                {gradeInfo.letter}
+                              </div>
+                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                                {percentage.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Attendance Information */}
+                          <div style={{
+                            borderTop: '1px solid #e2e8f0',
+                            paddingTop: '0.75rem',
+                            fontSize: '0.8rem'
+                          }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                              <span style={{ color: '#64748b' }}>📈 Attendance:</span>
+                              <span style={{
+                                fontWeight: 'bold',
+                                color: attendancePercentage >= 75 ? '#059669' :
+                                  attendancePercentage >= 50 ? '#f59e0b' : '#ef4444'
+                              }}>
+                                {attendancePercentage.toFixed(1)}%
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <span style={{ color: '#64748b' }}>🎯 Attendance Marks:</span>
+                              <span style={{ fontWeight: 'bold', color: '#374151' }}>
+                                {attendanceMarks.toFixed(0)}/30
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1046,7 +1071,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   </div>
                   {performanceTrends.length > 6 && (
                     <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                      <button 
+                      <button
                         onClick={() => setActiveTab('courses')}
                         style={{
                           padding: '0.5rem 1rem',
@@ -1067,17 +1092,17 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
               {/* Quick Insights Summary */}
               {(insights.strengths.length > 0 || insights.areasForImprovement.length > 0) && (
-                <div style={{ 
-                  padding: '1.5rem', 
-                  backgroundColor: 'white', 
-                  borderRadius: '12px', 
+                <div style={{
+                  padding: '1.5rem',
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                   border: '1px solid #e2e8f0'
                 }}>
                   <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>💡 Quick Insights</h4>
-                  <div style={{ 
-                    display: 'grid', 
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
                     gap: '1rem'
                   }}>
                     {insights.strengths.length > 0 && (
@@ -1100,7 +1125,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                         </div>
                       </div>
                     )}
-                    
+
                     {insights.areasForImprovement.length > 0 && (
                       <div style={{
                         padding: '1rem',
@@ -1123,7 +1148,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     )}
                   </div>
                   <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-                    <button 
+                    <button
                       onClick={() => setActiveTab('insights')}
                       style={{
                         padding: '0.5rem 1rem',
@@ -1142,22 +1167,22 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
               )}
             </div>
           )}
-          
+
           {activeTab === 'courses' && (
             <div>
               <h4 style={{ margin: '0 0 1.5rem 0', color: '#1e293b' }}>📈 Course Performance Analysis</h4>
-              
+
               {performanceTrends.length > 0 ? (
                 <div>
                   {/* Progress Chart */}
                   {renderProgressChart(performanceTrends)}
-                  
+
                   {/* Course Performance Details */}
-                  <div style={{ 
+                  <div style={{
                     marginBottom: '2rem',
-                    padding: '1.5rem', 
-                    backgroundColor: 'white', 
-                    borderRadius: '12px', 
+                    padding: '1.5rem',
+                    backgroundColor: 'white',
+                    borderRadius: '12px',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                     border: '1px solid #e2e8f0'
                   }}>
@@ -1168,102 +1193,153 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                         const gradeInfo = getGradeInfo(percentage);
                         const courseCode = String(course?.courseCode || `Course ${index + 1}`);
                         const courseTitle = String(course?.courseTitle || '');
-                        
+                        const attendancePercentage = typeof course?.attendancePercentage === 'number' ? course.attendancePercentage : 0;
+                        const attendanceMarks = typeof course?.attendanceMarks === 'number' ? course.attendanceMarks : 0;
+
                         return (
-                          <div key={index} style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '1rem',
-                            padding: '1rem',
+                          <div key={index} style={{
+                            padding: '1.5rem',
                             background: '#f8fafc',
                             borderRadius: '12px',
                             border: '1px solid #e2e8f0'
                           }}>
-                            <div style={{ 
-                              minWidth: '140px', 
-                              fontSize: '0.875rem', 
-                              fontWeight: '600',
-                              color: '#1e293b'
+                            {/* Course Header */}
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '1rem',
+                              marginBottom: '1rem'
                             }}>
-                              <div>{courseCode}</div>
-                              {courseTitle && (
-                                <div style={{ 
-                                  fontSize: '0.75rem', 
-                                  color: '#64748b', 
-                                  fontWeight: '400',
-                                  marginTop: '0.25rem'
-                                }}>
-                                  {courseTitle}
-                                </div>
-                              )}
-                            </div>
-                            <div style={{ flex: 1, position: 'relative' }}>
                               <div style={{
-                                width: '100%',
-                                height: '40px',
-                                background: '#f1f5f9',
-                                borderRadius: '20px',
-                                overflow: 'hidden',
-                                border: '2px solid #e2e8f0'
+                                minWidth: '140px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                color: '#1e293b'
                               }}>
-                                <div style={{
-                                  width: `${Math.min(Math.max(percentage, 0), 100)}%`,
-                                  height: '100%',
-                                  background: `linear-gradient(90deg, ${gradeInfo.color}, ${gradeInfo.color}dd)`,
-                                  borderRadius: '20px',
-                                  transition: 'width 0.8s ease',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'flex-end',
-                                  paddingRight: '16px'
-                                }}>
-                                  <span style={{
+                                <div>{courseCode}</div>
+                                {courseTitle && (
+                                  <div style={{
                                     fontSize: '0.75rem',
-                                    fontWeight: '700',
-                                    color: 'white',
-                                    textShadow: '0 1px 3px rgba(0,0,0,0.7)'
+                                    color: '#64748b',
+                                    fontWeight: '400',
+                                    marginTop: '0.25rem'
                                   }}>
-                                    {percentage.toFixed(1)}%
-                                  </span>
+                                    {courseTitle}
+                                  </div>
+                                )}
+                              </div>
+                              <div style={{ flex: 1, position: 'relative' }}>
+                                <div style={{
+                                  width: '100%',
+                                  height: '40px',
+                                  background: '#f1f5f9',
+                                  borderRadius: '20px',
+                                  overflow: 'hidden',
+                                  border: '2px solid #e2e8f0'
+                                }}>
+                                  <div style={{
+                                    width: `${Math.min(Math.max(percentage, 0), 100)}%`,
+                                    height: '100%',
+                                    background: `linear-gradient(90deg, ${gradeInfo.color}, ${gradeInfo.color}dd)`,
+                                    borderRadius: '20px',
+                                    transition: 'width 0.8s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-end',
+                                    paddingRight: '16px'
+                                  }}>
+                                    <span style={{
+                                      fontSize: '0.75rem',
+                                      fontWeight: '700',
+                                      color: 'white',
+                                      textShadow: '0 1px 3px rgba(0,0,0,0.7)'
+                                    }}>
+                                      {percentage.toFixed(1)}%
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
+                              <div style={{
+                                minWidth: '100px',
+                                fontSize: '0.875rem',
+                                fontWeight: '600',
+                                color: gradeInfo.color,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                textAlign: 'center'
+                              }}>
+                                <span style={{
+                                  fontSize: '1.25rem',
+                                  fontWeight: '700',
+                                  marginBottom: '0.25rem'
+                                }}>
+                                  {gradeInfo.letter}
+                                </span>
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  color: '#64748b'
+                                }}>
+                                  GPA: {Number(gradeInfo.gpa).toFixed(2)}
+                                </span>
+                              </div>
                             </div>
-                            <div style={{ 
-                              minWidth: '100px', 
-                              fontSize: '0.875rem', 
-                              fontWeight: '600',
-                              color: gradeInfo.color,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              textAlign: 'center'
+
+                            {/* Attendance Breakdown */}
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                              gap: '1rem',
+                              marginTop: '1rem',
+                              padding: '1rem',
+                              background: 'white',
+                              borderRadius: '8px',
+                              border: '1px solid #e2e8f0'
                             }}>
-                              <span style={{ 
-                                fontSize: '1.25rem', 
-                                fontWeight: '700',
-                                marginBottom: '0.25rem'
-                              }}>
-                                {gradeInfo.letter}
-                              </span>
-                              <span style={{ 
-                                fontSize: '0.75rem',
-                                color: '#64748b'
-                              }}>
-                                GPA: {Number(gradeInfo.gpa).toFixed(2)}
-                              </span>
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                                  📈 Attendance Rate
+                                </div>
+                                <div style={{
+                                  fontSize: '1.25rem',
+                                  fontWeight: 'bold',
+                                  color: attendancePercentage >= 75 ? '#059669' :
+                                    attendancePercentage >= 50 ? '#f59e0b' : '#ef4444'
+                                }}>
+                                  {attendancePercentage.toFixed(1)}%
+                                </div>
+                              </div>
+
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                                  🎯 Attendance Marks
+                                </div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#374151' }}>
+                                  {attendanceMarks.toFixed(0)}/30
+                                </div>
+                              </div>
+
+                              <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
+                                  📊 Total Score
+                                </div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: gradeInfo.color }}>
+                                  {percentage.toFixed(1)}%
+                                </div>
+                              </div>
                             </div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-                  
+
                   {/* Assignment Type Performance */}
                   {assignmentTypePerformance.length > 0 && (
-                    <div style={{ 
-                      padding: '1.5rem', 
-                      backgroundColor: 'white', 
-                      borderRadius: '12px', 
+                    <div style={{
+                      padding: '1.5rem',
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                       border: '1px solid #e2e8f0'
                     }}>
@@ -1272,16 +1348,16 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                         {assignmentTypePerformance.map((type, index) => {
                           // Enhanced validation and precision for assignment type performance
                           const rawAvgPercentage = type?.averagePercentage;
-                          const avgPercentage = typeof rawAvgPercentage === 'number' && 
-                                              !isNaN(rawAvgPercentage) && 
-                                              rawAvgPercentage >= 0 && 
-                                              rawAvgPercentage <= 100 
-                                              ? Math.round(rawAvgPercentage * 100) / 100 
-                                              : 0;
+                          const avgPercentage = typeof rawAvgPercentage === 'number' &&
+                            !isNaN(rawAvgPercentage) &&
+                            rawAvgPercentage >= 0 &&
+                            rawAvgPercentage <= 100
+                            ? Math.round(rawAvgPercentage * 100) / 100
+                            : 0;
                           const gradeInfo = getGradeInfo(avgPercentage);
                           const assignmentType = String(type?.assignmentType || `Type ${index + 1}`);
                           const count = typeof type?.count === 'number' && type.count >= 0 ? type.count : 0;
-                          
+
                           console.log('📝 === ASSIGNMENT TYPE PERFORMANCE CALCULATION ===');
                           console.log(`🔍 Processing Assignment Type: ${assignmentType}`);
                           console.log('   📊 Raw Data:', {
@@ -1302,7 +1378,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                           console.log('      2. Rounded to 2 decimal places:', Math.round(rawAvgPercentage * 100) / 100);
                           console.log('      3. Grade mapping applied for', avgPercentage + '%', '→', gradeInfo.letter);
                           console.log('📝 === END OF ASSIGNMENT TYPE CALCULATION ===\n');
-                          
+
                           return (
                             <div key={`${assignmentType}-${index}`} style={{
                               padding: '1rem',
@@ -1343,7 +1419,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
           {activeTab === 'insights' && (
             <div>
               <h4 style={{ margin: '0 0 1.5rem 0', color: '#1e293b' }}>💡 Performance Insights & Recommendations</h4>
-              
+
               {/* Detailed Insights */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 {insights.strengths.length > 0 && (
@@ -1369,7 +1445,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     </div>
                   </div>
                 )}
-                
+
                 {insights.areasForImprovement.length > 0 && (
                   <div style={{
                     padding: '1.5rem',
@@ -1393,7 +1469,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Overall Progress Analysis */}
                 <div style={{
                   padding: '1.5rem',

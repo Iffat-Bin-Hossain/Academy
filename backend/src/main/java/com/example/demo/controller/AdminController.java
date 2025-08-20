@@ -4,6 +4,8 @@ import com.example.demo.model.Role;
 import com.example.demo.model.User;
 import com.example.demo.model.UserStatus;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.CourseRepository;
+import com.example.demo.repository.CourseEnrollmentRepository;
 import com.example.demo.service.EmailService;
 import com.example.demo.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,8 @@ public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final UserRepository userRepo;
+    private final CourseRepository courseRepo;
+    private final CourseEnrollmentRepository enrollmentRepo;
     private final EmailService emailService;
     private final NotificationService notificationService;
 
@@ -34,6 +38,34 @@ public class AdminController {
         logger.info("Found {} pending users", pendingUsers.size());
         pendingUsers.forEach(user -> logger.info("User: {}, Status: {}", user.getName(), user.getStatus()));
         return pendingUsers;
+    }
+
+    // Get admin dashboard statistics
+    @GetMapping("/statistics")
+    public ResponseEntity<Map<String, Object>> getAdminStatistics() {
+        try {
+            logger.info("Fetching admin dashboard statistics...");
+            
+            // Get total counts
+            long totalUsers = userRepo.count();
+            long pendingUsers = userRepo.countByStatus(UserStatus.PENDING);
+            long totalCourses = courseRepo.count();
+            long totalEnrollments = enrollmentRepo.count();
+            
+            Map<String, Object> stats = Map.of(
+                "totalUsers", totalUsers,
+                "pendingUsers", pendingUsers,
+                "totalCourses", totalCourses,
+                "totalEnrollments", totalEnrollments
+            );
+            
+            logger.info("Admin statistics: {}", stats);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            logger.error("Error fetching admin statistics", e);
+            return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Failed to fetch statistics"));
+        }
     }
 
     // 2) Approve a user by ID

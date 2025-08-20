@@ -4,8 +4,12 @@ FROM openjdk:17-jdk-slim
 # Set working directory
 WORKDIR /app
 
-# Copy your Gradle 8.5 installation
-COPY gradle-8.5 gradle-8.5
+# Install gradle
+RUN apt-get update && apt-get install -y wget unzip && \
+    wget https://services.gradle.org/distributions/gradle-8.5-bin.zip && \
+    unzip gradle-8.5-bin.zip && \
+    rm gradle-8.5-bin.zip && \
+    ln -s /app/gradle-8.5/bin/gradle /usr/local/bin/gradle
 
 # Copy gradle files
 COPY build.gradle .
@@ -14,8 +18,8 @@ COPY settings.gradle .
 # Copy source code
 COPY src src
 
-# Build the application using your Gradle 8.5
-RUN ./gradle-8.5/bin/gradle clean build -x test
+# Build the application
+RUN gradle clean build -x test
 
 # Create upload directory with proper permissions
 RUN mkdir -p /app/data/uploads && chmod 755 /app/data/uploads

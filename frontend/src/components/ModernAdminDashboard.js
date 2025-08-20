@@ -49,13 +49,13 @@ const ModernAdminDashboard = () => {
     try {
       console.log('🔄 fetchData called - starting data fetch...');
       setLoading(true);
-      
+
       // First get current user info
       console.log('📡 Making API call to /user/me...');
       const userResponse = await axios.get('/user/me');
       console.log('✅ /user/me response received:', userResponse.data);
       const currentUser = userResponse.data;
-      
+
       console.log('🔄 Setting user state with ID:', currentUser.id);
       setUser({
         id: currentUser.id,
@@ -64,27 +64,24 @@ const ModernAdminDashboard = () => {
         email: currentUser.email
       });
       console.log('✅ User state set successfully');
-      
-      const [pendingResponse, coursesResponse, allUsersResponse] = await Promise.all([
+
+      const [pendingResponse, coursesResponse, allUsersResponse, statsResponse] = await Promise.all([
         axios.get('/admin/pending'),
         axios.get('/courses'),
-        axios.get('/admin/users')
+        axios.get('/admin/users'),
+        axios.get('/admin/statistics') // New statistics endpoint
       ]);
-      
+
       console.log('Pending users:', pendingResponse.data);
       console.log('Courses:', coursesResponse.data);
       console.log('All users:', allUsersResponse.data);
-      
+      console.log('Admin statistics:', statsResponse.data);
+
       setPendingUsers(pendingResponse.data);
       setCourses(coursesResponse.data);
-      
-      // Calculate stats
-      setStats({
-        totalUsers: allUsersResponse.data.length, // Actual total user count
-        pendingUsers: pendingResponse.data.length,
-        totalCourses: coursesResponse.data.length,
-        totalEnrollments: coursesResponse.data.reduce((acc, course) => acc + (course.enrollments || 0), 0)
-      });
+
+      // Use the real statistics from backend
+      setStats(statsResponse.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       if (error.response) {
@@ -167,7 +164,7 @@ const ModernAdminDashboard = () => {
     } catch (error) {
       console.error('Error creating course:', error);
       let errorMessage = 'Failed to create course';
-      
+
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       } else if (error.response && error.response.statusText) {
@@ -175,7 +172,7 @@ const ModernAdminDashboard = () => {
       } else if (error.message) {
         errorMessage = `Network error: ${error.message}`;
       }
-      
+
       setModalError(errorMessage);
     } finally {
       setIsCreating(false);
@@ -223,7 +220,7 @@ const ModernAdminDashboard = () => {
     } catch (error) {
       console.error('Error updating course:', error);
       let errorMessage = 'Failed to update course';
-      
+
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       } else if (error.response && error.response.statusText) {
@@ -231,7 +228,7 @@ const ModernAdminDashboard = () => {
       } else if (error.message) {
         errorMessage = `Network error: ${error.message}`;
       }
-      
+
       setEditModalError(errorMessage);
     } finally {
       setIsUpdating(false);
@@ -253,10 +250,10 @@ const ModernAdminDashboard = () => {
       if (error.response) {
         const status = error.response.status;
         const errorData = error.response.data;
-        
+
         console.error('Error status:', status);
         console.error('Error data:', errorData);
-        
+
         // Handle specific error cases
         if (status === 401) {
           showMessage('Authentication failed. Please login again.', 'error');
@@ -290,8 +287,8 @@ const ModernAdminDashboard = () => {
       return;
     }
 
-    if (!window.confirm('This is your final confirmation. Type YES to proceed with deleting ALL courses.') || 
-        !prompt('Type "DELETE ALL" to confirm (case sensitive):') === 'DELETE ALL') {
+    if (!window.confirm('This is your final confirmation. Type YES to proceed with deleting ALL courses.') ||
+      !prompt('Type "DELETE ALL" to confirm (case sensitive):') === 'DELETE ALL') {
       showMessage('Course deletion cancelled', 'info');
       return;
     }
@@ -304,7 +301,7 @@ const ModernAdminDashboard = () => {
     } catch (error) {
       console.error('Error clearing all courses:', error);
       let errorMessage = 'Failed to clear courses';
-      
+
       if (error.response && error.response.data && error.response.data.error) {
         errorMessage = error.response.data.error;
       } else if (error.response && error.response.statusText) {
@@ -312,7 +309,7 @@ const ModernAdminDashboard = () => {
       } else if (error.message) {
         errorMessage = `Network error: ${error.message}`;
       }
-      
+
       showMessage(errorMessage, 'error');
     }
   };
@@ -365,7 +362,7 @@ const ModernAdminDashboard = () => {
   const filteredCourses = courses.filter(course => {
     if (!courseSearchTerm) return true;
     const searchLower = courseSearchTerm.toLowerCase();
-    
+
     // Create search fields array to avoid duplicates
     const searchFields = [
       course.title?.toLowerCase() || '',
@@ -375,7 +372,7 @@ const ModernAdminDashboard = () => {
       course.id?.toString() || '',
       course.createdAt ? formatDate(course.createdAt).toLowerCase() : ''
     ];
-    
+
     // Check if any field contains the search term
     return searchFields.some(field => field.includes(searchLower));
   });
@@ -391,7 +388,7 @@ const ModernAdminDashboard = () => {
   // Show Course Management view if selected
   if (showCourseManagement && selectedCourseId) {
     return (
-      <CourseManagement 
+      <CourseManagement
         courseId={selectedCourseId}
         onBack={closeCourseManagement}
       />
@@ -410,8 +407,8 @@ const ModernAdminDashboard = () => {
   }
 
   return (
-    <Layout 
-      user={user} 
+    <Layout
+      user={user}
       onLogout={handleLogout}
       pageTitle="Admin Dashboard"
       pageSubtitle="Manage users, courses, and system settings"
@@ -482,14 +479,14 @@ const ModernAdminDashboard = () => {
             </div>
             <div className="card-body">
               <div className="grid grid-cols-2">
-                <button 
+                <button
                   className="btn btn-primary btn-lg"
                   onClick={() => handleTabChange('users')}
                 >
                   <span style={{ marginRight: '0.5rem' }}>👥</span>
                   Review Pending Users ({stats.pendingUsers})
                 </button>
-                <button 
+                <button
                   className="btn btn-secondary btn-lg"
                   onClick={() => handleTabChange('courses')}
                 >
@@ -527,7 +524,7 @@ const ModernAdminDashboard = () => {
                   onChange={(e) => setCourseSearchTerm(e.target.value)}
                   style={{ fontSize: '0.875rem', minWidth: '300px' }}
                 />
-                <button 
+                <button
                   className="btn btn-primary"
                   onClick={() => setShowCreateModal(true)}
                   style={{ whiteSpace: 'nowrap' }}
@@ -535,7 +532,7 @@ const ModernAdminDashboard = () => {
                   <span style={{ marginRight: '0.5rem' }}>➕</span>
                   Create New Course
                 </button>
-                <button 
+                <button
                   className="btn btn-danger"
                   onClick={clearAllCourses}
                   style={{ whiteSpace: 'nowrap' }}
@@ -596,20 +593,20 @@ const ModernAdminDashboard = () => {
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button 
+                          <button
                             className="btn btn-primary btn-sm"
                             onClick={() => openCourseManagement(course.id)}
                             title="Manage course details, teachers, and enrollments"
                           >
                             ⚙️ Manage
                           </button>
-                          <button 
+                          <button
                             className="btn btn-secondary btn-sm"
                             onClick={() => openEditModal(course)}
                           >
                             ✏️ Edit
                           </button>
-                          <button 
+                          <button
                             className="btn btn-danger btn-sm"
                             onClick={() => deleteCourse(course.id)}
                           >
@@ -649,7 +646,7 @@ const ModernAdminDashboard = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Create New Course</h3>
-              <button 
+              <button
                 className="modal-close"
                 onClick={closeCreateModal}
                 aria-label="Close modal"
@@ -660,7 +657,7 @@ const ModernAdminDashboard = () => {
             <div className="modal-body">
               {/* Error message inside modal */}
               {modalError && (
-                <div className="alert alert-error" style={{ 
+                <div className="alert alert-error" style={{
                   marginBottom: '1rem',
                   padding: '0.75rem 1rem',
                   backgroundColor: '#fee2e2',
@@ -672,7 +669,7 @@ const ModernAdminDashboard = () => {
                   <strong>⚠️ Error:</strong> {modalError}
                 </div>
               )}
-              
+
               <form onSubmit={(e) => { e.preventDefault(); createCourse(); }}>
                 <div className="form-group">
                   <label htmlFor="courseTitle">Course Title *</label>
@@ -686,7 +683,7 @@ const ModernAdminDashboard = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="courseCode">Course Code *</label>
                   <input
@@ -705,7 +702,7 @@ const ModernAdminDashboard = () => {
                     Course code must be unique. Examples: CS101, MATH201, PHY301
                   </small>
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="courseDescription">Description *</label>
                   <textarea
@@ -718,9 +715,9 @@ const ModernAdminDashboard = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="modal-actions">
-                  <button 
+                  <button
                     type="button"
                     className="btn btn-secondary"
                     onClick={closeCreateModal}
@@ -728,7 +725,7 @@ const ModernAdminDashboard = () => {
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     type="submit"
                     className="btn btn-primary"
                     disabled={isCreating}
@@ -758,7 +755,7 @@ const ModernAdminDashboard = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Edit Course</h3>
-              <button 
+              <button
                 className="modal-close"
                 onClick={closeEditModal}
                 aria-label="Close modal"
@@ -769,7 +766,7 @@ const ModernAdminDashboard = () => {
             <div className="modal-body">
               {/* Error message inside edit modal */}
               {editModalError && (
-                <div className="alert alert-error" style={{ 
+                <div className="alert alert-error" style={{
                   marginBottom: '1rem',
                   padding: '0.75rem 1rem',
                   backgroundColor: '#fee2e2',
@@ -781,7 +778,7 @@ const ModernAdminDashboard = () => {
                   <strong>⚠️ Error:</strong> {editModalError}
                 </div>
               )}
-              
+
               <form onSubmit={(e) => { e.preventDefault(); updateCourse(); }}>
                 <div className="form-group">
                   <label htmlFor="editCourseTitle">Course Title *</label>
@@ -795,7 +792,7 @@ const ModernAdminDashboard = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="editCourseCode">Course Code *</label>
                   <input
@@ -814,7 +811,7 @@ const ModernAdminDashboard = () => {
                     Course code must be unique. Examples: CS101, MATH201, PHY301
                   </small>
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="editCourseDescription">Description *</label>
                   <textarea
@@ -827,9 +824,9 @@ const ModernAdminDashboard = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="modal-actions">
-                  <button 
+                  <button
                     type="button"
                     className="btn btn-secondary"
                     onClick={closeEditModal}
@@ -837,7 +834,7 @@ const ModernAdminDashboard = () => {
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     type="submit"
                     className="btn btn-primary"
                     disabled={isUpdating}

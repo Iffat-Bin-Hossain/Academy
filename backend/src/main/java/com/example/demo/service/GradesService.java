@@ -23,6 +23,8 @@ public class GradesService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final CourseTeacherRepository courseTeacherRepository;
+    private final AttendanceService attendanceService;
+    private final StudentSubmissionRepository submissionRepository;
 
     /**
      * Get student grades for a specific course
@@ -54,11 +56,22 @@ public class GradesService {
         // Get assessment grids for the student in this course
         List<AssessmentGrid> assessments = assessmentGridRepository.findByCourseIdAndStudentId(courseId, studentId);
         
+        // Get submissions for the student in this course
+        List<StudentSubmission> submissions = submissionRepository.findByStudent_IdOrderBySubmittedAtDesc(studentId);
+        
         // Create assignment-assessment map
         Map<Long, AssessmentGrid> assessmentMap = assessments.stream()
                 .collect(Collectors.toMap(
                     assessment -> assessment.getAssignment().getId(),
                     assessment -> assessment
+                ));
+        
+        // Create assignment-submission map
+        Map<Long, StudentSubmission> submissionMap = submissions.stream()
+                .filter(submission -> submission.getAssignment().getCourse().getId().equals(courseId))
+                .collect(Collectors.toMap(
+                    submission -> submission.getAssignment().getId(),
+                    submission -> submission
                 ));
 
         List<Map<String, Object>> gradeDetails = new ArrayList<>();
@@ -80,9 +93,13 @@ public class GradesService {
             totalPossible += assignment.getMaxMarks();
 
             AssessmentGrid assessment = assessmentMap.get(assignment.getId());
-            if (assessment != null) {
-                // Only show grades if they are visible
-                if (assignment.getGradesVisible() != null && assignment.getGradesVisible()) {
+            StudentSubmission submission = submissionMap.get(assignment.getId());
+            
+            // First check if student has submitted
+            if (submission != null) {
+                // Student has submitted - check if graded
+                if (assessment != null && assignment.getGradesVisible() != null && assignment.getGradesVisible()) {
+                    // Graded and visible
                     gradeInfo.put("hasGrade", true);
                     gradeInfo.put("teacherMark", assessment.getTeacherMark());
                     gradeInfo.put("finalMark", assessment.getFinalMark());
@@ -90,16 +107,22 @@ public class GradesService {
                     gradeInfo.put("isLateSubmission", assessment.getLatePenaltyApplied());
                     gradeInfo.put("copyPenaltyApplied", assessment.getCopyPenaltyApplied());
                     gradeInfo.put("gradedAt", assessment.getUpdatedAt());
+                    gradeInfo.put("submittedAt", submission.getSubmittedAt());
+                    gradeInfo.put("isLate", submission.getIsLate());
                     
                     if (assessment.getFinalMark() != null) {
                         totalMarks += assessment.getFinalMark();
                         gradedAssignments++;
                     }
                 } else {
+                    // Submitted but not graded yet or grades not visible
                     gradeInfo.put("hasGrade", false);
                     gradeInfo.put("gradesPending", true);
+                    gradeInfo.put("submittedAt", submission.getSubmittedAt());
+                    gradeInfo.put("isLate", submission.getIsLate());
                 }
             } else {
+                // No submission at all
                 gradeInfo.put("hasGrade", false);
                 gradeInfo.put("notSubmitted", true);
             }
@@ -107,8 +130,16 @@ public class GradesService {
             gradeDetails.add(gradeInfo);
         }
 
-        // Calculate overall performance
-        double overallPercentage = totalPossible > 0 ? (totalMarks / totalPossible) * 100 : 0;
+        // Get attendance summary and calculate attendance marks
+        Map<String, Object> attendanceSummary = getAttendanceSummary(studentId, courseId);
+        double attendanceMarks = (Double) attendanceSummary.get("attendanceMarks");
+        double maxAttendanceMarks = (Double) attendanceSummary.get("maxAttendanceMarks");
+
+        // Calculate overall performance including attendance
+        double totalMarksWithAttendance = totalMarks + attendanceMarks;
+        double totalPossibleWithAttendance = totalPossible + maxAttendanceMarks;
+        double overallPercentage = totalPossibleWithAttendance > 0 ? 
+            (totalMarksWithAttendance / totalPossibleWithAttendance) * 100 : 0;
         String letterGrade = calculateLetterGrade(overallPercentage);
 
         Map<String, Object> result = new HashMap<>();
@@ -117,9 +148,14 @@ public class GradesService {
         result.put("courseCode", course.getCourseCode());
         result.put("enrollmentStatus", enrollment.getStatus().toString());
         result.put("assignments", gradeDetails);
+        result.put("attendance", attendanceSummary);
         result.put("summary", Map.of(
             "totalMarks", totalMarks,
             "totalPossible", totalPossible,
+            "attendanceMarks", attendanceMarks,
+            "maxAttendanceMarks", maxAttendanceMarks,
+            "totalMarksWithAttendance", totalMarksWithAttendance,
+            "totalPossibleWithAttendance", totalPossibleWithAttendance,
             "overallPercentage", Math.round(overallPercentage * 100.0) / 100.0,
             "letterGrade", letterGrade,
             "gradedAssignments", gradedAssignments,
@@ -157,7 +193,7 @@ public class GradesService {
                 if ((Integer) summary.get("gradedAssignments") > 0) {
                     coursesWithGrades++;
                     
-                    // Handle both Integer and Double types for overallPercentage
+                    // Use the new overall percentage that includes attendance
                     Object percentageObj = summary.get("overallPercentage");
                     double percentage = 0.0;
                     
@@ -230,11 +266,20 @@ public class GradesService {
             
             // Add course performance to trends
             if ((Integer) summary.get("gradedAssignments") > 0) {
+                // Get attendance information
+                @SuppressWarnings("unchecked")
+                Map<String, Object> attendance = (Map<String, Object>) courseGrade.get("attendance");
+                
                 performanceTrends.add(Map.of(
                     "courseCode", courseGrade.get("courseCode"),
                     "courseTitle", courseGrade.get("courseTitle"),
                     "percentage", summary.get("overallPercentage"),
-                    "letterGrade", summary.get("letterGrade")
+                    "letterGrade", summary.get("letterGrade"),
+                    "attendancePercentage", attendance.get("attendancePercentage"),
+                    "attendanceMarks", attendance.get("attendanceMarks"),
+                    "maxAttendanceMarks", attendance.get("maxAttendanceMarks"),
+                    "totalMarksWithAttendance", summary.get("totalMarksWithAttendance"),
+                    "totalPossibleWithAttendance", summary.get("totalPossibleWithAttendance")
                 ));
                 
                 // Add to grade distribution - ensure the grade exists in the map
@@ -280,6 +325,24 @@ public class GradesService {
                     }
                 }
             }
+        }
+
+        // Add attendance as a separate type performance
+        List<Double> attendancePerformances = new ArrayList<>();
+        for (Map<String, Object> courseGrade : courseGrades) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> attendance = (Map<String, Object>) courseGrade.get("attendance");
+            if (attendance != null) {
+                Double attendancePercentage = (Double) attendance.get("attendancePercentage");
+                if (attendancePercentage != null) {
+                    attendancePerformances.add(attendancePercentage);
+                }
+            }
+        }
+        
+        if (!attendancePerformances.isEmpty()) {
+            typePerformanceMap.put("Attendance", attendancePerformances);
+            typeCountMap.put("Attendance", attendancePerformances.size());
         }
 
         // Calculate assignment type averages
@@ -418,5 +481,56 @@ public class GradesService {
         if (percentage >= 45) return 2.25;  // D
         if (percentage >= 40) return 2.00; //E
         return 0.00;  // F
+    }
+
+    /**
+     * Calculate attendance marks based on attendance percentage
+     * Total attendance mark = 30
+     * - >=75%: Full 30 marks
+     * - 50-74%: 20 marks (10 marks deducted)
+     * - 25-49%: 10 marks (20 marks deducted)  
+     * - <25%: 0 marks
+     */
+    private double calculateAttendanceMarks(double attendancePercentage) {
+        if (attendancePercentage >= 75.0) {
+            return 30.0; // Full marks
+        } else if (attendancePercentage >= 50.0) {
+            return 20.0; // 10 marks deducted
+        } else if (attendancePercentage >= 25.0) {
+            return 10.0; // 20 marks deducted
+        } else {
+            return 0.0; // No marks for <25% attendance
+        }
+    }
+
+    /**
+     * Get attendance summary for a student in a course
+     */
+    private Map<String, Object> getAttendanceSummary(Long studentId, Long courseId) {
+        try {
+            var attendanceSummary = attendanceService.getStudentAttendanceSummary(courseId, studentId);
+            double attendancePercentage = attendanceSummary.getAttendancePercentage();
+            double attendanceMarks = calculateAttendanceMarks(attendancePercentage);
+            
+            return Map.of(
+                "attendancePercentage", Math.round(attendancePercentage * 100.0) / 100.0,
+                "attendanceMarks", attendanceMarks,
+                "maxAttendanceMarks", 30.0,
+                "totalSessions", attendanceSummary.getTotalSessions(),
+                "presentCount", attendanceSummary.getPresentCount(),
+                "absentCount", attendanceSummary.getAbsentCount()
+            );
+        } catch (Exception e) {
+            log.warn("Failed to get attendance summary for student {} in course {}: {}", 
+                     studentId, courseId, e.getMessage());
+            return Map.of(
+                "attendancePercentage", 0.0,
+                "attendanceMarks", 0.0,
+                "maxAttendanceMarks", 30.0,
+                "totalSessions", 0,
+                "presentCount", 0,
+                "absentCount", 0
+            );
+        }
     }
 }

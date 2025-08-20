@@ -16,6 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByIsApprovedFalseOrderByCreatedAtDesc();
     List<User> findByStatusOrderByCreatedAtDesc(UserStatus status);
     List<User> findByStatus(UserStatus status);
+    Long countByStatus(UserStatus status);
     List<User> findByRole(Role role);
     List<User> findByRoleAndStatus(Role role, UserStatus status);
     List<User> findByStatusAndRoleNot(UserStatus status, Role role);
