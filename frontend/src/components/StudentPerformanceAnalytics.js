@@ -163,10 +163,11 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     console.log('🔍 Step 2: Filtering valid courses...');
 
     // Ensure we only calculate with valid percentages - more robust filtering
+    // Allow negative percentages for courses with copy penalties (plagiarism detected)
     const validCourses = courses.filter(c =>
       typeof c.percentage === 'number' &&
       !isNaN(c.percentage) &&
-      c.percentage >= 0 &&
+      c.percentage >= -100 &&  // Allow negative percentages for copy penalties
       c.percentage <= 100
     );
 
@@ -1014,8 +1015,9 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>📊 Course Performance Summary</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                     {performanceTrends.slice(0, 6).map((course, index) => {
-                      const percentage = typeof course?.percentage === 'number' && course.percentage >= 0 ? course.percentage : 0;
-                      const gradeInfo = getGradeInfo(percentage);
+                      const percentage = typeof course?.percentage === 'number' ? course.percentage : 0;
+                      const isCopyPenalty = percentage < 0;
+                      const gradeInfo = getGradeInfo(isCopyPenalty ? 0 : percentage); // Use 0 for grade calculation when copy detected
                       const courseCode = String(course?.courseCode || `Course ${index + 1}`);
                       const attendancePercentage = typeof course?.attendancePercentage === 'number' ? course.attendancePercentage : 0;
                       const attendanceMarks = typeof course?.attendanceMarks === 'number' ? course.attendanceMarks : 0;
@@ -1023,20 +1025,22 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       return (
                         <div key={index} style={{
                           padding: '1rem',
-                          background: `${gradeInfo.color}10`,
+                          background: isCopyPenalty ? '#fee2e2' : `${gradeInfo.color}10`,
                           borderRadius: '8px',
-                          border: `2px solid ${gradeInfo.color}30`
+                          border: isCopyPenalty ? '2px solid #ef4444' : `2px solid ${gradeInfo.color}30`
                         }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                             <div>
                               <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{courseCode}</div>
-                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{gradeInfo.description}</div>
+                              <div style={{ fontSize: '0.8rem', color: isCopyPenalty ? '#ef4444' : '#64748b' }}>
+                                {isCopyPenalty ? '🚫 Copy Detected' : gradeInfo.description}
+                              </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: gradeInfo.color }}>
-                                {gradeInfo.letter}
+                              <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: isCopyPenalty ? '#ef4444' : gradeInfo.color }}>
+                                {isCopyPenalty ? 'F' : gradeInfo.letter}
                               </div>
-                              <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                              <div style={{ fontSize: '0.8rem', color: isCopyPenalty ? '#ef4444' : '#64748b' }}>
                                 {percentage.toFixed(1)}%
                               </div>
                             </div>
@@ -1189,8 +1193,9 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     <h5 style={{ margin: '0 0 1rem 0', color: '#374151' }}>📊 Detailed Course Performance</h5>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {performanceTrends.map((course, index) => {
-                        const percentage = typeof course?.percentage === 'number' && course.percentage >= 0 ? course.percentage : 0;
-                        const gradeInfo = getGradeInfo(percentage);
+                        const percentage = typeof course?.percentage === 'number' ? course.percentage : 0;
+                        const isCopyPenalty = percentage < 0;
+                        const gradeInfo = getGradeInfo(isCopyPenalty ? 0 : percentage); // Use 0 for grade calculation when copy detected
                         const courseCode = String(course?.courseCode || `Course ${index + 1}`);
                         const courseTitle = String(course?.courseTitle || '');
                         const attendancePercentage = typeof course?.attendancePercentage === 'number' ? course.attendancePercentage : 0;
@@ -1199,11 +1204,25 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                         return (
                           <div key={index} style={{
                             padding: '1.5rem',
-                            background: '#f8fafc',
+                            background: isCopyPenalty ? '#fee2e2' : '#f8fafc',
                             borderRadius: '12px',
-                            border: '1px solid #e2e8f0'
+                            border: isCopyPenalty ? '2px solid #ef4444' : '1px solid #e2e8f0'
                           }}>
                             {/* Course Header */}
+                            {isCopyPenalty && (
+                              <div style={{
+                                padding: '0.5rem 1rem',
+                                marginBottom: '1rem',
+                                background: '#ef4444',
+                                color: 'white',
+                                borderRadius: '8px',
+                                fontSize: '0.875rem',
+                                fontWeight: 'bold',
+                                textAlign: 'center'
+                              }}>
+                                🚫 PLAGIARISM DETECTED - FULL PENALTY APPLIED
+                              </div>
+                            )}
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
