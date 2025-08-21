@@ -35,6 +35,7 @@ public class PlagiarismService {
     private final com.example.demo.repository.SubmissionFileRepository submissionFileRepository;
     private final CourseTeacherRepository courseTeacherRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     
     // In-memory storage for analysis status (in production, use Redis or database)
     private final Map<String, PlagiarismAnalysisResponse> analysisResults = new ConcurrentHashMap<>();
@@ -56,12 +57,14 @@ public class PlagiarismService {
                            StudentSubmissionRepository submissionRepository,
                            com.example.demo.repository.SubmissionFileRepository submissionFileRepository,
                            CourseTeacherRepository courseTeacherRepository,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           NotificationService notificationService) {
         this.assignmentRepository = assignmentRepository;
         this.submissionRepository = submissionRepository;
         this.submissionFileRepository = submissionFileRepository;
         this.courseTeacherRepository = courseTeacherRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         
         // Combine all extension sets
         this.ALL_EXTENSIONS = new HashSet<>();
@@ -189,6 +192,9 @@ public class PlagiarismService {
             response.getProgress().setStage("Analysis completed");
             
             log.info("Plagiarism analysis completed. Found {} similar pairs above threshold", similarities.size());
+            
+            // Send notifications to students detected in plagiarism cases
+            sendPlagiarismNotifications(assignment, similarities);
             
         } catch (Exception e) {
             log.error("Error during plagiarism analysis for assignment: {}", assignment.getTitle(), e);
@@ -1007,5 +1013,57 @@ public class PlagiarismService {
         
         public String getFormattedCode1() { return formattedCode1; }
         public String getFormattedCode2() { return formattedCode2; }
+    }
+
+    /**
+     * Send notifications to students detected in plagiarism cases
+     */
+    private void sendPlagiarismNotifications(Assignment assignment, List<PlagiarismAnalysisResponse.SimilarityPair> similarities) {
+        if (similarities.isEmpty()) {
+            log.info("No plagiarism detected above threshold for assignment: {}", assignment.getTitle());
+            return;
+        }
+        
+        log.info("Sending plagiarism notifications for {} similarity pairs in assignment: {}", 
+                similarities.size(), assignment.getTitle());
+        
+        // Track students already notified to avoid duplicate notifications
+        Set<Long> notifiedStudents = new HashSet<>();
+        
+        for (PlagiarismAnalysisResponse.SimilarityPair pair : similarities) {
+            try {
+                // Notify student 1 if not already notified
+                if (!notifiedStudents.contains(pair.getStudent1Id())) {
+                    User student1 = userRepository.findById(pair.getStudent1Id()).orElse(null);
+                    if (student1 != null) {
+                        String detectedWith = String.format("submission by %s", pair.getStudent2Name());
+                        notificationService.createPlagiarismDetectionNotification(
+                            student1, assignment, pair.getSimilarity(), detectedWith);
+                        notifiedStudents.add(pair.getStudent1Id());
+                        log.info("Sent plagiarism notification to student: {} ({:.1f}% similarity)", 
+                                student1.getName(), pair.getSimilarity());
+                    }
+                }
+                
+                // Notify student 2 if not already notified
+                if (!notifiedStudents.contains(pair.getStudent2Id())) {
+                    User student2 = userRepository.findById(pair.getStudent2Id()).orElse(null);
+                    if (student2 != null) {
+                        String detectedWith = String.format("submission by %s", pair.getStudent1Name());
+                        notificationService.createPlagiarismDetectionNotification(
+                            student2, assignment, pair.getSimilarity(), detectedWith);
+                        notifiedStudents.add(pair.getStudent2Id());
+                        log.info("Sent plagiarism notification to student: {} ({:.1f}% similarity)", 
+                                student2.getName(), pair.getSimilarity());
+                    }
+                }
+                
+            } catch (Exception e) {
+                log.error("Error sending plagiarism notification for similarity pair (students: {} and {}): {}", 
+                        pair.getStudent1Name(), pair.getStudent2Name(), e.getMessage(), e);
+            }
+        }
+        
+        log.info("Completed sending plagiarism notifications. Total students notified: {}", notifiedStudents.size());
     }
 }

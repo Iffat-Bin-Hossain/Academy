@@ -99,6 +99,9 @@ public class Notification {
         ACCOUNT_APPROVED,
         ACCOUNT_REJECTED,
         
+        // Academic integrity notifications
+        PLAGIARISM_DETECTED,
+        
         // User profile update notifications
         USER_PROFILE_UPDATED,
         USER_STATUS_CHANGED,

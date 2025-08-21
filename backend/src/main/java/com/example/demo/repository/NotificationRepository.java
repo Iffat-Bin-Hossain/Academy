@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.Notification;
+import com.example.demo.model.Notification.NotificationType;
 import com.example.demo.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,4 +35,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     
     // Find all notifications related to a specific course (for deletion)
     List<Notification> findByRelatedCourse(com.example.demo.model.Course course);
+    
+    // Check if plagiarism notification already exists for user
+    boolean existsByRecipientIdAndTypeAndMessageContaining(Long recipientId, NotificationType type, String messageSubstring);
 }

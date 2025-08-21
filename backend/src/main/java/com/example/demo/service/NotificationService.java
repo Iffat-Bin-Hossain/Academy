@@ -1049,4 +1049,59 @@ public class NotificationService {
                     oldStatus.toString(), newStatus.toString());
         }
     }
+
+    // Plagiarism detection notification for students
+    public void createPlagiarismDetectionNotification(User student, Assignment assignment, double similarityPercentage, String detectedWith) {
+        // Only send notification if student is ACTIVE
+        if (student.getStatus() != UserStatus.ACTIVE) {
+            log.info("Skipping plagiarism detection notification for student {} - not ACTIVE (status: {})", student.getEmail(), student.getStatus());
+            return;
+        }
+        
+        try {
+            // Check if a plagiarism notification already exists for this student and assignment
+            String assignmentTitle = assignment.getTitle();
+            boolean notificationExists = notificationRepository.existsByRecipientIdAndTypeAndMessageContaining(
+                student.getId(), 
+                Notification.NotificationType.PLAGIARISM_DETECTED, 
+                assignmentTitle
+            );
+            
+            if (notificationExists) {
+                log.info("Plagiarism notification already exists for student {} in assignment {}. Skipping duplicate.", 
+                        student.getName(), assignment.getTitle());
+                return;
+            }
+            
+            String redirectUrl = String.format("/student/%s", assignment.getCourse().getCourseCode());
+            
+            // Create a precise, direct message
+            String message = String.format(
+                "Plagiarism detected in assignment '%s' for course %s. Similarity: %.1f%% with %s.",
+                assignment.getTitle(),
+                assignment.getCourse().getTitle(),
+                similarityPercentage,
+                detectedWith
+            );
+            
+            Notification notification = Notification.builder()
+                    .recipient(student)
+                    .type(Notification.NotificationType.PLAGIARISM_DETECTED)
+                    .title("⚠️ Plagiarism Detected")
+                    .message(message)
+                    .redirectUrl(redirectUrl)
+                    .relatedCourse(assignment.getCourse())
+                    .relatedAssignment(assignment)
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+            
+            notificationRepository.save(notification);
+            log.info("Plagiarism detection notification created for student {} in assignment {}", 
+                    student.getName(), assignment.getTitle());
+                    
+        } catch (Exception e) {
+            log.error("Error creating plagiarism detection notification for student: " + student.getEmail(), e);
+        }
+    }
 }

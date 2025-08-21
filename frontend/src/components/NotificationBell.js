@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import './NotificationBell.css';
 
-  const NotificationBell = ({ user }) => {
+const NotificationBell = ({ user }) => {
   console.log('🔔 NotificationBell component rendering, user:', user);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -50,7 +50,7 @@ import './NotificationBell.css';
       console.log('🔔 fetchUnreadCount skipped - user or user.id missing:', { user, userId: user?.id });
       return;
     }
-    
+
     try {
       console.log('🔔 Fetching unread count for user:', user.id, 'user object:', user);
       const response = await axios.get(`/notifications/unread/count?userId=${user.id}`);
@@ -68,7 +68,7 @@ import './NotificationBell.css';
 
   const fetchNotifications = async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
       console.log('Fetching notifications for user:', user.id);
@@ -94,7 +94,7 @@ import './NotificationBell.css';
     const isTeacher = user.role === 'TEACHER';
     const isStudent = user.role === 'STUDENT';
     const isAdmin = user.role === 'ADMIN';
-    
+
     if (isAdmin) {
       // For admins: signup requests go to user management
       switch (type) {
@@ -112,13 +112,13 @@ import './NotificationBell.css';
         case 'DISCUSSION_REPLY':
         case 'DISCUSSION_TAG':
         case 'ASSIGNMENT_GRADED':
-          return relatedCourse?.courseCode 
-            ? `/student/${relatedCourse.courseCode}` 
+          return relatedCourse?.courseCode
+            ? `/student/${relatedCourse.courseCode}`
             : '/student';
-        
+
         case 'NEW_COURSE_CREATED':
           return '/student';
-        
+
         case 'ENROLLMENT_APPROVED':
         case 'ENROLLMENT_REJECTED':
         case 'USER_PROFILE_UPDATED':
@@ -132,10 +132,10 @@ import './NotificationBell.css';
       switch (type) {
         case 'DISCUSSION_POST':
         case 'ASSIGNMENT_SUBMISSION':
-          return relatedCourse?.courseCode 
-            ? `/teacher/${relatedCourse.courseCode}` 
+          return relatedCourse?.courseCode
+            ? `/teacher/${relatedCourse.courseCode}`
             : '/teacher';
-        
+
         case 'STUDENT_ENROLLMENT_REQUEST':
         case 'TEACHER_COURSE_ASSIGNMENT':
         case 'USER_PROFILE_UPDATED':
@@ -145,14 +145,14 @@ import './NotificationBell.css';
           return '/teacher';
       }
     }
-    
+
     // Fallback
     return '/';
   };
 
   const handleNotificationClick = async (notification) => {
     if (!user?.id) return;
-    
+
     try {
       console.log('Handling notification click:', notification);
       // Mark as read if not already read
@@ -160,9 +160,9 @@ import './NotificationBell.css';
         console.log('Marking notification as read:', notification.id);
         await axios.put(`/notifications/${notification.id}/read?userId=${user.id}`);
         setUnreadCount(prev => Math.max(0, prev - 1));
-        
+
         // Update local state
-        setNotifications(prev => 
+        setNotifications(prev =>
           prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
         );
       }
@@ -181,7 +181,7 @@ import './NotificationBell.css';
 
   const markAllAsRead = async () => {
     if (!user?.id) return;
-    
+
     try {
       await axios.put(`/notifications/read-all?userId=${user.id}`);
       setUnreadCount(0);
@@ -193,17 +193,17 @@ import './NotificationBell.css';
 
   const formatTimeAgo = (dateString) => {
     if (!dateString) return 'Unknown time';
-    
+
     try {
       const now = new Date();
       let notificationDate;
-      
+
       // Handle different date formats from backend
       if (typeof dateString === 'string') {
         // Handle ISO string format (e.g., "2025-08-08T10:30:00")
         if (dateString.includes('T')) {
           notificationDate = new Date(dateString);
-        } 
+        }
         // Handle LocalDateTime array format [2025,8,8,10,30,0] 
         else if (dateString.includes('[')) {
           notificationDate = new Date(dateString.replace(/\[.*\]/, '').replace(' ', 'T'));
@@ -223,12 +223,12 @@ import './NotificationBell.css';
       } else {
         notificationDate = new Date(dateString);
       }
-      
+
       if (isNaN(notificationDate.getTime())) {
         console.warn('Invalid date format:', dateString);
         return 'Invalid date';
       }
-      
+
       const diffInSeconds = Math.floor((now - notificationDate) / 1000);
 
       if (diffInSeconds < 0) return 'Just now'; // Handle future dates
@@ -236,7 +236,7 @@ import './NotificationBell.css';
       if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
       if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
       if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-      
+
       // For older notifications, show actual date
       return notificationDate.toLocaleDateString('en-US', {
         month: 'short',
@@ -268,6 +268,7 @@ import './NotificationBell.css';
       case 'DISCUSSION_TAG': return '🏷️';
       case 'ASSIGNMENT_GRADED': return '🎓';
       case 'COURSE_ANNOUNCEMENT': return '📢';
+      case 'PLAGIARISM_DETECTED': return '⚠️';
       case 'USER_PROFILE_UPDATED': return '👤';
       case 'USER_STATUS_CHANGED': return '🔄';
       case 'USER_ROLE_CHANGED': return '🎭';
@@ -279,7 +280,7 @@ import './NotificationBell.css';
 
   return (
     <div className="notification-bell" ref={dropdownRef}>
-      <button 
+      <button
         className="bell-button"
         onClick={handleBellClick}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
@@ -297,8 +298,8 @@ import './NotificationBell.css';
           <div className="notification-header">
             <h4>Notifications</h4>
             <div className="header-actions">
-              <button 
-                className="refresh-btn" 
+              <button
+                className="refresh-btn"
                 onClick={fetchNotifications}
                 title="Refresh notifications"
                 disabled={loading}
@@ -354,7 +355,7 @@ import './NotificationBell.css';
 
           {notifications.length > 0 && (
             <div className="notification-footer">
-              <button 
+              <button
                 className="view-all-notifications"
                 onClick={() => {
                   setShowDropdown(false);

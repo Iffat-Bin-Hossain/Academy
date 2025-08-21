@@ -55,6 +55,11 @@ public class FacultyFeedbackController {
             FacultyFeedbackResponse feedback = feedbackService.getStudentFeedbackForCourse(studentId, courseId);
             return ResponseEntity.ok(feedback);
         } catch (RuntimeException e) {
+            // Handle "no feedback found" as a normal case, not an error
+            if (e.getMessage().contains("No feedback found")) {
+                return ResponseEntity.ok(Map.of("message", "No feedback found for this student in this course"));
+            }
+            // For other errors, return as before
             log.error("Error fetching student feedback: {}", e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

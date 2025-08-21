@@ -44,15 +44,19 @@ chmod +x run-docker.sh
 ### Grading System
 - **Assessment Grid**: Real-time grading interface with auto-save functionality
 - **Grade Calculation**: Automatic percentage and GPA calculation
+- **Copy Penalty Enforcement**: Full mark deduction (-100%) for plagiarism cases
 - **Late Penalties**: Configurable penalties for late submissions
+- **Performance Visibility**: Copy penalties fully reflected in student analytics
 - **Grade Visibility**: Teachers control when grades are visible to students
 - **Bulk Operations**: Grade multiple students simultaneously
 
 ### Performance Analytics
 - **GPA Calculation**: Standard academic GPA formula implementation
-- **Course Performance**: Individual course grade breakdowns
-- **Performance Trends**: Visual charts showing academic progress
+- **Course Performance**: Individual course grade breakdowns with copy penalty visibility
+- **Performance Trends**: Visual charts showing academic progress including disciplinary actions
 - **Assignment Type Analysis**: Performance by assignment categories
+- **Plagiarism Visibility**: Copy-detected courses displayed with clear warning indicators
+- **Academic Integrity**: Transparent display of F-grades for plagiarism violations
 - **Real-time Updates**: Live data refresh every 15 seconds
 
 ### Attendance System
@@ -66,7 +70,10 @@ chmod +x run-docker.sh
 - **File Format Support**: 15+ formats including code files and documents
 - **Similarity Reports**: Detailed comparison with confidence scores
 - **Copy Penalty System**: Automatic penalty application for flagged submissions
+- **Performance Integration**: Copy-detected courses fully visible in performance analytics
+- **Visual Indicators**: Clear red warnings and F-grade display for plagiarism cases
 - **Batch Processing**: Analyze multiple submissions simultaneously
+- **Transparency**: Academic integrity violations shown in student performance graphs
 
 ### Communication System
 - **Direct Messaging**: Private messages between users with file attachments
@@ -200,6 +207,7 @@ GET    /api/attendance/reports/{courseId}       # Generate attendance reports
 POST   /api/plagiarism/analyze/{assignmentId}  # Start plagiarism analysis
 GET    /api/plagiarism/results/{assignmentId}  # Get analysis results
 POST   /api/plagiarism/compare                 # Compare specific files
+POST   /api/assessment-grid/copy-checker/{id}  # Apply copy penalties with notifications
 ```
 
 ### AI Integration
@@ -221,6 +229,15 @@ POST   /chat/message                           # AI chat interaction
 - **Uptime**: 99.9% availability with Docker health monitoring
 - **Memory Usage**: <2GB RAM per service container
 - **AI Processing**: Smart suggestions generation <1s, study plan creation <2s
+
+## Recent Updates
+
+### v2.1.0 - Performance Analytics Enhancement (August 2025)
+- **🔧 Fixed**: Copy-detected courses now visible in performance graphs
+- **✨ Enhanced**: Clear visual indicators for plagiarism violations
+- **🎨 Improved**: Red warning banners and F-grade displays for copy penalties
+- **📊 Updated**: Performance analytics now include all courses regardless of penalty status
+- **🔍 Added**: Transparent academic integrity reporting in student dashboards
 
 ## Contributing
 
