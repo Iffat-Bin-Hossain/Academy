@@ -93,6 +93,9 @@ const SmartProfile = () => {
             setFilePreview(null);
             showMessage('Profile photo updated successfully!', 'success');
             
+            // Notify navbar to refresh profile photo
+            window.dispatchEvent(new CustomEvent('profilePhotoUpdated'));
+            
             // Force refetch profile to ensure persistence
             setTimeout(() => {
                 fetchProfile();
@@ -109,6 +112,9 @@ const SmartProfile = () => {
             await axios.delete(`/profile/${userId}/photo?currentUserId=${currentUser.id}`);
             setProfile(prev => ({ ...prev, profilePhotoUrl: null }));
             showMessage('Profile photo deleted successfully!', 'success');
+            
+            // Notify navbar to refresh profile photo
+            window.dispatchEvent(new CustomEvent('profilePhotoUpdated'));
         } catch (error) {
             console.error('Error deleting photo:', error);
             showMessage('Failed to delete profile photo', 'error');

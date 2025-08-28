@@ -147,7 +147,7 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
       <div className="discussion-header">
         <div className="header-content">
           <h3>💬 Discussion Threads</h3>
-          <p>Engage in course discussions and Q&A</p>
+          <p style={{ color: 'white' }}>Engage in course discussions and Q&A</p>
         </div>
         
         {user.role === 'TEACHER' && (

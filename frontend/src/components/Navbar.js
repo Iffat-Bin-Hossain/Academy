@@ -1,13 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from '../api/axiosInstance';
 import NotificationBell from './NotificationBell';
 import MessageIcon from './MessageIcon';
 import './Navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch user profile photo when component mounts or user changes
+  useEffect(() => {
+    const fetchProfilePhoto = async () => {
+      if (user?.id) {
+        try {
+          const response = await axios.get(`/profile/${user.id}`);
+          if (response.data?.profilePhotoUrl) {
+            setProfilePhotoUrl(response.data.profilePhotoUrl);
+          } else {
+            setProfilePhotoUrl(null);
+          }
+        } catch (error) {
+          console.error('Error fetching profile photo:', error);
+          // Don't set error state, just use initials fallback
+          setProfilePhotoUrl(null);
+        }
+      }
+    };
+
+    fetchProfilePhoto();
+
+    // Add event listener for profile photo updates
+    const handleProfileUpdate = () => {
+      fetchProfilePhoto();
+    };
+
+    window.addEventListener('profilePhotoUpdated', handleProfileUpdate);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('profilePhotoUpdated', handleProfileUpdate);
+    };
+  }, [user?.id]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -53,7 +89,23 @@ const Navbar = ({ user, onLogout }) => {
               <div className="user-info">
                 <Link to={`/${user.role.toLowerCase()}/profile`} className="profile-link">
                   <div className="user-avatar">
-                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    {profilePhotoUrl ? (
+                      <img 
+                        src={profilePhotoUrl} 
+                        alt={user.name} 
+                        className="avatar-image"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className="avatar-initials" 
+                      style={{ display: profilePhotoUrl ? 'none' : 'flex' }}
+                    >
+                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
                   </div>
                   <div className="user-details">
                     <div className="user-name">{user.name}</div>
@@ -90,7 +142,23 @@ const Navbar = ({ user, onLogout }) => {
                 <div className="mobile-user-info">
                   <Link to={`/${user.role.toLowerCase()}/profile`} className="mobile-profile-link">
                     <div className="mobile-user-avatar">
-                      {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                      {profilePhotoUrl ? (
+                        <img 
+                          src={profilePhotoUrl} 
+                          alt={user.name} 
+                          className="mobile-avatar-image"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="mobile-avatar-initials" 
+                        style={{ display: profilePhotoUrl ? 'none' : 'flex' }}
+                      >
+                        {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
                     </div>
                     <div className="mobile-user-details">
                       <div className="mobile-user-name">{user.name}</div>

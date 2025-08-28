@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
 import './AIHelper.css';
 
-const AIHelper = ({ courseId, user, onShowMessage }) => {
+const AIHelper = ({ courseId, user, onShowMessage, course, assignments = [], resources = [], announcements = [], submissionStatuses = {} }) => {
   // Main state
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [resources, setResources] = useState([]);
+  const [searchResources, setSearchResources] = useState([]);
   const [studyTips, setStudyTips] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
   const [studyPlan, setStudyPlan] = useState([]);
@@ -22,29 +22,27 @@ const AIHelper = ({ courseId, user, onShowMessage }) => {
   const [isMinimized, setIsMinimized] = useState(false);
 
   useEffect(() => {
-    loadSuggestions();
-    loadStudyPlan();
-  }, [courseId, user]);
+    if (course && assignments && resources) {
+      loadSuggestions();
+      loadStudyPlan();
+    }
+  }, [courseId, user, course, assignments, resources, announcements, submissionStatuses]);
 
-  const loadSuggestions = async () => {
+  const loadSuggestions = () => {
     try {
-      const response = await axios.get(`/ai-helper/suggestions/${courseId}`, {
-        params: { studentId: user.id }
-      });
-      setSuggestions(response.data.suggestions || []);
+      const generatedSuggestions = generateIntelligentSuggestions();
+      setSuggestions(generatedSuggestions);
     } catch (error) {
-      console.error('Error loading suggestions:', error);
+      console.error('Error generating suggestions:', error);
     }
   };
 
-  const loadStudyPlan = async () => {
+  const loadStudyPlan = () => {
     try {
-      const response = await axios.get(`/ai-helper/study-plan/${courseId}`, {
-        params: { studentId: user.id }
-      });
-      setStudyPlan(response.data.studyPlan || []);
+      const generatedPlan = generatePersonalizedStudyPlan();
+      setStudyPlan(generatedPlan);
     } catch (error) {
-      console.error('Error loading study plan:', error);
+      console.error('Error generating study plan:', error);
     }
   };
 
@@ -62,7 +60,7 @@ const AIHelper = ({ courseId, user, onShowMessage }) => {
         { params: { courseId, studentId: user.id } }
       );
 
-      setResources(response.data.resources || []);
+      setSearchResources(response.data.resources || []);
       setStudyTips(response.data.studyTips || []);
       
       // Add to query history
@@ -143,6 +141,362 @@ const AIHelper = ({ courseId, user, onShowMessage }) => {
       case 'academic': return '🎓';
       default: return '📚';
     }
+  };
+
+  // Generate intelligent suggestions based on course content
+  const generateIntelligentSuggestions = () => {
+    const suggestions = [];
+    
+    // Analyze only open assignments (exclude closed ones regardless of submission status)
+    if (assignments && assignments.length > 0) {
+      const runningAssignments = assignments.filter(assignment => {
+        const deadline = new Date(assignment.deadline);
+        const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
+        const now = new Date();
+        const hasSubmitted = submissionStatuses[assignment.id]?.hasSubmitted;
+        
+        // Check if assignment is completely closed (past late submission deadline or past regular deadline if no late deadline)
+        const finalDeadline = lateDeadline || deadline;
+        const isCompletelyClosed = finalDeadline < now;
+        
+        // Only include assignments that are:
+        // 1. Not submitted yet AND
+        // 2. Not completely closed (still accepting submissions)
+        return !hasSubmitted && !isCompletelyClosed;
+      });
+
+      const overdueAssignments = runningAssignments.filter(assignment => {
+        const deadline = new Date(assignment.deadline);
+        const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
+        const now = new Date();
+        
+        // Assignment is overdue if past regular deadline but still within late submission window (if exists)
+        return deadline < now && (!lateDeadline || lateDeadline >= now);
+      });
+
+      const upcomingAssignments = runningAssignments.filter(assignment => {
+        const deadline = new Date(assignment.deadline);
+        const now = new Date();
+        const daysDiff = (deadline - now) / (1000 * 60 * 60 * 24);
+        return daysDiff > 0 && daysDiff <= 7; // Due within a week
+      });
+
+      // Priority suggestions for overdue assignments
+      if (overdueAssignments.length > 0) {
+        suggestions.push(`🚨 URGENT: ${overdueAssignments.length} overdue assignment${overdueAssignments.length > 1 ? 's' : ''} need immediate attention!`);
+        
+        // Show specific overdue assignments with targeted resources
+        overdueAssignments.slice(0, 2).forEach(assignment => {
+          const assignmentType = getAssignmentType(assignment.title);
+          const relevantResources = getRelevantResources(assignmentType, resources);
+          const deadline = new Date(assignment.deadline);
+          const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
+          const now = new Date();
+          
+          if (lateDeadline && lateDeadline >= now) {
+            // Late submission is still allowed
+            const daysUntilLateDeadline = Math.ceil((lateDeadline - now) / (1000 * 60 * 60 * 24));
+            suggestions.push(`📝 Complete "${assignment.title}" (Late submission ends in ${daysUntilLateDeadline} day${daysUntilLateDeadline > 1 ? 's' : ''})`);
+          } else {
+            // Regular overdue assignment
+            const daysOverdue = Math.ceil((now - deadline) / (1000 * 60 * 60 * 24));
+            suggestions.push(`📝 Complete "${assignment.title}" (${daysOverdue} days overdue)`);
+          }
+          
+          if (relevantResources.length > 0) {
+            suggestions.push(`📚 Use these resources: ${relevantResources.slice(0, 2).map(r => r.title).join(', ')}`);
+          }
+        });
+      }
+
+      // Priority suggestions for upcoming assignments
+      if (upcomingAssignments.length > 0) {
+        upcomingAssignments.slice(0, 2).forEach(assignment => {
+          const deadline = new Date(assignment.deadline);
+          const now = new Date();
+          const daysLeft = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+          const assignmentType = getAssignmentType(assignment.title);
+          const relevantResources = getRelevantResources(assignmentType, resources);
+          
+          suggestions.push(`⏰ "${assignment.title}" due in ${daysLeft} day${daysLeft > 1 ? 's' : ''} - start now!`);
+          
+          if (relevantResources.length > 0) {
+            suggestions.push(`� Recommended materials: ${relevantResources.slice(0, 2).map(r => r.title).join(', ')}`);
+          }
+        });
+      }
+
+      // General assignment preparation tips
+      if (runningAssignments.length > 0) {
+        const totalRunning = runningAssignments.length;
+        if (totalRunning > upcomingAssignments.length + overdueAssignments.length) {
+          suggestions.push(`📋 You have ${totalRunning - upcomingAssignments.length - overdueAssignments.length} other assignments to plan for`);
+        }
+      }
+    }
+
+    // Course-specific suggestions based on assignment types and course content
+    if (course && assignments && assignments.length > 0) {
+      const courseTitle = course.title.toLowerCase();
+      const courseDesc = course.description?.toLowerCase() || '';
+      const activeAssignments = assignments.filter(a => !submissionStatuses[a.id]?.hasSubmitted);
+      
+      // Get common assignment types from active assignments
+      const assignmentTypes = activeAssignments.map(a => getAssignmentType(a.title));
+      const uniqueTypes = [...new Set(assignmentTypes)];
+      
+      uniqueTypes.slice(0, 2).forEach(type => {
+        if (type === 'programming' && (courseTitle.includes('java') || courseDesc.includes('java'))) {
+          suggestions.push(`� For Java programming assignments: Set up IDE, practice syntax, test code incrementally`);
+        } else if (type === 'algorithm' && (courseTitle.includes('algorithm') || courseDesc.includes('data structure'))) {
+          suggestions.push(`🧮 For algorithm assignments: Understand problem requirements, draw flowcharts, analyze complexity`);
+        } else if (type === 'database' && (courseTitle.includes('database') || courseDesc.includes('sql'))) {
+          suggestions.push(`🗄️ For database assignments: Practice SQL queries, understand schema design, test with sample data`);
+        } else if (type === 'research' || type === 'report') {
+          suggestions.push(`📄 For ${type} assignments: Gather credible sources, create outline, write incrementally`);
+        }
+      });
+    }
+
+    // Limited resource suggestions (only if no specific assignment guidance was given)
+    if (suggestions.length < 3 && resources && resources.length > 0) {
+      const highPriorityResources = resources.filter(r => 
+        r.title.toLowerCase().includes('tutorial') || 
+        r.title.toLowerCase().includes('guide') ||
+        r.title.toLowerCase().includes('example')
+      ).slice(0, 2);
+      
+      if (highPriorityResources.length > 0) {
+        suggestions.push(`� Start with key resources: ${highPriorityResources.map(r => r.title).join(', ')}`);
+      }
+    }
+
+    // Only add general tips if we have very few specific suggestions
+    if (suggestions.length < 2) {
+      suggestions.push(`� Break down assignment requirements into smaller, manageable tasks`);
+      suggestions.push(`⏱️ Set specific time blocks for focused work on each assignment`);
+    }
+
+    return suggestions.slice(0, 6); // Limit to 6 focused suggestions
+  };
+
+  // Generate personalized study plan based on course content
+  const generatePersonalizedStudyPlan = () => {
+    const studyPlan = [];
+    const now = new Date();
+
+    // Analyze assignments and create study plan items (only for open assignments)
+    if (assignments && assignments.length > 0) {
+      assignments.forEach(assignment => {
+        const deadline = new Date(assignment.deadline);
+        const lateDeadline = assignment.lateSubmissionDeadline ? new Date(assignment.lateSubmissionDeadline) : null;
+        const hasSubmitted = submissionStatuses[assignment.id]?.hasSubmitted;
+        
+        // Check if assignment is completely closed (past late submission deadline or past regular deadline if no late deadline)
+        const finalDeadline = lateDeadline || deadline;
+        const isCompletelyClosed = finalDeadline < now;
+        
+        // Only include assignments that are:
+        // 1. Not submitted yet AND
+        // 2. Not completely closed (still accepting submissions)
+        if (!hasSubmitted && !isCompletelyClosed) {
+          const isOverdue = deadline < now;
+          const daysUntilDeadline = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+          
+          let priority = 'Medium';
+          let description = `Work on the assignment: ${assignment.title}`;
+          let suggestedResources = [];
+
+          if (isOverdue && lateDeadline) {
+            // Assignment is overdue but late submission is still allowed
+            const daysUntilLateDeadline = Math.ceil((lateDeadline - now) / (1000 * 60 * 60 * 24));
+            priority = 'High';
+            description = `URGENT: Late submission deadline in ${daysUntilLateDeadline} day${daysUntilLateDeadline > 1 ? 's' : ''} - ${assignment.title}`;
+          } else if (isOverdue) {
+            // Assignment is overdue and no late submission allowed - this shouldn't happen due to the filter above
+            priority = 'High';
+            description = `URGENT: Complete overdue assignment - ${assignment.title}`;
+          } else if (daysUntilDeadline <= 3) {
+            priority = 'High';
+            description = `Priority assignment due soon - ${assignment.title}`;
+          } else if (daysUntilDeadline <= 7) {
+            priority = 'Medium';
+            description = `Start working on - ${assignment.title}`;
+          } else {
+            priority = 'Low';
+            description = `Review requirements and plan for - ${assignment.title}`;
+          }
+
+          // Add relevant resources as suggestions
+          if (resources && resources.length > 0) {
+            const relevantResources = resources.filter(resource => 
+              resource.title.toLowerCase().includes(assignment.title.toLowerCase().split(' ')[0]) ||
+              resource.description?.toLowerCase().includes(assignment.title.toLowerCase().split(' ')[0])
+            ).slice(0, 3);
+            
+            if (relevantResources.length > 0) {
+              suggestedResources = relevantResources.map(r => r.title);
+            } else {
+              suggestedResources = resources.slice(0, 2).map(r => r.title);
+            }
+          }
+
+          studyPlan.push({
+            title: assignment.title,
+            description,
+            priority,
+            deadline: assignment.deadline,
+            suggestedResources
+          });
+        }
+      });
+    }
+
+    // Add general study topics based on course content
+    if (course) {
+      const courseTitle = course.title.toLowerCase();
+      const courseDesc = course.description?.toLowerCase() || '';
+
+      // Add course-specific study topics
+      if (courseTitle.includes('java')) {
+        studyPlan.push({
+          title: 'Master Java Fundamentals',
+          description: 'Focus on variables, data types, operators, and control structures',
+          priority: 'Medium',
+          deadline: null,
+          suggestedResources: ['Java documentation', 'Online Java tutorials', 'Practice coding exercises']
+        });
+      }
+
+      if (courseTitle.includes('data structure') || courseDesc.includes('data structure')) {
+        studyPlan.push({
+          title: 'Study Core Data Structures',
+          description: 'Learn arrays, linked lists, stacks, queues, trees, and graphs',
+          priority: 'Medium',
+          deadline: null,
+          suggestedResources: ['Data Structures textbook', 'Visual algorithm tools', 'Coding practice platforms']
+        });
+      }
+    }
+
+    // Add review sessions based on announcements
+    if (announcements && announcements.length > 0) {
+      const recentAnnouncements = announcements
+        .filter(announcement => {
+          const announcementDate = new Date(announcement.createdAt);
+          const daysSince = (now - announcementDate) / (1000 * 60 * 60 * 24);
+          return daysSince <= 7; // Recent announcements
+        })
+        .slice(0, 2);
+
+      recentAnnouncements.forEach(announcement => {
+        if (announcement.title.toLowerCase().includes('exam') || 
+            announcement.title.toLowerCase().includes('test') ||
+            announcement.title.toLowerCase().includes('quiz')) {
+          studyPlan.push({
+            title: 'Prepare for Upcoming Assessment',
+            description: `Review materials related to: ${announcement.title}`,
+            priority: 'High',
+            deadline: null,
+            suggestedResources: ['Course notes', 'Practice problems', 'Study group sessions']
+          });
+        }
+      });
+    }
+
+    // Sort by priority (High, Medium, Low)
+    const priorityOrder = { 'High': 0, 'Medium': 1, 'Low': 2 };
+    studyPlan.sort((a, b) => {
+      if (a.deadline && b.deadline) {
+        return new Date(a.deadline) - new Date(b.deadline);
+      }
+      if (a.deadline && !b.deadline) return -1;
+      if (!a.deadline && b.deadline) return 1;
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+
+    return studyPlan.slice(0, 10); // Limit to 10 items
+  };
+
+  // Helper function to identify assignment type based on title
+  const getAssignmentType = (title) => {
+    const titleLower = title.toLowerCase();
+    
+    if (titleLower.includes('program') || titleLower.includes('code') || titleLower.includes('java') || titleLower.includes('implement')) {
+      return 'programming';
+    } else if (titleLower.includes('algorithm') || titleLower.includes('sort') || titleLower.includes('search') || titleLower.includes('complexity')) {
+      return 'algorithm';
+    } else if (titleLower.includes('database') || titleLower.includes('sql') || titleLower.includes('query') || titleLower.includes('schema')) {
+      return 'database';
+    } else if (titleLower.includes('research') || titleLower.includes('study') || titleLower.includes('analysis')) {
+      return 'research';
+    } else if (titleLower.includes('report') || titleLower.includes('document') || titleLower.includes('write')) {
+      return 'report';
+    } else if (titleLower.includes('design') || titleLower.includes('model') || titleLower.includes('diagram')) {
+      return 'design';
+    } else if (titleLower.includes('test') || titleLower.includes('debug') || titleLower.includes('fix')) {
+      return 'testing';
+    }
+    return 'general';
+  };
+
+  // Helper function to get relevant resources based on assignment type
+  const getRelevantResources = (assignmentType, allResources) => {
+    if (!allResources || allResources.length === 0) return [];
+    
+    const relevantResources = allResources.filter(resource => {
+      const resourceTitle = resource.title.toLowerCase();
+      const resourceDesc = resource.description?.toLowerCase() || '';
+      const searchText = `${resourceTitle} ${resourceDesc}`;
+      
+      switch (assignmentType) {
+        case 'programming':
+          return searchText.includes('program') || searchText.includes('code') || 
+                 searchText.includes('java') || searchText.includes('tutorial') ||
+                 searchText.includes('example') || searchText.includes('implement');
+        
+        case 'algorithm':
+          return searchText.includes('algorithm') || searchText.includes('sort') ||
+                 searchText.includes('search') || searchText.includes('complexity') ||
+                 searchText.includes('structure') || searchText.includes('tree');
+        
+        case 'database':
+          return searchText.includes('database') || searchText.includes('sql') ||
+                 searchText.includes('query') || searchText.includes('schema') ||
+                 searchText.includes('table') || searchText.includes('relation');
+        
+        case 'research':
+        case 'report':
+          return searchText.includes('research') || searchText.includes('paper') ||
+                 searchText.includes('reference') || searchText.includes('citation') ||
+                 searchText.includes('methodology') || searchText.includes('analysis');
+        
+        case 'design':
+          return searchText.includes('design') || searchText.includes('model') ||
+                 searchText.includes('diagram') || searchText.includes('pattern') ||
+                 searchText.includes('architecture') || searchText.includes('uml');
+        
+        case 'testing':
+          return searchText.includes('test') || searchText.includes('debug') ||
+                 searchText.includes('junit') || searchText.includes('validation') ||
+                 searchText.includes('verification') || searchText.includes('quality');
+        
+        default:
+          return true; // Include all resources for general assignments
+      }
+    });
+    
+    // If no specific matches found, return most relevant general resources
+    if (relevantResources.length === 0) {
+      return allResources.filter(resource => 
+        resource.title.toLowerCase().includes('tutorial') ||
+        resource.title.toLowerCase().includes('guide') ||
+        resource.title.toLowerCase().includes('introduction') ||
+        resource.title.toLowerCase().includes('basic')
+      ).slice(0, 3);
+    }
+    
+    return relevantResources.slice(0, 4); // Limit to 4 most relevant resources
   };
 
   const formatDate = (dateString) => {
@@ -286,13 +640,13 @@ const AIHelper = ({ courseId, user, onShowMessage }) => {
           )}
 
           {/* Search Results */}
-          {resources.length > 0 && !isLoading && (
+          {searchResources.length > 0 && !isLoading && (
             <div>
               <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>
-                📚 Learning Resources ({resources.length})
+                📚 Learning Resources ({searchResources.length})
               </h4>
               <div style={{ display: 'grid', gap: '1rem', marginBottom: '2rem' }}>
-                {resources.map((resource, index) => (
+                {searchResources.map((resource, index) => (
                   <div 
                     key={index}
                     style={{
@@ -366,7 +720,7 @@ const AIHelper = ({ courseId, user, onShowMessage }) => {
           )}
 
           {/* No Results */}
-          {resources.length === 0 && !isLoading && query && (
+          {searchResources.length === 0 && !isLoading && query && (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
               <h4>No resources found</h4>

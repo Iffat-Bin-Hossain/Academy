@@ -81,6 +81,9 @@ const Profile = () => {
             setSelectedFile(null);
             setFilePreview(null);
             showMessage('Profile photo updated successfully!', 'success');
+            
+            // Notify navbar to refresh profile photo
+            window.dispatchEvent(new CustomEvent('profilePhotoUpdated'));
         } catch (error) {
             console.error('Error uploading photo:', error);
             showMessage('Failed to upload profile photo', 'error');
@@ -92,6 +95,9 @@ const Profile = () => {
             await axios.delete(`/profile/${userId}/photo?currentUserId=${currentUser.id}`);
             setProfile(prev => ({ ...prev, profilePhotoUrl: null }));
             showMessage('Profile photo deleted successfully!', 'success');
+            
+            // Notify navbar to refresh profile photo
+            window.dispatchEvent(new CustomEvent('profilePhotoUpdated'));
         } catch (error) {
             console.error('Error deleting photo:', error);
             showMessage('Failed to delete profile photo', 'error');

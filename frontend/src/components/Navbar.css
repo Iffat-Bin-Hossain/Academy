@@ -111,6 +111,23 @@
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .user-details {
@@ -285,6 +302,23 @@
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
   font-size: 1.2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.mobile-avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-user-details {

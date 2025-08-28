@@ -21,7 +21,6 @@ const StudentCourseDetailsPage = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [activeTab, setActiveTab] = useState('announcements');
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Submission state
   const [showSubmissionModal, setShowSubmissionModal] = useState(false);
@@ -488,17 +487,6 @@ const StudentCourseDetailsPage = () => {
     }
   };
 
-  const getFilteredContent = (content, searchFields = ['title', 'description', 'content']) => {
-    if (!searchTerm) return content;
-
-    const searchLower = searchTerm.toLowerCase();
-    return content.filter(item =>
-      searchFields.some(field =>
-        item[field] && item[field].toLowerCase().includes(searchLower)
-      )
-    );
-  };
-
   const sortByCreationTime = (content) => {
     return [...content].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   };
@@ -586,30 +574,6 @@ const StudentCourseDetailsPage = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="card" style={{ marginBottom: '2rem' }}>
-        <div className="card-body" style={{ padding: '1rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <input
-              type="text"
-              placeholder="Search announcements and assignments..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="form-control"
-              style={{ flex: 1 }}
-            />
-            {searchTerm && (
-              <button
-                className="btn btn-secondary btn-sm"
-                onClick={() => setSearchTerm('')}
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* Navigation Tabs */}
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div className="card-header">
@@ -643,20 +607,15 @@ const StudentCourseDetailsPage = () => {
           {/* Announcements Tab */}
           {activeTab === 'announcements' && (
             <div>
-              {getFilteredContent(sortByCreationTime(announcements)).length === 0 ? (
+              {sortByCreationTime(announcements).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                   <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📢</span>
                   <h4>No announcements found</h4>
-                  <p>
-                    {searchTerm
-                      ? `No announcements match "${searchTerm}"`
-                      : 'No announcements have been posted for this course yet.'
-                    }
-                  </p>
+                  <p>No announcements have been posted for this course yet.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {getFilteredContent(sortByCreationTime(announcements)).map(announcement => (
+                  {sortByCreationTime(announcements).map(announcement => (
                     <div key={announcement.id} className="card" style={{ border: '1px solid #e2e8f0' }}>
                       <div className="card-body">
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
@@ -682,20 +641,15 @@ const StudentCourseDetailsPage = () => {
           {/* Assignments Tab */}
           {activeTab === 'assignments' && (
             <div>
-              {getFilteredContent(sortByCreationTime(assignments), ['title', 'content', 'instructions']).length === 0 ? (
+              {sortByCreationTime(assignments).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                   <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
                   <h4>No assignments found</h4>
-                  <p>
-                    {searchTerm
-                      ? `No assignments match "${searchTerm}"`
-                      : 'No assignments have been posted for this course yet.'
-                    }
-                  </p>
+                  <p>No assignments have been posted for this course yet.</p>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {getFilteredContent(sortByCreationTime(assignments), ['title', 'content', 'instructions']).map(assignment => {
+                  {sortByCreationTime(assignments).map(assignment => {
                     const isOverdue = new Date(assignment.deadline) < new Date();
                     const isNearDue = new Date(assignment.deadline) < new Date(Date.now() + 86400000 * 3); // 3 days
                     const canSubmitLate = assignment.lateSubmissionDeadline && new Date(assignment.lateSubmissionDeadline) > new Date();
@@ -1037,6 +991,11 @@ const StudentCourseDetailsPage = () => {
                 courseId={course.id}
                 user={user}
                 onShowMessage={showMessage}
+                course={course}
+                assignments={assignments}
+                resources={resources}
+                announcements={announcements}
+                submissionStatuses={submissionStatuses}
               />
             </div>
           )}
