@@ -65,6 +65,17 @@ public class Message {
     @Column(name = "attachment_content_type")
     private String attachmentContentType;
 
+    // Reply functionality fields
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reply_to_message_id")
+    private Message replyToMessage;
+
+    @Column(name = "reply_to_content")
+    private String replyToContent;
+
+    @Column(name = "reply_to_sender_name")
+    private String replyToSenderName;
+
     // Enum for message types
     public enum MessageType {
         DIRECT, // Direct message between users

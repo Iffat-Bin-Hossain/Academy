@@ -10,6 +10,9 @@ public class MessageCreateRequest {
     private Long attachmentSize;
     private String attachmentContentType;
     
+    // Reply fields
+    private Long replyToMessageId;
+    
     // Constructors
     public MessageCreateRequest() {}
     
@@ -66,5 +69,14 @@ public class MessageCreateRequest {
 
     public void setAttachmentContentType(String attachmentContentType) {
         this.attachmentContentType = attachmentContentType;
+    }
+
+    // Reply getters and setters
+    public Long getReplyToMessageId() {
+        return replyToMessageId;
+    }
+
+    public void setReplyToMessageId(Long replyToMessageId) {
+        this.replyToMessageId = replyToMessageId;
     }
 }

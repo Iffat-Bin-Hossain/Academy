@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -38,7 +39,8 @@ public class MessageController {
             @RequestParam(required = false) String attachmentUrl,
             @RequestParam(required = false) String attachmentFilename,
             @RequestParam(required = false) Long attachmentSize,
-            @RequestParam(required = false) String attachmentContentType) {
+            @RequestParam(required = false) String attachmentContentType,
+            @RequestParam(required = false) Long replyToMessageId) {
         try {
             MessageCreateRequest request = new MessageCreateRequest();
             request.setRecipientId(recipientId);
@@ -47,6 +49,7 @@ public class MessageController {
             request.setAttachmentFilename(attachmentFilename);
             request.setAttachmentSize(attachmentSize);
             request.setAttachmentContentType(attachmentContentType);
+            request.setReplyToMessageId(replyToMessageId);
             
             MessageResponse message = messageService.sendMessage(request, senderId);
             return ResponseEntity.ok(message);
@@ -125,6 +128,90 @@ public class MessageController {
         try {
             List<User> users = messageService.getAvailableUsers(userId);
             return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId,
+                                             @RequestParam Long userId) {
+        try {
+            messageService.deleteMessage(messageId, userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/delete-multiple")
+    public ResponseEntity<Void> deleteMultipleMessages(@RequestBody List<Long> messageIds,
+                                                      @RequestParam Long userId) {
+        try {
+            messageService.deleteMultipleMessages(messageIds, userId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/react")
+    public ResponseEntity<Map<String, Object>> addMessageReaction(
+            @RequestParam Long messageId,
+            @RequestParam Long userId,
+            @RequestParam String emoji) {
+        try {
+            Map<String, Object> reactions = messageService.addReaction(messageId, userId, emoji);
+            return ResponseEntity.ok(reactions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @DeleteMapping("/react")
+    public ResponseEntity<Map<String, Object>> removeMessageReaction(
+            @RequestParam Long messageId,
+            @RequestParam Long userId,
+            @RequestParam String emoji) {
+        try {
+            Map<String, Object> reactions = messageService.removeReaction(messageId, userId, emoji);
+            return ResponseEntity.ok(reactions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/{messageId}/reactions")
+    public ResponseEntity<Map<String, Object>> getMessageReactions(@PathVariable Long messageId) {
+        try {
+            Map<String, Object> reactions = messageService.getMessageReactions(messageId);
+            return ResponseEntity.ok(reactions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @PostMapping("/reactions/bulk")
+    public ResponseEntity<Map<Long, List<Map<String, Object>>>> getBulkMessageReactions(
+            @RequestBody Map<String, Object> request) {
+        try {
+            @SuppressWarnings("unchecked")
+            List<Long> messageIds = (List<Long>) request.get("messageIds");
+            Map<Long, List<Map<String, Object>>> reactions = messageService.getBulkMessageReactions(messageIds);
+            return ResponseEntity.ok(reactions);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/conversation/{otherUserId}/quiet")
+    public ResponseEntity<List<MessageResponse>> getConversationQuiet(@PathVariable Long otherUserId,
+                                                                     @RequestParam Long userId,
+                                                                     @RequestParam(defaultValue = "0") int page,
+                                                                     @RequestParam(defaultValue = "20") int size) {
+        try {
+            List<MessageResponse> messages = messageService.getConversationQuiet(userId, otherUserId, page, size);
+            return ResponseEntity.ok(messages);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }

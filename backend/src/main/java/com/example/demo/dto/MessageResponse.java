@@ -20,6 +20,11 @@ public class MessageResponse {
     private Long attachmentSize;
     private String attachmentContentType;
     
+    // Reply fields
+    private Long replyToMessageId;
+    private String replyToContent;
+    private String replyToSenderName;
+    
     // Constructors
     public MessageResponse() {}
     
@@ -150,5 +155,30 @@ public class MessageResponse {
 
     public void setAttachmentContentType(String attachmentContentType) {
         this.attachmentContentType = attachmentContentType;
+    }
+
+    // Reply getters and setters
+    public Long getReplyToMessageId() {
+        return replyToMessageId;
+    }
+
+    public void setReplyToMessageId(Long replyToMessageId) {
+        this.replyToMessageId = replyToMessageId;
+    }
+
+    public String getReplyToContent() {
+        return replyToContent;
+    }
+
+    public void setReplyToContent(String replyToContent) {
+        this.replyToContent = replyToContent;
+    }
+
+    public String getReplyToSenderName() {
+        return replyToSenderName;
+    }
+
+    public void setReplyToSenderName(String replyToSenderName) {
+        this.replyToSenderName = replyToSenderName;
     }
 }

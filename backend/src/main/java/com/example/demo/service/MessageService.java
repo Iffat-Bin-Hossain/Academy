@@ -11,8 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +21,7 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
+    private final MessageReactionRepository messageReactionRepository;
 
     @Transactional
     public MessageResponse sendMessage(MessageCreateRequest request, Long senderId) {
@@ -34,7 +34,7 @@ public class MessageService {
             throw new RuntimeException("Users cannot message each other");
         }
 
-        Message message = Message.builder()
+        Message.MessageBuilder messageBuilder = Message.builder()
                 .sender(sender)
                 .recipient(recipient)
                 .subject("Direct Message") // Default subject
@@ -45,8 +45,21 @@ public class MessageService {
                 .attachmentUrl(request.getAttachmentUrl())
                 .attachmentFilename(request.getAttachmentFilename())
                 .attachmentSize(request.getAttachmentSize())
-                .attachmentContentType(request.getAttachmentContentType())
-                .build();
+                .attachmentContentType(request.getAttachmentContentType());
+
+        // Handle reply functionality
+        if (request.getReplyToMessageId() != null) {
+            Optional<Message> replyToMessage = messageRepository.findById(request.getReplyToMessageId());
+            if (replyToMessage.isPresent()) {
+                Message originalMessage = replyToMessage.get();
+                messageBuilder
+                    .replyToMessage(originalMessage)
+                    .replyToContent(originalMessage.getContent())
+                    .replyToSenderName(originalMessage.getSender().getName());
+            }
+        }
+
+        Message message = messageBuilder.build();
 
         Message savedMessage = messageRepository.save(message);
         return convertToMessageResponse(savedMessage);
@@ -132,6 +145,28 @@ public class MessageService {
     public List<MessageResponse> getConversation(Long userId, Long otherUserId, int page, int size) {
         // For now, just call the non-paginated version
         return getConversation(userId, otherUserId);
+    }
+
+    /**
+     * Get conversation without marking messages as read (for quiet polling)
+     */
+    public List<MessageResponse> getConversationQuiet(Long userId, Long otherUserId, int page, int size) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User otherUser = userRepository.findById(otherUserId)
+                .orElseThrow(() -> new RuntimeException("Other user not found"));
+
+        if (!canUsersMessage(user, otherUser)) {
+            throw new RuntimeException("Users cannot message each other");
+        }
+
+        List<Message> messages = messageRepository.findConversationBetweenUsers(user, otherUser);
+        
+        // DON'T mark messages as read - this is for quiet polling
+        
+        return messages.stream()
+                .map(this::convertToMessageResponse)
+                .collect(Collectors.toList());
     }
 
     public void markAsRead(Long messageId, Long userId) {
@@ -268,6 +303,132 @@ public class MessageService {
         response.setAttachmentSize(message.getAttachmentSize());
         response.setAttachmentContentType(message.getAttachmentContentType());
         
+        // Set reply fields if present
+        if (message.getReplyToMessage() != null) {
+            response.setReplyToMessageId(message.getReplyToMessage().getId());
+            response.setReplyToContent(message.getReplyToContent());
+            response.setReplyToSenderName(message.getReplyToSenderName());
+        }
+        
         return response;
+    }
+
+    @Transactional
+    public void deleteMessage(Long messageId, Long userId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        
+        // Only allow sender or recipient to delete the message
+        if (!message.getSender().getId().equals(userId) && 
+            !message.getRecipient().getId().equals(userId)) {
+            throw new RuntimeException("You don't have permission to delete this message");
+        }
+        
+        messageRepository.delete(message);
+        log.info("Message {} deleted by user {}", messageId, userId);
+    }
+
+    @Transactional
+    public void deleteMultipleMessages(List<Long> messageIds, Long userId) {
+        List<Message> messages = messageRepository.findAllById(messageIds);
+        
+        for (Message message : messages) {
+            // Only allow sender or recipient to delete the message
+            if (!message.getSender().getId().equals(userId) && 
+                !message.getRecipient().getId().equals(userId)) {
+                throw new RuntimeException("You don't have permission to delete message " + message.getId());
+            }
+        }
+        
+        messageRepository.deleteAll(messages);
+        log.info("Deleted {} messages for user {}", messageIds.size(), userId);
+    }
+
+    @Transactional
+    public Map<String, Object> addReaction(Long messageId, Long userId, String emoji) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if reaction already exists
+        Optional<MessageReaction> existingReaction = messageReactionRepository
+                .findByMessageIdAndUserIdAndEmoji(messageId, userId, emoji);
+        
+        if (existingReaction.isPresent()) {
+            // Remove existing reaction if it exists (toggle behavior)
+            messageReactionRepository.delete(existingReaction.get());
+        } else {
+            // Add new reaction
+            MessageReaction reaction = MessageReaction.builder()
+                    .message(message)
+                    .user(user)
+                    .emoji(emoji)
+                    .build();
+            messageReactionRepository.save(reaction);
+        }
+
+        return getMessageReactions(messageId);
+    }
+
+    @Transactional
+    public Map<String, Object> removeReaction(Long messageId, Long userId, String emoji) {
+        messageReactionRepository.deleteByMessageIdAndUserIdAndEmoji(messageId, userId, emoji);
+        return getMessageReactions(messageId);
+    }
+
+    public Map<String, Object> getMessageReactions(Long messageId) {
+        List<MessageReaction> reactions = messageReactionRepository.findByMessageId(messageId);
+        Map<String, Object> result = new HashMap<>();
+        
+        // Group reactions by emoji
+        Map<String, List<MessageReaction>> groupedReactions = reactions.stream()
+                .collect(Collectors.groupingBy(MessageReaction::getEmoji));
+        
+        for (Map.Entry<String, List<MessageReaction>> entry : groupedReactions.entrySet()) {
+            String emoji = entry.getKey();
+            List<MessageReaction> emojiReactions = entry.getValue();
+            
+            Map<String, Object> emojiData = new HashMap<>();
+            emojiData.put("count", emojiReactions.size());
+            emojiData.put("users", emojiReactions.stream()
+                    .map(r -> r.getUser().getName())
+                    .collect(Collectors.toList()));
+            
+            result.put(emoji, emojiData);
+        }
+        
+        return result;
+    }
+
+    public Map<Long, List<Map<String, Object>>> getBulkMessageReactions(List<Long> messageIds) {
+        Map<Long, List<Map<String, Object>>> result = new HashMap<>();
+        
+        for (Long messageId : messageIds) {
+            List<MessageReaction> reactions = messageReactionRepository.findByMessageId(messageId);
+            List<Map<String, Object>> messageReactions = new ArrayList<>();
+            
+            // Group reactions by emoji for this message
+            Map<String, List<MessageReaction>> groupedReactions = reactions.stream()
+                    .collect(Collectors.groupingBy(MessageReaction::getEmoji));
+            
+            for (Map.Entry<String, List<MessageReaction>> entry : groupedReactions.entrySet()) {
+                String emoji = entry.getKey();
+                List<MessageReaction> emojiReactions = entry.getValue();
+                
+                Map<String, Object> reactionData = new HashMap<>();
+                reactionData.put("emoji", emoji);
+                reactionData.put("count", emojiReactions.size());
+                reactionData.put("users", emojiReactions.stream()
+                        .map(r -> r.getUser().getName())
+                        .collect(Collectors.toList()));
+                
+                messageReactions.add(reactionData);
+            }
+            
+            result.put(messageId, messageReactions);
+        }
+        
+        return result;
     }
 }
