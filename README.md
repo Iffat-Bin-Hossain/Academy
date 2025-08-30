@@ -20,6 +20,15 @@ chmod +x run-docker.sh
 **Access:** Frontend: http://localhost:3000 | Backend: http://localhost:8081  
 **Login:** admin@academy.com / admin123
 
+## Recent Updates
+
+### Enhanced Messaging System (Latest)
+- **🚀 Interactive Messages**: Added emoji reactions, message replies, and smart forwarding
+- **🛠️ Error-Free Experience**: Eliminated hover-induced 400 errors with optimized polling
+- **✨ Clean Interface**: Improved message forwarding without repetitive prefixes
+- **⚡ Performance Optimized**: Reduced polling frequency and enhanced real-time updates
+- **📱 Better UX**: Improved spacing, modal positioning, and overall user experience
+
 ## Features
 
 ### User Management
@@ -76,7 +85,13 @@ chmod +x run-docker.sh
 - **Transparency**: Academic integrity violations shown in student performance graphs
 
 ### Communication System
-- **Direct Messaging**: Private messages between users with file attachments
+- **Enhanced Direct Messaging**: Private messages with file attachments, message reactions, and reply functionality
+- **Message Interactions**: React to messages with emojis, reply to specific messages, and forward messages
+- **Smart Message Forwarding**: Clean message forwarding without repetitive prefixes
+- **File Sharing**: Support for multiple file types with image previews and download capabilities
+- **Real-time Reactions**: Instant emoji reactions with live updates across all participants
+- **Error-Free Experience**: Robust error handling eliminates hover-induced errors
+- **Optimized Performance**: Reduced polling frequency and silent error handling for smooth user experience
 - **Discussion Forums**: Course-based forums with threaded conversations
 - **@Mention System**: Tag users in discussions with autocomplete
 - **Real-time Notifications**: Instant alerts for messages and updates
@@ -118,6 +133,7 @@ chmod +x run-docker.sh
 - **Routing**: React Router 6+
 - **HTTP Client**: Axios
 - **Styling**: CSS3 + Responsive Design + Custom AI Component Styling
+- **Real-time Messaging**: Enhanced messaging interface with reactions, replies, and optimized polling
 - **AI Interface**: Interactive chat components with real-time messaging
 
 ### Infrastructure
@@ -188,10 +204,19 @@ POST   /api/assessment-grid/copy-checker/{id}   # Process plagiarism
 
 ### Communication
 ```http
-GET    /api/messages/conversations     # Message conversations
-POST   /api/messages/send              # Send message
-GET    /api/notifications              # Get notifications
-POST   /api/faculty-feedback           # Submit feedback
+GET    /api/messages/conversations              # Message conversations
+POST   /api/messages/send                       # Send message
+POST   /api/messages/send-with-attachment       # Send message with file
+GET    /api/messages/conversation/{userId}      # Get conversation messages
+POST   /api/messages/react                      # Add/remove emoji reactions
+POST   /api/messages/reactions/bulk             # Get reactions for messages
+PUT    /api/messages/mark-read                  # Mark messages as read
+PUT    /api/messages/mark-all-seen              # Mark all messages as seen
+POST   /api/messages/delete-multiple            # Delete selected messages
+GET    /api/messages/unread-count               # Get unread message count
+GET    /api/messages/users/available            # Get available users for messaging
+GET    /api/notifications                       # Get notifications
+POST   /api/faculty-feedback                    # Submit feedback
 ```
 
 ### Attendance Management
