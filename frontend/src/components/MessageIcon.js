@@ -25,7 +25,7 @@ const MessageIcon = ({ userId }) => {
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [currentUserName, setCurrentUserName] = useState(''); // Add current user name state
-    
+
     // New states for message interactions
     const [selectedMessages, setSelectedMessages] = useState(new Set());
     const [selectionMode, setSelectionMode] = useState(false);
@@ -36,7 +36,7 @@ const MessageIcon = ({ userId }) => {
     const [showForwardModal, setShowForwardModal] = useState(false);
     const [selectedForwardRecipients, setSelectedForwardRecipients] = useState(new Set());
     const [messageReactions, setMessageReactions] = useState({});
-    
+
     const modalRef = useRef(null);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -55,14 +55,14 @@ const MessageIcon = ({ userId }) => {
             fetchAvailableUsers();
             // Update unread count when modal is opened (user is viewing messages)
             fetchUnreadCount();
-            
+
             // Start polling for real-time updates
             startRealtimePolling();
         } else {
             // Stop polling when modal is closed
             stopRealtimePolling();
         }
-        
+
         return () => {
             stopRealtimePolling();
         };
@@ -75,7 +75,7 @@ const MessageIcon = ({ userId }) => {
         } else {
             stopConversationPolling();
         }
-        
+
         return () => {
             stopConversationPolling();
         };
@@ -111,11 +111,11 @@ const MessageIcon = ({ userId }) => {
             conversationPollingRef.current = setInterval(() => {
                 fetchConversationQuietly(selectedConversation.userId);
             }, 3000);
-            
-            // Greatly reduce reaction polling frequency to every 15 seconds to prevent errors
+
+            // Reduce reaction polling frequency to every 5 seconds for better real-time updates
             reactionPollingRef.current = setInterval(() => {
                 syncReactionsOnly();
-            }, 15000);
+            }, 5000);
         }
     };
 
@@ -137,14 +137,14 @@ const MessageIcon = ({ userId }) => {
     useEffect(() => {
         // Filter conversations based on search term
         if (searchTerm.trim()) {
-            const filtered = conversations.filter(conv => 
+            const filtered = conversations.filter(conv =>
                 conv.userName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 conv.userRole?.toLowerCase().includes(searchTerm.toLowerCase())
             );
             setFilteredConversations(filtered);
 
             // Filter available users for new chat
-            const filteredUsersForChat = availableUsers.filter(user => 
+            const filteredUsersForChat = availableUsers.filter(user =>
                 user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 user.role?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -167,7 +167,7 @@ const MessageIcon = ({ userId }) => {
                 // Check if the click is outside the emoji picker
                 const emojiPicker = document.querySelector('.emoji-picker');
                 const emojiButton = event.target.closest('.reaction-btn');
-                
+
                 if (emojiPicker && !emojiPicker.contains(event.target) && !emojiButton) {
                     setShowEmojiPicker(null);
                 }
@@ -198,7 +198,7 @@ const MessageIcon = ({ userId }) => {
             // Reset unread count to 0 immediately for better UX
             setUnreadCount(0);
             // Also update conversations to show no unread messages
-            setConversations(prevConversations => 
+            setConversations(prevConversations =>
                 prevConversations.map(conv => ({ ...conv, unreadCount: 0 }))
             );
         } catch (error) {
@@ -211,7 +211,7 @@ const MessageIcon = ({ userId }) => {
             setLoading(true);
             const response = await axios.get(`/messages/conversations?userId=${userId}`);
             let conversationsData = response.data;
-            
+
             // Fetch profile photos for each conversation if not already included
             const conversationsWithPhotos = await Promise.all(
                 conversationsData.map(async (conversation) => {
@@ -230,9 +230,9 @@ const MessageIcon = ({ userId }) => {
                     return conversation;
                 })
             );
-            
+
             setConversations(conversationsWithPhotos);
-            
+
             // Don't mark messages as seen just by viewing the conversation list
             // Messages should only be marked as read when user opens specific conversations
         } catch (error) {
@@ -249,9 +249,9 @@ const MessageIcon = ({ userId }) => {
             const response = await axios.get(`/messages/users/available?userId=${userId}`);
             console.log('Available users response:', response.data);
             console.log('Number of users found:', response.data ? response.data.length : 0);
-            
+
             let usersData = response.data;
-            
+
             // Fetch profile photos for users if not already included
             const usersWithPhotos = await Promise.all(
                 usersData.map(async (user) => {
@@ -270,7 +270,7 @@ const MessageIcon = ({ userId }) => {
                     return user;
                 })
             );
-            
+
             setAvailableUsers(usersWithPhotos);
         } catch (error) {
             console.error('Error fetching available users:', error);
@@ -285,7 +285,7 @@ const MessageIcon = ({ userId }) => {
                 `/messages/conversation/${otherUserId}?userId=${userId}`
             );
             setMessages(response.data);
-            
+
             // Extract current user's name from messages where they are the sender
             if (response.data.length > 0 && !currentUserName) {
                 const currentUserMessage = response.data.find(msg => msg.senderId === userId);
@@ -293,10 +293,12 @@ const MessageIcon = ({ userId }) => {
                     setCurrentUserName(currentUserMessage.senderName);
                 }
             }
-            
-            // Don't fetch reactions immediately - let the polling handle it
-            // This reduces initial load time and prevents errors
-            
+
+            // Always fetch reactions immediately after loading messages to prevent vanishing
+            if (response.data.length > 0) {
+                await fetchReactionsForMessages(response.data);
+            }
+
             // Mark messages as read when conversation is opened
             await markMessagesAsRead(otherUserId);
         } catch (error) {
@@ -311,7 +313,7 @@ const MessageIcon = ({ userId }) => {
                 const response = await axios.post('/messages/reactions/bulk', {
                     messageIds: messageIds
                 });
-                
+
                 // Convert the bulk response structure to match what frontend expects
                 const convertedReactions = {};
                 Object.entries(response.data).forEach(([messageId, reactions]) => {
@@ -323,7 +325,7 @@ const MessageIcon = ({ userId }) => {
                         userName: reaction.users.join(', ')
                     }));
                 });
-                
+
                 // Merge with existing reactions instead of replacing completely
                 setMessageReactions(prevReactions => ({
                     ...prevReactions,
@@ -357,25 +359,25 @@ const MessageIcon = ({ userId }) => {
 
         try {
             let attachmentInfo = null;
-            
+
             // Upload file if selected
             if (selectedFile) {
                 const formData = new FormData();
                 formData.append('file', selectedFile);
-                
+
                 const uploadResponse = await axios.post('/files/upload', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
                 });
-                
+
                 attachmentInfo = uploadResponse.data;
             }
 
             // Prepare message content with reply if applicable
             let messageContent = newMessage.trim();
             let replyToMessageId = null;
-            
+
             if (replyingTo) {
                 // Don't modify the content for replies - let backend handle the reply relationship
                 replyToMessageId = replyingTo.id;
@@ -392,7 +394,7 @@ const MessageIcon = ({ userId }) => {
                 formData.append('attachmentFilename', attachmentInfo.filename);
                 formData.append('attachmentSize', attachmentInfo.size);
                 formData.append('attachmentContentType', attachmentInfo.contentType);
-                
+
                 if (replyingTo) {
                     formData.append('replyToMessageId', replyingTo.id);
                 }
@@ -408,7 +410,7 @@ const MessageIcon = ({ userId }) => {
 
                 await axios.post(`/messages/send?senderId=${userId}`, messageData);
             }
-            
+
             setNewMessage('');
             setSelectedFile(null);
             setFilePreview(null);
@@ -427,17 +429,17 @@ const MessageIcon = ({ userId }) => {
         if (user.name === 'disabled user' || user.status === 'DISABLED') {
             return; // Do nothing for disabled users
         }
-        
+
         // Check if conversation already exists
         const existingConv = conversations.find(conv => conv.userId === user.id);
         if (existingConv) {
             setSelectedConversation(existingConv);
-            
+
             // Fetch profile photo if not already available
             if (!existingConv.profilePhotoUrl) {
                 fetchUserProfilePhoto(existingConv.userId, existingConv);
             }
-            
+
             fetchConversation(existingConv.userId);
         } else {
             // Create a new conversation object
@@ -452,12 +454,12 @@ const MessageIcon = ({ userId }) => {
                 unreadCount: 0
             };
             setSelectedConversation(newConv);
-            
+
             // Fetch profile photo if not available in user data
             if (!user.profilePhotoUrl) {
                 fetchUserProfilePhoto(user.id, newConv);
             }
-            
+
             setMessages([]);
         }
         setCurrentView('chat');
@@ -477,7 +479,7 @@ const MessageIcon = ({ userId }) => {
             newSelected.add(messageIndex);
         }
         setSelectedMessages(newSelected);
-        
+
         if (newSelected.size === 0) {
             setSelectionMode(false);
         }
@@ -497,16 +499,16 @@ const MessageIcon = ({ userId }) => {
         try {
             const message = messages[messageIndex];
             const userNameToUse = currentUserName || 'Unknown User';
-            
+
             // Optimistic update - immediately show the reaction change for instant feedback
             const currentReactions = messageReactions[message.id] || [];
-            const existingReaction = currentReactions.find(r => 
+            const existingReaction = currentReactions.find(r =>
                 r.emoji === emoji && r.users.includes(userNameToUse)
             );
-            
+
             // Create optimistic reaction state
             let optimisticReactions = [...currentReactions];
-            
+
             // Remove any existing reactions from this user
             optimisticReactions = optimisticReactions.map(r => {
                 if (r.users.includes(userNameToUse)) {
@@ -518,7 +520,7 @@ const MessageIcon = ({ userId }) => {
                 }
                 return r;
             }).filter(r => r.count > 0);
-            
+
             // If toggling on (not removing), add the new reaction
             if (!existingReaction) {
                 const existingEmojiReaction = optimisticReactions.find(r => r.emoji === emoji);
@@ -535,18 +537,18 @@ const MessageIcon = ({ userId }) => {
                     });
                 }
             }
-            
+
             // Apply optimistic update immediately
             setMessageReactions(prev => ({
                 ...prev,
                 [message.id]: optimisticReactions
             }));
-            
+
             // Check if user has already reacted with this emoji
-            const userHasOtherReactions = currentReactions.filter(r => 
+            const userHasOtherReactions = currentReactions.filter(r =>
                 r.users.includes(userNameToUse) && r.emoji !== emoji
             );
-            
+
             // Remove any existing reactions from this user first
             for (const reaction of userHasOtherReactions) {
                 console.log('Removing other reaction:', { messageId: message.id, userId, emoji: reaction.emoji });
@@ -558,7 +560,7 @@ const MessageIcon = ({ userId }) => {
                     }
                 });
             }
-            
+
             let response;
             if (existingReaction) {
                 // Remove existing reaction (toggle off)
@@ -581,9 +583,9 @@ const MessageIcon = ({ userId }) => {
                     }
                 });
             }
-            
+
             console.log('Reaction response:', response.data);
-            
+
             // Convert the response.data structure to match what frontend expects
             const reactionsArray = Object.entries(response.data).map(([emojiKey, emojiData]) => ({
                 emoji: emojiKey,
@@ -591,13 +593,13 @@ const MessageIcon = ({ userId }) => {
                 users: emojiData.users,
                 userName: emojiData.users.join(', ')
             }));
-            
+
             // Update local state with new reaction immediately
             setMessageReactions(prev => ({
                 ...prev,
                 [message.id]: reactionsArray
             }));
-            
+
             // Trigger real-time update for the other user by refreshing their conversation quietly
             // This will make reactions appear on both sides almost instantly
             if (selectedConversation) {
@@ -605,18 +607,18 @@ const MessageIcon = ({ userId }) => {
                 setTimeout(() => {
                     syncReactionsOnly();
                 }, 50);
-                
+
                 // Also do a full conversation refresh for other users
                 setTimeout(() => {
                     fetchConversationQuietly(selectedConversation.userId);
                 }, 200);
             }
-            
+
             setShowEmojiPicker(null);
         } catch (error) {
             console.error('Error handling reaction:', error);
             console.error('Error response:', error.response?.data);
-            
+
             // Show user-friendly error message
             if (error.response?.status === 400) {
                 alert('Unable to add reaction. Please try again.');
@@ -646,7 +648,7 @@ const MessageIcon = ({ userId }) => {
             alert('Please select messages to forward.');
             return;
         }
-        
+
         const messagesToForward = Array.from(selectedMessages).map(index => {
             const message = messages[index];
             if (!message) {
@@ -655,15 +657,18 @@ const MessageIcon = ({ userId }) => {
             }
             return message;
         }).filter(message => message !== null);
-        
+
         if (messagesToForward.length === 0) {
             alert('No valid messages selected for forwarding.');
             return;
         }
-        
+
         console.log('Messages to forward:', messagesToForward);
         setForwardingMessages(messagesToForward);
         setSelectedForwardRecipients(new Set());
+
+        // Close the main message modal to prevent z-index conflicts and improve UX
+        setShowModal(false);
         setShowForwardModal(true);
     };
 
@@ -685,27 +690,27 @@ const MessageIcon = ({ userId }) => {
                 alert('Please select at least one recipient.');
                 return;
             }
-            
+
             if (forwardingMessages.length === 0) {
                 alert('No messages to forward.');
                 return;
             }
-            
+
             console.log('Forwarding messages to recipients:', Array.from(selectedForwardRecipients));
             console.log('Messages to forward:', forwardingMessages);
-            
+
             for (const recipientId of selectedForwardRecipients) {
                 for (const message of forwardingMessages) {
                     if (!message) {
                         console.warn('Skipping invalid message:', message);
                         continue;
                     }
-                    
+
                     // Handle both text messages and file attachments
                     if (message.attachmentUrl && message.attachmentContentType) {
                         // Forward file attachment using clean content
                         let cleanContent = message.content || 'File attachment';
-                        
+
                         const forwardData = {
                             senderId: userId,
                             recipientId: recipientId,
@@ -716,9 +721,9 @@ const MessageIcon = ({ userId }) => {
                             attachmentContentType: message.attachmentContentType,
                             isForwarded: true // Add forwarded indicator
                         };
-                        
+
                         console.log('Forwarding message with attachment:', forwardData);
-                        
+
                         // Create URLSearchParams for form data
                         const params = new URLSearchParams();
                         params.append('senderId', forwardData.senderId);
@@ -729,7 +734,7 @@ const MessageIcon = ({ userId }) => {
                         params.append('attachmentSize', forwardData.attachmentSize);
                         params.append('attachmentContentType', forwardData.attachmentContentType);
                         params.append('isForwarded', 'true');
-                        
+
                         await axios.post('/messages/send-with-attachment', params, {
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -742,7 +747,7 @@ const MessageIcon = ({ userId }) => {
                             content: message.content,
                             isForwarded: true // Add forwarded indicator
                         };
-                        
+
                         console.log('Forwarding text message:', forwardData);
                         await axios.post(`/messages/send?senderId=${userId}`, forwardData);
                     } else {
@@ -750,16 +755,19 @@ const MessageIcon = ({ userId }) => {
                     }
                 }
             }
-            
+
             setShowForwardModal(false);
             setForwardingMessages([]);
             setSelectedForwardRecipients(new Set());
             setForwardSearchTerm(''); // Clear forward search
             exitSelectionMode();
-            
+
+            // Reopen the main message modal for better UX
+            setShowModal(true);
+
             // Refresh conversations to show the new forwarded messages
             fetchConversations();
-            
+
             const recipientCount = selectedForwardRecipients.size;
             const messageCount = forwardingMessages.length;
             alert(`Successfully forwarded ${messageCount} message(s) to ${recipientCount} recipient(s)!`);
@@ -772,10 +780,10 @@ const MessageIcon = ({ userId }) => {
 
     const deleteSelectedMessages = async () => {
         if (selectedMessages.size === 0) return;
-        
+
         const messageCount = selectedMessages.size;
         const messageText = messageCount === 1 ? 'message' : 'messages';
-        
+
         if (window.confirm(`Are you sure you want to delete ${messageCount} ${messageText}? This action cannot be undone.`)) {
             try {
                 const messageIds = Array.from(selectedMessages).map(index => {
@@ -786,24 +794,24 @@ const MessageIcon = ({ userId }) => {
                     }
                     return message.id;
                 }).filter(id => id !== null);
-                
+
                 if (messageIds.length === 0) {
                     alert('No valid messages selected for deletion.');
                     return;
                 }
-                
+
                 console.log('Deleting message IDs:', messageIds);
-                
+
                 // Use the correct delete endpoint with POST request body
                 await axios.post(`/messages/delete-multiple?userId=${userId}`, messageIds);
-                
+
                 // Refresh the conversation
                 await fetchConversation(selectedConversation.userId);
                 exitSelectionMode();
-                
+
                 // Update conversations list to reflect changes
                 fetchConversations();
-                
+
                 console.log('Messages deleted successfully');
             } catch (error) {
                 console.error('Error deleting messages:', error);
@@ -819,7 +827,7 @@ const MessageIcon = ({ userId }) => {
         const now = new Date();
         const diffTime = Math.abs(now - date);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 1) {
             return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         } else if (diffDays <= 7) {
@@ -834,21 +842,21 @@ const MessageIcon = ({ userId }) => {
         if (conversation.userName === 'disabled user') {
             return; // Do nothing for disabled users
         }
-        
+
         setSelectedConversation(conversation);
-        
+
         // Fetch profile photo if not already available
         if (!conversation.profilePhotoUrl) {
             fetchUserProfilePhoto(conversation.userId, conversation);
         }
-        
+
         fetchConversation(conversation.userId);
         setSearchTerm('');
         setCurrentView('chat');
         // Immediately update the unread count in state for this conversation
-        setConversations(prevConversations => 
-            prevConversations.map(conv => 
-                conv.userId === conversation.userId 
+        setConversations(prevConversations =>
+            prevConversations.map(conv =>
+                conv.userId === conversation.userId
                     ? { ...conv, unreadCount: 0 }
                     : conv
             )
@@ -864,11 +872,11 @@ const MessageIcon = ({ userId }) => {
                     ...prev,
                     profilePhotoUrl: response.data.profilePhotoUrl
                 }));
-                
+
                 // Also update the conversations list
-                setConversations(prevConversations => 
-                    prevConversations.map(conv => 
-                        conv.userId === userId 
+                setConversations(prevConversations =>
+                    prevConversations.map(conv =>
+                        conv.userId === userId
                             ? { ...conv, profilePhotoUrl: response.data.profilePhotoUrl }
                             : conv
                     )
@@ -933,15 +941,15 @@ const MessageIcon = ({ userId }) => {
             if (attachmentUrl.startsWith('/api/')) {
                 cleanUrl = attachmentUrl.substring(4); // Remove '/api' prefix
             }
-            
+
             console.log('Original attachmentUrl:', attachmentUrl);
             console.log('Clean URL for request:', cleanUrl);
-            
+
             // Use exact same pattern as assignments - axios with blob response
             const response = await axios.get(cleanUrl, {
                 responseType: 'blob',
             });
-            
+
             // Create blob link to download - identical to assignment pattern
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
@@ -976,9 +984,9 @@ const MessageIcon = ({ userId }) => {
         const isSent = message.senderId === userId;
         const messageReactionsData = messageReactions[message.id] || [];
         const isHovered = hoveredMessage === messageIndex;
-        
+
         return (
-            <div 
+            <div
                 className={`message-content-wrapper ${isSelected ? 'selected' : ''}`}
                 onMouseEnter={() => {
                     // Clear any existing timeout
@@ -1008,7 +1016,7 @@ const MessageIcon = ({ userId }) => {
                         />
                     </div>
                 )}
-                
+
                 {/* Reply indicator - Modern messenger style */}
                 {message.replyToMessageId && (
                     <div className="modern-reply-indicator">
@@ -1018,22 +1026,22 @@ const MessageIcon = ({ userId }) => {
                                 {message.replyToSenderName || 'Previous message'}
                             </div>
                             <div className="reply-to-text">
-                                {message.replyToContent ? 
-                                    (message.replyToContent.length > 50 ? 
-                                        message.replyToContent.substring(0, 50) + '...' : 
+                                {message.replyToContent ?
+                                    (message.replyToContent.length > 50 ?
+                                        message.replyToContent.substring(0, 50) + '...' :
                                         message.replyToContent
-                                    ) : 
+                                    ) :
                                     'Message'
                                 }
                             </div>
                         </div>
                     </div>
                 )}
-                
+
                 {message.content && (
                     <div className="message-text">
-                        {/* Check if this is a forwarded message */}
-                        {message.isForwarded ? (
+                        {/* Check if this is a forwarded message - handle both isForwarded and forwarded properties */}
+                        {(message.isForwarded === true || message.forwarded === true) ? (
                             <>
                                 <div className="forwarded-indicator">
                                     <span className="forwarded-arrow">→</span>
@@ -1052,12 +1060,12 @@ const MessageIcon = ({ userId }) => {
                         )}
                     </div>
                 )}
-                
+
                 {hasAttachment && (
                     <div className="message-attachment">
                         {isImageFile(message.attachmentContentType) ? (
                             <div className="attachment-image">
-                                <img 
+                                <img
                                     src={message.attachmentUrl}
                                     alt={message.attachmentFilename}
                                     onClick={() => openImageModal(message.attachmentUrl)}
@@ -1072,7 +1080,7 @@ const MessageIcon = ({ userId }) => {
                                     <div className="file-name">{message.attachmentFilename}</div>
                                     <div className="file-size">{formatFileSize(message.attachmentSize)}</div>
                                 </div>
-                                <button 
+                                <button
                                     onClick={() => handleFileView(message.attachmentUrl, message.attachmentFilename)}
                                     className="download-link"
                                     type="button"
@@ -1083,17 +1091,17 @@ const MessageIcon = ({ userId }) => {
                         )}
                     </div>
                 )}
-                
+
                 {/* Reactions display */}
                 {messageReactionsData.length > 0 && (
                     <div className="message-reactions">
                         {messageReactionsData.map((reactionGroup, index) => {
                             const userNameToUse = currentUserName || 'Unknown User';
                             const currentUserReacted = reactionGroup.users.includes(userNameToUse);
-                            
+
                             return (
-                                <span 
-                                    key={index} 
+                                <span
+                                    key={index}
                                     className={`reaction clickable-reaction ${currentUserReacted ? 'user-reacted' : ''}`}
                                     title={`${reactionGroup.users.join(', ')}`}
                                     onClick={() => handleReaction(messageIndex, reactionGroup.emoji)}
@@ -1107,7 +1115,7 @@ const MessageIcon = ({ userId }) => {
                         })}
                     </div>
                 )}
-                
+
                 {/* Message interaction buttons */}
                 {!selectionMode && isHovered && (
                     <div className={`message-actions ${isSent ? 'actions-left' : 'actions-right'}`}>
@@ -1134,7 +1142,7 @@ const MessageIcon = ({ userId }) => {
                         </button>
                     </div>
                 )}
-                
+
                 {/* Emoji picker */}
                 {showEmojiPicker === messageIndex && (
                     <div className="emoji-picker">
@@ -1158,11 +1166,11 @@ const MessageIcon = ({ userId }) => {
         try {
             const response = await axios.get(`/messages/conversations?userId=${userId}`);
             let conversationsData = response.data;
-            
+
             // Only update if there are actual changes to prevent unnecessary re-renders
             const currentIds = conversations.map(c => c.userId).sort().join(',');
             const newIds = conversationsData.map(c => c.userId).sort().join(',');
-            
+
             if (currentIds !== newIds || JSON.stringify(conversations) !== JSON.stringify(conversationsData)) {
                 // Fetch profile photos for new conversations only
                 const conversationsWithPhotos = await Promise.all(
@@ -1181,7 +1189,7 @@ const MessageIcon = ({ userId }) => {
                         return conversation;
                     })
                 );
-                
+
                 setConversations(conversationsWithPhotos);
             }
         } catch (error) {
@@ -1192,21 +1200,19 @@ const MessageIcon = ({ userId }) => {
     // Specific function to sync reactions in real-time without affecting conversation
     const syncReactionsOnly = async () => {
         if (messages.length > 0 && selectedConversation) {
-            // Prevent too frequent calls - minimum 10 seconds between fetches
+            // Prevent too frequent calls - minimum 5 seconds between fetches for better real-time experience
             const now = Date.now();
-            if (now - lastReactionFetchRef.current < 10000) {
+            if (now - lastReactionFetchRef.current < 5000) {
                 return;
             }
             lastReactionFetchRef.current = now;
-            
+
             try {
-                // Only fetch reactions if we don't already have them cached
-                const messagesToCheck = messages.filter(msg => !messageReactions[msg.id]);
-                if (messagesToCheck.length > 0) {
-                    await fetchReactionsForMessages(messagesToCheck);
-                }
+                // Always fetch reactions for all messages to ensure they're up to date
+                await fetchReactionsForMessages(messages);
             } catch (error) {
                 // Silently handle errors to prevent console spam
+                console.debug('Silent reaction sync error:', error);
             }
         }
     };
@@ -1216,11 +1222,11 @@ const MessageIcon = ({ userId }) => {
             const response = await axios.get(
                 `/messages/conversation/${otherUserId}?userId=${userId}`
             );
-            
+
             // Only update if there are new messages to prevent UI flicker
-            if (response.data.length !== messages.length || 
+            if (response.data.length !== messages.length ||
                 JSON.stringify(response.data) !== JSON.stringify(messages)) {
-                
+
                 // Extract current user's name from messages where they are the sender
                 if (response.data.length > 0 && !currentUserName) {
                     const currentUserMessage = response.data.find(msg => msg.senderId === userId);
@@ -1228,11 +1234,13 @@ const MessageIcon = ({ userId }) => {
                         setCurrentUserName(currentUserMessage.senderName);
                     }
                 }
-                
+
                 setMessages(response.data);
-                
-                // Don't fetch reactions here - let the dedicated reaction polling handle it
-                // This prevents duplicate API calls and errors
+
+                // Fetch reactions for new messages to ensure they appear immediately
+                if (response.data.length > 0) {
+                    await fetchReactionsForMessages(response.data);
+                }
             }
         } catch (error) {
             console.error('Error quietly fetching conversation:', error);
@@ -1241,20 +1249,28 @@ const MessageIcon = ({ userId }) => {
 
     return (
         <div className="message-icon-container">
-            <button 
+            <button
                 className="message-icon-btn"
-                onClick={() => setShowModal(!showModal)}
+                onClick={() => {
+                    // Close forward modal if it's open when main modal is clicked
+                    if (showForwardModal) {
+                        setShowForwardModal(false);
+                        setForwardSearchTerm('');
+                        setSelectedForwardRecipients(new Set());
+                    }
+                    setShowModal(!showModal);
+                }}
                 aria-label="Messages"
             >
-                <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
                     strokeWidth="2"
                 >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
                 {unreadCount > 0 && (
                     <span className="message-badge">
@@ -1264,11 +1280,22 @@ const MessageIcon = ({ userId }) => {
             </button>
 
             {showModal && (
-                <div className="message-dropdown" ref={modalRef}>
+                <div
+                    className="message-dropdown"
+                    ref={modalRef}
+                    onClick={() => {
+                        // Close forward modal when clicking anywhere in the main message modal
+                        if (showForwardModal) {
+                            setShowForwardModal(false);
+                            setForwardSearchTerm('');
+                            setSelectedForwardRecipients(new Set());
+                        }
+                    }}
+                >
                     {/* Header with back button for chat view */}
                     {currentView === 'chat' ? (
                         <div className="message-dropdown-header">
-                            <button 
+                            <button
                                 className="back-btn"
                                 onClick={() => {
                                     setCurrentView('conversations');
@@ -1277,16 +1304,16 @@ const MessageIcon = ({ userId }) => {
                                 title="Back to conversations"
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M19 12H6m6-6l-6 6 6 6"/>
+                                    <path d="M19 12H6m6-6l-6 6 6 6" />
                                 </svg>
                             </button>
                             {selectedConversation && (
                                 <div className="chat-header-info">
                                     <div className="chat-user-avatar">
                                         {selectedConversation.profilePhotoUrl ? (
-                                            <img 
-                                                src={selectedConversation.profilePhotoUrl} 
-                                                alt={selectedConversation.userName} 
+                                            <img
+                                                src={selectedConversation.profilePhotoUrl}
+                                                alt={selectedConversation.userName}
                                                 className="chat-avatar-image"
                                                 onError={(e) => {
                                                     e.target.style.display = 'none';
@@ -1294,8 +1321,8 @@ const MessageIcon = ({ userId }) => {
                                                 }}
                                             />
                                         ) : null}
-                                        <div 
-                                            className="chat-avatar-initials" 
+                                        <div
+                                            className="chat-avatar-initials"
                                             style={{ display: selectedConversation.profilePhotoUrl ? 'none' : 'flex' }}
                                         >
                                             {selectedConversation.userName?.charAt(0).toUpperCase() || 'U'}
@@ -1310,7 +1337,7 @@ const MessageIcon = ({ userId }) => {
                         </div>
                     ) : (
                         <div className="message-dropdown-header">
-                            <button 
+                            <button
                                 className="back-btn"
                                 onClick={() => {
                                     if (currentView === 'newChat') {
@@ -1321,13 +1348,13 @@ const MessageIcon = ({ userId }) => {
                                 title="Back to conversations"
                             >
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M19 12H6m6-6l-6 6 6 6"/>
+                                    <path d="M19 12H6m6-6l-6 6 6 6" />
                                 </svg>
                             </button>
                             <h4>{currentView === 'newChat' ? 'Start New Chat' : 'Messages'}</h4>
                             {currentView === 'conversations' && (
                                 <div className="message-header-actions">
-                                    <button 
+                                    <button
                                         className="new-chat-btn"
                                         onClick={() => {
                                             console.log('+ button clicked. Current currentView:', currentView);
@@ -1337,7 +1364,7 @@ const MessageIcon = ({ userId }) => {
                                         title="Start new conversation"
                                     >
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M12 5v14m7-7H5"/>
+                                            <path d="M12 5v14m7-7H5" />
                                         </svg>
                                     </button>
                                 </div>
@@ -1352,8 +1379,8 @@ const MessageIcon = ({ userId }) => {
                                 <div className="message-search-container">
                                     <div className="message-search-input-wrapper">
                                         <svg className="message-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <circle cx="11" cy="11" r="8"/>
-                                            <path d="M21 21l-4.35-4.35"/>
+                                            <circle cx="11" cy="11" r="8" />
+                                            <path d="M21 21l-4.35-4.35" />
                                         </svg>
                                         <input
                                             type="text"
@@ -1363,12 +1390,12 @@ const MessageIcon = ({ userId }) => {
                                             className="message-search-input"
                                         />
                                         {searchTerm && (
-                                            <button 
+                                            <button
                                                 className="message-search-clear"
                                                 onClick={() => setSearchTerm('')}
                                             >
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                                    <path d="M18 6L6 18M6 6l12 12" />
                                                 </svg>
                                             </button>
                                         )}
@@ -1379,7 +1406,7 @@ const MessageIcon = ({ userId }) => {
                                         <div className="message-loading">Loading conversations...</div>
                                     ) : filteredConversations.length > 0 ? (
                                         filteredConversations.map((conversation, index) => (
-                                            <div 
+                                            <div
                                                 key={index}
                                                 className={`conversation-item ${conversation.unreadCount > 0 ? 'unread' : ''} ${conversation.userName === 'disabled user' ? 'disabled-user' : ''}`}
                                                 onClick={() => {
@@ -1394,9 +1421,9 @@ const MessageIcon = ({ userId }) => {
                                             >
                                                 <div className="conversation-avatar">
                                                     {conversation.profilePhotoUrl ? (
-                                                        <img 
-                                                            src={conversation.profilePhotoUrl} 
-                                                            alt={conversation.userName} 
+                                                        <img
+                                                            src={conversation.profilePhotoUrl}
+                                                            alt={conversation.userName}
                                                             className="conversation-avatar-image"
                                                             onError={(e) => {
                                                                 e.target.style.display = 'none';
@@ -1404,8 +1431,8 @@ const MessageIcon = ({ userId }) => {
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <div 
-                                                        className="conversation-avatar-initials" 
+                                                    <div
+                                                        className="conversation-avatar-initials"
                                                         style={{ display: conversation.profilePhotoUrl ? 'none' : 'flex' }}
                                                     >
                                                         {conversation.userName?.charAt(0).toUpperCase() || 'U'}
@@ -1420,8 +1447,8 @@ const MessageIcon = ({ userId }) => {
                                                         <span className="conversation-role">{conversation.userRole}</span>
                                                         {conversation.lastMessage && (
                                                             <span className="last-message">
-                                                                • {conversation.lastMessage.length > 25 
-                                                                    ? conversation.lastMessage.substring(0, 25) + '...' 
+                                                                • {conversation.lastMessage.length > 25
+                                                                    ? conversation.lastMessage.substring(0, 25) + '...'
                                                                     : conversation.lastMessage}
                                                             </span>
                                                         )}
@@ -1448,8 +1475,8 @@ const MessageIcon = ({ userId }) => {
                                 <div className="message-search-container">
                                     <div className="message-search-input-wrapper">
                                         <svg className="message-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <circle cx="11" cy="11" r="8"/>
-                                            <path d="M21 21l-4.35-4.35"/>
+                                            <circle cx="11" cy="11" r="8" />
+                                            <path d="M21 21l-4.35-4.35" />
                                         </svg>
                                         <input
                                             type="text"
@@ -1459,12 +1486,12 @@ const MessageIcon = ({ userId }) => {
                                             className="message-search-input"
                                         />
                                         {searchTerm && (
-                                            <button 
+                                            <button
                                                 className="message-search-clear"
                                                 onClick={() => setSearchTerm('')}
                                             >
                                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                                    <path d="M18 6L6 18M6 6l12 12" />
                                                 </svg>
                                             </button>
                                         )}
@@ -1475,16 +1502,16 @@ const MessageIcon = ({ userId }) => {
                                         <div className="message-loading">Loading users...</div>
                                     ) : filteredUsers.length > 0 ? (
                                         filteredUsers.map(user => (
-                                            <div 
+                                            <div
                                                 key={user.id}
                                                 className="user-item"
                                                 onClick={() => startNewConversation(user)}
                                             >
                                                 <div className="user-avatar">
                                                     {user.profilePhotoUrl ? (
-                                                        <img 
-                                                            src={user.profilePhotoUrl} 
-                                                            alt={user.name} 
+                                                        <img
+                                                            src={user.profilePhotoUrl}
+                                                            alt={user.name}
                                                             className="user-avatar-image"
                                                             onError={(e) => {
                                                                 e.target.style.display = 'none';
@@ -1492,8 +1519,8 @@ const MessageIcon = ({ userId }) => {
                                                             }}
                                                         />
                                                     ) : null}
-                                                    <div 
-                                                        className="user-avatar-initials" 
+                                                    <div
+                                                        className="user-avatar-initials"
                                                         style={{ display: user.profilePhotoUrl ? 'none' : 'flex' }}
                                                     >
                                                         {user.name?.charAt(0).toUpperCase() || 'U'}
@@ -1507,8 +1534,8 @@ const MessageIcon = ({ userId }) => {
                                         ))
                                     ) : (
                                         <div className="no-results">
-                                            {searchTerm ? 'No users found' : availableUsers.length === 0 ? 
-                                                'No users available for messaging. Note: Currently only users in the same courses or admins can message each other.' : 
+                                            {searchTerm ? 'No users found' : availableUsers.length === 0 ?
+                                                'No users available for messaging. Note: Currently only users in the same courses or admins can message each other.' :
                                                 'No users available'}
                                         </div>
                                     )}
@@ -1521,8 +1548,8 @@ const MessageIcon = ({ userId }) => {
                                 <div className="chat-messages">
                                     {messages.length > 0 ? (
                                         messages.map((message, index) => (
-                                            <div 
-                                                key={index} 
+                                            <div
+                                                key={index}
                                                 className={`message-bubble ${message.senderId === userId ? 'sent' : 'received'}`}
                                             >
                                                 {renderMessageContent(message, index)}
@@ -1535,7 +1562,7 @@ const MessageIcon = ({ userId }) => {
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 {/* Selection mode toolbar */}
                                 {selectionMode && selectedMessages.size > 0 && (
                                     <div className="selection-toolbar">
@@ -1543,21 +1570,21 @@ const MessageIcon = ({ userId }) => {
                                             {selectedMessages.size} message(s) selected
                                         </div>
                                         <div className="selection-actions">
-                                            <button 
+                                            <button
                                                 className="toolbar-btn forward-btn"
                                                 onClick={forwardMessages}
                                                 title="Forward"
                                             >
                                                 📤 Forward
                                             </button>
-                                            <button 
+                                            <button
                                                 className="toolbar-btn delete-btn"
                                                 onClick={deleteSelectedMessages}
                                                 title="Delete"
                                             >
                                                 🗑️ Delete
                                             </button>
-                                            <button 
+                                            <button
                                                 className="toolbar-btn cancel-btn"
                                                 onClick={exitSelectionMode}
                                                 title="Cancel"
@@ -1567,7 +1594,7 @@ const MessageIcon = ({ userId }) => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="chat-input">
                                     {/* File preview */}
                                     {selectedFile && (
@@ -1583,8 +1610,8 @@ const MessageIcon = ({ userId }) => {
                                                     <div className="file-size">{formatFileSize(selectedFile.size)}</div>
                                                 </div>
                                             </div>
-                                            <button 
-                                                onClick={removeSelectedFile} 
+                                            <button
+                                                onClick={removeSelectedFile}
                                                 className="remove-file-btn"
                                                 title="Remove file"
                                             >
@@ -1592,7 +1619,7 @@ const MessageIcon = ({ userId }) => {
                                             </button>
                                         </div>
                                     )}
-                                    
+
                                     {/* Reply indicator */}
                                     {replyingTo && (
                                         <div className="reply-indicator-input">
@@ -1600,7 +1627,7 @@ const MessageIcon = ({ userId }) => {
                                                 <span className="reply-label">Replying to {replyingTo.sender}:</span>
                                                 <span className="reply-text">{replyingTo.content}</span>
                                             </div>
-                                            <button 
+                                            <button
                                                 className="cancel-reply-btn"
                                                 onClick={cancelReply}
                                                 title="Cancel reply"
@@ -1609,7 +1636,7 @@ const MessageIcon = ({ userId }) => {
                                             </button>
                                         </div>
                                     )}
-                                    
+
                                     <div className="message-input-row">
                                         <input
                                             type="file"
@@ -1618,7 +1645,7 @@ const MessageIcon = ({ userId }) => {
                                             style={{ display: 'none' }}
                                             accept="*/*"
                                         />
-                                        <button 
+                                        <button
                                             onClick={() => fileInputRef.current?.click()}
                                             className="file-input-btn"
                                             title="Attach file"
@@ -1633,13 +1660,13 @@ const MessageIcon = ({ userId }) => {
                                             placeholder="Type a message..."
                                             className="message-input"
                                         />
-                                        <button 
+                                        <button
                                             onClick={sendMessage}
                                             disabled={!newMessage.trim() && !selectedFile}
                                             className="send-btn"
                                         >
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
                                             </svg>
                                         </button>
                                     </div>
@@ -1650,7 +1677,7 @@ const MessageIcon = ({ userId }) => {
 
                     {currentView === 'conversations' && (
                         <div className="message-dropdown-footer">
-                            <button 
+                            <button
                                 className="view-all-btn"
                                 onClick={() => {
                                     setShowModal(false);
@@ -1670,19 +1697,23 @@ const MessageIcon = ({ userId }) => {
                 <div className="modern-forward-overlay" onClick={() => {
                     setShowForwardModal(false);
                     setForwardSearchTerm(''); // Clear forward search
+                    // Reopen main message modal when closing forward modal
+                    setShowModal(true);
                 }}>
                     <div className="modern-forward-modal" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="modern-forward-header">
-                            <button 
+                            <button
                                 className="forward-back-btn"
                                 onClick={() => {
                                     setShowForwardModal(false);
                                     setForwardSearchTerm(''); // Clear forward search
+                                    // Reopen main message modal when going back
+                                    setShowModal(true);
                                 }}
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
                                 </svg>
                             </button>
                             <div className="forward-header-info">
@@ -1690,12 +1721,12 @@ const MessageIcon = ({ userId }) => {
                                 <span className="forward-subtitle">{forwardingMessages.length} message{forwardingMessages.length !== 1 ? 's' : ''}</span>
                             </div>
                             {selectedForwardRecipients.size > 0 && (
-                                <button 
+                                <button
                                     className="forward-send-btn"
                                     onClick={sendForwardedMessages}
                                 >
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
                                     </svg>
                                 </button>
                             )}
@@ -1716,7 +1747,7 @@ const MessageIcon = ({ userId }) => {
                                                     {userName.charAt(0).toUpperCase()}
                                                 </span>
                                                 <span className="chip-name">{userName}</span>
-                                                <button 
+                                                <button
                                                     className="chip-remove"
                                                     onClick={() => toggleRecipientSelection(userId)}
                                                 >
@@ -1736,7 +1767,7 @@ const MessageIcon = ({ userId }) => {
                         <div className="forward-search-container">
                             <div className="forward-search-wrapper">
                                 <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
                                 </svg>
                                 <input
                                     type="text"
@@ -1756,8 +1787,8 @@ const MessageIcon = ({ userId }) => {
                                     <>
                                         <div className="recipient-section-header">Recent Chats</div>
                                         {conversations
-                                            .filter(conv => 
-                                                !forwardSearchTerm || 
+                                            .filter(conv =>
+                                                !forwardSearchTerm ||
                                                 conv.userName.toLowerCase().includes(forwardSearchTerm.toLowerCase())
                                             )
                                             .map((conversation) => {
@@ -1775,9 +1806,9 @@ const MessageIcon = ({ userId }) => {
                                                         </div>
                                                         <div className="modern-recipient-avatar">
                                                             {conversation.profilePhotoUrl ? (
-                                                                <img 
-                                                                    src={conversation.profilePhotoUrl} 
-                                                                    alt={conversation.userName} 
+                                                                <img
+                                                                    src={conversation.profilePhotoUrl}
+                                                                    alt={conversation.userName}
                                                                     className="recipient-avatar-image"
                                                                     onError={(e) => {
                                                                         e.target.style.display = 'none';
@@ -1785,8 +1816,8 @@ const MessageIcon = ({ userId }) => {
                                                                     }}
                                                                 />
                                                             ) : null}
-                                                            <div 
-                                                                className="recipient-avatar-initials" 
+                                                            <div
+                                                                className="recipient-avatar-initials"
                                                                 style={{ display: conversation.profilePhotoUrl ? 'none' : 'flex' }}
                                                             >
                                                                 {conversation.userName?.charAt(0).toUpperCase() || 'U'}
@@ -1801,15 +1832,15 @@ const MessageIcon = ({ userId }) => {
                                             })}
                                     </>
                                 )}
-                                
+
                                 {/* All Users */}
                                 {availableUsers.length > 0 && (
                                     <>
                                         <div className="recipient-section-header">All Users</div>
                                         {availableUsers
-                                            .filter(user => 
-                                                (!forwardSearchTerm || 
-                                                user.name.toLowerCase().includes(forwardSearchTerm.toLowerCase())) &&
+                                            .filter(user =>
+                                                (!forwardSearchTerm ||
+                                                    user.name.toLowerCase().includes(forwardSearchTerm.toLowerCase())) &&
                                                 !conversations.some(conv => conv.userId === user.id)
                                             )
                                             .map((user) => {
@@ -1827,9 +1858,9 @@ const MessageIcon = ({ userId }) => {
                                                         </div>
                                                         <div className="modern-recipient-avatar">
                                                             {user.profilePhotoUrl ? (
-                                                                <img 
-                                                                    src={user.profilePhotoUrl} 
-                                                                    alt={user.name} 
+                                                                <img
+                                                                    src={user.profilePhotoUrl}
+                                                                    alt={user.name}
                                                                     className="recipient-avatar-image"
                                                                     onError={(e) => {
                                                                         e.target.style.display = 'none';
@@ -1837,8 +1868,8 @@ const MessageIcon = ({ userId }) => {
                                                                     }}
                                                                 />
                                                             ) : null}
-                                                            <div 
-                                                                className="recipient-avatar-initials" 
+                                                            <div
+                                                                className="recipient-avatar-initials"
                                                                 style={{ display: user.profilePhotoUrl ? 'none' : 'flex' }}
                                                             >
                                                                 {user.name?.charAt(0).toUpperCase() || 'U'}
@@ -1855,16 +1886,16 @@ const MessageIcon = ({ userId }) => {
                                 )}
                             </div>
                         </div>
-                        
+
                         {/* Forward Action Button */}
                         <div className="forward-modal-footer">
-                            <button 
+                            <button
                                 className={`forward-action-btn ${selectedForwardRecipients.size > 0 ? 'active' : 'disabled'}`}
                                 onClick={sendForwardedMessages}
                                 disabled={selectedForwardRecipients.size === 0}
                             >
-                                {selectedForwardRecipients.size > 0 
-                                    ? `Forward to ${selectedForwardRecipients.size} recipient${selectedForwardRecipients.size > 1 ? 's' : ''}` 
+                                {selectedForwardRecipients.size > 0
+                                    ? `Forward to ${selectedForwardRecipients.size} recipient${selectedForwardRecipients.size > 1 ? 's' : ''}`
                                     : 'Select recipients to forward'
                                 }
                             </button>

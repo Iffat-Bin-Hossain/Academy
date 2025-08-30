@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 
 public class MessageResponse {
@@ -26,6 +27,7 @@ public class MessageResponse {
     private String replyToSenderName;
     
     // Forwarding field
+    @JsonProperty("isForwarded")
     private boolean isForwarded;
     
     // Constructors
