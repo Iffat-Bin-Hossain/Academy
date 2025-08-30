@@ -292,6 +292,7 @@
 .conversation-info, .user-info {
     flex: 1;
     min-width: 0;
+    margin-left: 12px; /* Add proper spacing between avatar and info */
 }
 
 .conversation-header {
@@ -481,6 +482,8 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 132, 255, 0.3) transparent;
     min-height: 0; /* Important for proper scrolling */
+    /* Ensure minimum height when input area expands */
+    min-height: 200px;
 }
 
 .messages-container::-webkit-scrollbar {
@@ -747,8 +750,8 @@
 .chat-content {
     display: flex;
     flex-direction: column;
-    height: 340px; /* Increased from 300px to 340px */
-    min-height: 340px; /* Increased from 300px to 340px */
+    height: 380px; /* Increased to accommodate reply indicator */
+    min-height: 380px; /* Increased to accommodate reply indicator */
     overflow: hidden; /* Prevent content from overflowing */
 }
 
@@ -821,12 +824,13 @@
 .chat-input {
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Increased from 3px to 4px */
-    padding: 6px; /* Increased from 4px to 6px */
+    gap: 6px; /* Increased gap for better spacing when reply indicator appears */
+    padding: 8px; /* Increased padding */
     border-top: 1px solid #eee;
     background: white;
     flex-shrink: 0; /* Prevent shrinking */
-    max-height: 100px; /* Increased from 85px to 100px */
+    max-height: 140px; /* Increased to accommodate reply indicator */
+    overflow-y: auto; /* Allow scrolling if content exceeds max height */
 }
 
 .file-attachment-area {
@@ -1362,6 +1366,42 @@
     left: -60px;
 }
 
+/* Fix emoji picker positioning within modal bounds */
+.message-dropdown .emoji-picker {
+    position: absolute;
+    top: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 4px;
+    z-index: 1050;
+    border: 1px solid #e5e7eb;
+    min-width: 200px;
+    max-width: 220px;
+    flex-wrap: wrap;
+    backdrop-filter: blur(10px);
+}
+
+/* Center emoji picker for both received and sent messages in dropdown */
+.message-dropdown .message.received .emoji-picker,
+.message-dropdown .message.sent .emoji-picker {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    margin: 0;
+}
+
+/* Reactions positioning within modal */
+.message-dropdown .message-reactions {
+    max-width: 100%;
+    overflow: hidden;
+    flex-wrap: wrap;
+}
+
 .message-bubble:hover .message-actions {
     opacity: 1;
 }
@@ -1406,6 +1446,43 @@
     backdrop-filter: blur(10px);
     transform: translateY(0);
     animation: emojiPickerSlideIn 0.2s ease-out;
+}
+
+/* Override for modal dropdown to keep emoji picker within bounds */
+.message-dropdown .emoji-picker {
+    position: absolute;
+    top: -70px;
+    background: white;
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    gap: 4px;
+    z-index: 1050;
+    border: 1px solid #e5e7eb;
+    min-width: 200px;
+    max-width: 220px;
+    flex-wrap: wrap;
+    backdrop-filter: blur(10px);
+    /* Center the emoji picker in modal for both left and right messages */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+}
+
+/* Remove specific positioning for received and sent messages in modal */
+.message-dropdown .message.received .emoji-picker {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    margin-left: 0;
+}
+
+.message-dropdown .message.sent .emoji-picker {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    margin-right: 0;
 }
 
 @keyframes emojiPickerSlideIn {
@@ -1570,12 +1647,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
+    padding: 8px 12px; /* Reduced padding for more compact display */
     background: linear-gradient(90deg, rgba(0, 132, 255, 0.1), rgba(0, 132, 255, 0.05));
     border-left: 3px solid #0084ff;
-    margin-bottom: 8px;
-    border-radius: 8px;
+    margin-bottom: 6px; /* Reduced margin */
+    border-radius: 6px; /* Slightly smaller border radius */
     box-shadow: 0 1px 3px rgba(0, 132, 255, 0.1);
+    max-height: 60px; /* Add max height to prevent it from getting too tall */
+    overflow: hidden; /* Hide overflow */
 }
 
 .reply-content {
@@ -1594,13 +1673,14 @@
 }
 
 .reply-text {
-    font-size: 0.875rem;
+    font-size: 0.8rem; /* Slightly smaller font */
     color: #1c1e21;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: 280px;
+    max-width: 200px; /* Reduced max width */
     font-weight: 400;
+    line-height: 1.2; /* Tighter line height */
 }
 
 .cancel-reply-btn {
@@ -2211,43 +2291,57 @@
     box-shadow: 0 1px 3px rgba(0, 136, 204, 0.2);
 }
 
-/* Forwarded Message Styling - Like WhatsApp/Telegram */
-.forwarded-message {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.forwarded-header {
+/* Forwarded Message Styling - iPhone Messages Style */
+.forwarded-indicator {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: #6b7280;
-    font-weight: 500;
+    gap: 4px;
+    font-size: 13px;
+    color: #8e8e93;
     margin-bottom: 4px;
+    font-weight: 400;
 }
 
-.forwarded-icon {
-    font-size: 14px;
-    color: #0088cc;
-    font-weight: bold;
+.forwarded-arrow {
+    font-size: 12px;
+    color: #8e8e93;
+    font-weight: normal;
 }
 
-.forwarded-text {
-    font-style: italic;
-    color: white;
-    font-weight: 500;
+.forwarded-label {
+    font-style: normal;
+    color: #8e8e93;
+    font-weight: 400;
+    font-size: 13px;
+}
+
+/* White forwarded indicator for sent messages (blue bubbles) */
+.message.sent .forwarded-indicator,
+.message-bubble.sent .forwarded-indicator {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.message.sent .forwarded-arrow,
+.message-bubble.sent .forwarded-arrow {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.message.sent .forwarded-label,
+.message-bubble.sent .forwarded-label {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Ensure forwarded indicator is visible and not hidden */
+.message-text .forwarded-indicator {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .forwarded-content {
-    background: rgba(0, 136, 204, 0.05);
-    border-left: 3px solid #0088cc;
-    padding: 8px 12px;
-    border-radius: 0 8px 8px 0;
-    margin-left: 8px;
-    font-size: 14px;
+    font-size: 16px;
     line-height: 1.4;
+    color: inherit;
 }
 
 /* File input button improvement */

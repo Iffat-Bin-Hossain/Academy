@@ -76,6 +76,11 @@ public class Message {
     @Column(name = "reply_to_sender_name")
     private String replyToSenderName;
 
+    // Forwarding functionality field
+    @Column(name = "is_forwarded")
+    @Builder.Default
+    private Boolean isForwarded = false;
+
     // Enum for message types
     public enum MessageType {
         DIRECT, // Direct message between users

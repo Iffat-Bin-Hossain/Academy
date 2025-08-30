@@ -25,6 +25,9 @@ public class MessageResponse {
     private String replyToContent;
     private String replyToSenderName;
     
+    // Forwarding field
+    private boolean isForwarded;
+    
     // Constructors
     public MessageResponse() {}
     
@@ -180,5 +183,14 @@ public class MessageResponse {
 
     public void setReplyToSenderName(String replyToSenderName) {
         this.replyToSenderName = replyToSenderName;
+    }
+    
+    // Forwarding getters and setters
+    public boolean isForwarded() {
+        return isForwarded;
+    }
+
+    public void setForwarded(boolean isForwarded) {
+        this.isForwarded = isForwarded;
     }
 }

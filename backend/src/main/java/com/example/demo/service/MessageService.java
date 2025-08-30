@@ -45,7 +45,8 @@ public class MessageService {
                 .attachmentUrl(request.getAttachmentUrl())
                 .attachmentFilename(request.getAttachmentFilename())
                 .attachmentSize(request.getAttachmentSize())
-                .attachmentContentType(request.getAttachmentContentType());
+                .attachmentContentType(request.getAttachmentContentType())
+                .isForwarded(request.getIsForwarded() != null ? request.getIsForwarded() : false);
 
         // Handle reply functionality
         if (request.getReplyToMessageId() != null) {
@@ -309,6 +310,9 @@ public class MessageService {
             response.setReplyToContent(message.getReplyToContent());
             response.setReplyToSenderName(message.getReplyToSenderName());
         }
+        
+        // Set forwarded field
+        response.setForwarded(message.getIsForwarded() != null ? message.getIsForwarded() : false);
         
         return response;
     }

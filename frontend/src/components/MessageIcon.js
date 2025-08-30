@@ -15,6 +15,7 @@ const MessageIcon = ({ userId }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [forwardSearchTerm, setForwardSearchTerm] = useState(''); // Separate search for forward modal
     const [availableUsers, setAvailableUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [filteredConversations, setFilteredConversations] = useState([]);
@@ -158,6 +159,29 @@ const MessageIcon = ({ userId }) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Handle click outside to close emoji picker
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showEmojiPicker !== null) {
+                // Check if the click is outside the emoji picker
+                const emojiPicker = document.querySelector('.emoji-picker');
+                const emojiButton = event.target.closest('.reaction-btn');
+                
+                if (emojiPicker && !emojiPicker.contains(event.target) && !emojiButton) {
+                    setShowEmojiPicker(null);
+                }
+            }
+        };
+
+        if (showEmojiPicker !== null) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showEmojiPicker]);
 
     const fetchUnreadCount = async () => {
         try {
@@ -679,22 +703,18 @@ const MessageIcon = ({ userId }) => {
                     
                     // Handle both text messages and file attachments
                     if (message.attachmentUrl && message.attachmentContentType) {
-                        // Forward file attachment using the correct parameter structure
-                        // Send the original content without adding forwarding labels
+                        // Forward file attachment using clean content
                         let cleanContent = message.content || 'File attachment';
-                        // Remove any existing forwarding labels to avoid repetition
-                        if (cleanContent.startsWith('📨 Forwarded message:')) {
-                            cleanContent = cleanContent.replace(/^📨 Forwarded message:\s*\n*\n*/, '');
-                        }
                         
                         const forwardData = {
                             senderId: userId,
                             recipientId: recipientId,
-                            content: cleanContent, // Clean content without forwarding labels
+                            content: cleanContent,
                             attachmentUrl: message.attachmentUrl,
                             attachmentFilename: message.attachmentFilename || 'forwarded_file',
                             attachmentSize: message.attachmentSize || 0,
-                            attachmentContentType: message.attachmentContentType
+                            attachmentContentType: message.attachmentContentType,
+                            isForwarded: true // Add forwarded indicator
                         };
                         
                         console.log('Forwarding message with attachment:', forwardData);
@@ -708,6 +728,7 @@ const MessageIcon = ({ userId }) => {
                         params.append('attachmentFilename', forwardData.attachmentFilename);
                         params.append('attachmentSize', forwardData.attachmentSize);
                         params.append('attachmentContentType', forwardData.attachmentContentType);
+                        params.append('isForwarded', 'true');
                         
                         await axios.post('/messages/send-with-attachment', params, {
                             headers: {
@@ -715,17 +736,11 @@ const MessageIcon = ({ userId }) => {
                             }
                         });
                     } else if (message.content) {
-                        // Forward text message
-                        // Send the original content without adding forwarding labels
-                        let cleanContent = message.content;
-                        // Remove any existing forwarding labels to avoid repetition
-                        if (cleanContent.startsWith('📨 Forwarded message:')) {
-                            cleanContent = cleanContent.replace(/^📨 Forwarded message:\s*\n*\n*/, '');
-                        }
-                        
+                        // Forward text message with clean content
                         const forwardData = {
                             recipientId: recipientId,
-                            content: cleanContent // Clean content without forwarding labels
+                            content: message.content,
+                            isForwarded: true // Add forwarded indicator
                         };
                         
                         console.log('Forwarding text message:', forwardData);
@@ -739,6 +754,7 @@ const MessageIcon = ({ userId }) => {
             setShowForwardModal(false);
             setForwardingMessages([]);
             setSelectedForwardRecipients(new Set());
+            setForwardSearchTerm(''); // Clear forward search
             exitSelectionMode();
             
             // Refresh conversations to show the new forwarded messages
@@ -1017,18 +1033,18 @@ const MessageIcon = ({ userId }) => {
                 {message.content && (
                     <div className="message-text">
                         {/* Check if this is a forwarded message */}
-                        {message.content.startsWith('📨 Forwarded message:') ? (
-                            <div className="forwarded-message">
-                                <div className="forwarded-header">
-                                    <span className="forwarded-icon">→</span>
-                                    <span className="forwarded-text">You forwarded a message</span>
+                        {message.isForwarded ? (
+                            <>
+                                <div className="forwarded-indicator">
+                                    <span className="forwarded-arrow">→</span>
+                                    <span className="forwarded-label">You forwarded a message</span>
                                 </div>
                                 <div className="forwarded-content">
                                     <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>
-                                        {message.content.replace('📨 Forwarded message:\n\n', '')}
+                                        {message.content}
                                     </Linkify>
                                 </div>
-                            </div>
+                            </>
                         ) : (
                             <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>
                                 {message.content}
@@ -1651,13 +1667,19 @@ const MessageIcon = ({ userId }) => {
 
             {/* Modern Forward Modal - Messenger/Telegram Style */}
             {showForwardModal && (
-                <div className="modern-forward-overlay" onClick={() => setShowForwardModal(false)}>
+                <div className="modern-forward-overlay" onClick={() => {
+                    setShowForwardModal(false);
+                    setForwardSearchTerm(''); // Clear forward search
+                }}>
                     <div className="modern-forward-modal" onClick={(e) => e.stopPropagation()}>
                         {/* Header */}
                         <div className="modern-forward-header">
                             <button 
                                 className="forward-back-btn"
-                                onClick={() => setShowForwardModal(false)}
+                                onClick={() => {
+                                    setShowForwardModal(false);
+                                    setForwardSearchTerm(''); // Clear forward search
+                                }}
                             >
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
@@ -1720,8 +1742,8 @@ const MessageIcon = ({ userId }) => {
                                     type="text"
                                     placeholder="Search for people..."
                                     className="forward-search-input"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    value={forwardSearchTerm}
+                                    onChange={(e) => setForwardSearchTerm(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -1735,8 +1757,8 @@ const MessageIcon = ({ userId }) => {
                                         <div className="recipient-section-header">Recent Chats</div>
                                         {conversations
                                             .filter(conv => 
-                                                !searchTerm || 
-                                                conv.userName.toLowerCase().includes(searchTerm.toLowerCase())
+                                                !forwardSearchTerm || 
+                                                conv.userName.toLowerCase().includes(forwardSearchTerm.toLowerCase())
                                             )
                                             .map((conversation) => {
                                                 const isSelected = selectedForwardRecipients.has(conversation.userId);
@@ -1786,8 +1808,8 @@ const MessageIcon = ({ userId }) => {
                                         <div className="recipient-section-header">All Users</div>
                                         {availableUsers
                                             .filter(user => 
-                                                (!searchTerm || 
-                                                user.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+                                                (!forwardSearchTerm || 
+                                                user.name.toLowerCase().includes(forwardSearchTerm.toLowerCase())) &&
                                                 !conversations.some(conv => conv.userId === user.id)
                                             )
                                             .map((user) => {

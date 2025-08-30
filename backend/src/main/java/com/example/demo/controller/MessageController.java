@@ -40,7 +40,8 @@ public class MessageController {
             @RequestParam(required = false) String attachmentFilename,
             @RequestParam(required = false) Long attachmentSize,
             @RequestParam(required = false) String attachmentContentType,
-            @RequestParam(required = false) Long replyToMessageId) {
+            @RequestParam(required = false) Long replyToMessageId,
+            @RequestParam(required = false) Boolean isForwarded) {
         try {
             MessageCreateRequest request = new MessageCreateRequest();
             request.setRecipientId(recipientId);
@@ -50,6 +51,7 @@ public class MessageController {
             request.setAttachmentSize(attachmentSize);
             request.setAttachmentContentType(attachmentContentType);
             request.setReplyToMessageId(replyToMessageId);
+            request.setIsForwarded(isForwarded);
             
             MessageResponse message = messageService.sendMessage(request, senderId);
             return ResponseEntity.ok(message);

@@ -13,6 +13,9 @@ public class MessageCreateRequest {
     // Reply fields
     private Long replyToMessageId;
     
+    // Forwarding field
+    private Boolean isForwarded;
+    
     // Constructors
     public MessageCreateRequest() {}
     
@@ -78,5 +81,14 @@ public class MessageCreateRequest {
 
     public void setReplyToMessageId(Long replyToMessageId) {
         this.replyToMessageId = replyToMessageId;
+    }
+    
+    // Forwarding getters and setters
+    public Boolean getIsForwarded() {
+        return isForwarded;
+    }
+
+    public void setIsForwarded(Boolean isForwarded) {
+        this.isForwarded = isForwarded;
     }
 }
