@@ -1045,7 +1045,9 @@ const MessageIcon = ({ userId }) => {
                             <>
                                 <div className="forwarded-indicator">
                                     <span className="forwarded-arrow">→</span>
-                                    <span className="forwarded-label">You forwarded a message</span>
+                                    <span className="forwarded-label">
+                                        {String(message.senderId) === String(userId) ? "You forwarded a message" : "Forwarded"}
+                                    </span>
                                 </div>
                                 <div className="forwarded-content">
                                     <Linkify properties={{ target: '_blank', rel: 'noopener noreferrer' }}>
