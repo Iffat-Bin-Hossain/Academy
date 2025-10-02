@@ -153,7 +153,37 @@ public class AdminController {
 
     // 4) Get all users (for admin management)
     @GetMapping("/users")
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String status) {
+        
+        if (role != null && status != null) {
+            try {
+                Role roleEnum = Role.valueOf(role.toUpperCase());
+                UserStatus statusEnum = UserStatus.valueOf(status.toUpperCase());
+                return userRepo.findByRoleAndStatus(roleEnum, statusEnum);
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid role or status parameter: role={}, status={}", role, status);
+                return new ArrayList<>();
+            }
+        } else if (role != null) {
+            try {
+                Role roleEnum = Role.valueOf(role.toUpperCase());
+                return userRepo.findByRole(roleEnum);
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid role parameter: {}", role);
+                return new ArrayList<>();
+            }
+        } else if (status != null) {
+            try {
+                UserStatus statusEnum = UserStatus.valueOf(status.toUpperCase());
+                return userRepo.findByStatus(statusEnum);
+            } catch (IllegalArgumentException e) {
+                logger.error("Invalid status parameter: {}", status);
+                return new ArrayList<>();
+            }
+        }
+        
         return userRepo.findAll();
     }
 

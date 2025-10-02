@@ -313,17 +313,44 @@
   gap: 12px;
 }
 
+.user-details {
+  display: flex;
+  flex-direction: column;
+}
+
 .user-avatar {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.1);
+}
+
+.user-avatar-image,
+.user-avatar-placeholder {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(45deg, #007bff, #6610f2);
-  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
-  font-size: 16px;
+  overflow: hidden;
+}
+
+.user-avatar-image {
+  object-fit: cover;
+  border: 2px solid #e9ecef;
+  background-color: #f8f9fa;
+}
+
+.user-avatar-placeholder {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: 2px solid #e9ecef;
 }
 
 .user-details {
@@ -479,6 +506,16 @@
 
 .action-btn.edit:hover {
   background-color: #007bff;
+  color: white;
+}
+
+.action-btn.view-profile {
+  background-color: #e8f5e8;
+  color: #28a745;
+}
+
+.action-btn.view-profile:hover {
+  background-color: #28a745;
   color: white;
 }
 

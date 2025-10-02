@@ -388,6 +388,8 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
       </small>
     );
   };
+
+  const downloadSubmissionFile = async (fileId, fileName) => {
     try {
       const response = await axios.get(`/submissions/files/${fileId}/download`, {
         responseType: 'blob',

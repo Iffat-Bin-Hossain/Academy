@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import UserProfileModal from './UserProfileModal';
 import './UserManagement.css';
 
 const UserManagement = () => {
@@ -17,6 +18,11 @@ const UserManagement = () => {
   // Message system state
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState(''); // 'success', 'error', 'info'
+  
+  // Profile modal state
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [imageErrors, setImageErrors] = useState(new Set());
 
   useEffect(() => {
     fetchUsers();
@@ -62,6 +68,44 @@ const UserManagement = () => {
     }
   };
 
+    // Helper function to get profile photo URL
+  const getProfilePhotoUrl = (user) => {
+    if (user.profilePhotoUrl) {
+      console.log(`User ${user.id} has profile photo URL: ${user.profilePhotoUrl}`);
+      
+      // Handle full URLs (starting with http/https)
+      if (user.profilePhotoUrl.startsWith('http')) {
+        // Add cache-busting parameter and auth token
+        const token = localStorage.getItem('token');
+        const separator = user.profilePhotoUrl.includes('?') ? '&' : '?';
+        return `${user.profilePhotoUrl}${separator}t=${Date.now()}&token=${encodeURIComponent(token || '')}`;
+      }
+      
+      // Handle relative URLs - construct full URL
+      // Since we're in development, use localhost:8081, in production this will be handled by proxy
+      const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const baseURL = isDevelopment ? 'http://localhost:8081' : '';
+      const token = localStorage.getItem('token');
+      
+      let fullUrl;
+      if (user.profilePhotoUrl.startsWith('/api/')) {
+        fullUrl = `${baseURL}${user.profilePhotoUrl}`;
+      } else {
+        // Add /api prefix if missing
+        fullUrl = `${baseURL}/api${user.profilePhotoUrl.startsWith('/') ? user.profilePhotoUrl : '/' + user.profilePhotoUrl}`;
+      }
+      
+      // Add cache-busting and token parameters
+      const separator = fullUrl.includes('?') ? '&' : '?';
+      fullUrl = `${fullUrl}${separator}t=${Date.now()}&token=${encodeURIComponent(token || '')}`;
+      
+      console.log(`Constructed full URL: ${fullUrl}`);
+      return fullUrl;
+    }
+    return null;
+  };
+
+  // Filter users based on current filter and search term
   const filteredUsers = users.filter(user => {
     // First filter by status
     const statusMatch = filter === 'ALL' 
@@ -154,6 +198,23 @@ const UserManagement = () => {
       status: user.status
     });
     setShowEditModal(true);
+  };
+
+  const handleViewProfile = (userId) => {
+    setSelectedUserId(userId);
+    setShowProfileModal(true);
+  };
+
+  const handleCloseProfileModal = () => {
+    setShowProfileModal(false);
+    setSelectedUserId(null);
+    // Refresh users list to get updated profile photos
+    fetchUsers();
+  };
+
+  const handleImageError = (userId) => {
+    console.log(`Image failed to load for user ${userId}`);
+    setImageErrors(prev => new Set([...prev, userId]));
   };
 
   const handleSaveUser = async () => {
@@ -684,7 +745,27 @@ const UserManagement = () => {
                   )}
                 </td>
                 <td className="user-info">
-                  <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
+                  <div className="user-avatar">
+                    {getProfilePhotoUrl(user) && !imageErrors.has(user.id) ? (
+                      <img 
+                        src={getProfilePhotoUrl(user)} 
+                        alt={user.name}
+                        className="user-avatar-image"
+                        onClick={() => handleViewProfile(user.id)}
+                        title="Click to view profile"
+                        onError={() => handleImageError(user.id)}
+                        onLoad={() => console.log(`Image loaded successfully for user ${user.id}`)}
+                      />
+                    ) : (
+                      <div 
+                        className="user-avatar-placeholder"
+                        onClick={() => handleViewProfile(user.id)}
+                        title="Click to view profile"
+                      >
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
                   <div className="user-details">
                     <div className="user-name">{user.name}</div>
                     <div className="user-id">ID: {user.id}</div>
@@ -750,6 +831,13 @@ const UserManagement = () => {
                         title="Edit User"
                       >
                         ✏️
+                      </button>
+                      <button
+                        className="action-btn view-profile"
+                        onClick={() => handleViewProfile(user.id)}
+                        title="View Profile"
+                      >
+                        👤
                       </button>
                     </>
                   )}
@@ -830,6 +918,13 @@ const UserManagement = () => {
           </div>
         </div>
       )}
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        userId={selectedUserId}
+        isOpen={showProfileModal}
+        onClose={handleCloseProfileModal}
+      />
     </div>
   );
 };

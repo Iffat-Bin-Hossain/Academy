@@ -1,0 +1,487 @@
+/* User Profile Modal Styles */
+.user-profile-modal-overlay {
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 1050;
+}
+
+.user-profile-modal {
+    max-width: 1400px;
+    min-width: 800px;
+    max-height: 85vh;
+    width: 98%;
+    margin: 1rem auto;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-profile-modal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.user-profile-modal .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.user-profile-modal .modal-close {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.user-profile-modal .modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.user-profile-modal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+}
+
+/* Profile Header */
+.user-profile-modal .profile-header {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    min-height: 140px;
+}
+
+.user-profile-modal .profile-photo-section {
+    flex-shrink: 0;
+}
+
+.user-profile-modal .profile-photo-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-profile-modal .profile-photo,
+.user-profile-modal .profile-photo-placeholder {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.user-profile-modal .profile-photo {
+    object-fit: cover;
+}
+
+.user-profile-modal .profile-photo-placeholder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-profile-modal .photo-initials {
+    color: white;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.user-profile-modal .photo-upload-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-profile-modal .photo-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    min-width: 100px;
+}
+
+.user-profile-modal .photo-btn.upload {
+    background-color: #007bff;
+    color: white;
+}
+
+.user-profile-modal .photo-btn.upload:hover {
+    background-color: #0056b3;
+}
+
+.user-profile-modal .photo-btn.save {
+    background-color: #28a745;
+    color: white;
+}
+
+.user-profile-modal .photo-btn.save:hover {
+    background-color: #1e7e34;
+}
+
+.user-profile-modal .photo-btn.delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.user-profile-modal .photo-btn.delete:hover {
+    background-color: #c82333;
+}
+
+.user-profile-modal .profile-basic-info {
+    flex: 1;
+}
+
+.user-profile-modal .profile-name {
+    margin: 0 0 0.8rem 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.user-profile-modal .profile-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+.user-profile-modal .role-badge,
+.user-profile-modal .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.user-profile-modal .role-badge.admin {
+    background-color: #dc3545;
+    color: white;
+}
+
+.user-profile-modal .role-badge.teacher {
+    background-color: #007bff;
+    color: white;
+}
+
+.user-profile-modal .role-badge.student {
+    background-color: #28a745;
+    color: white;
+}
+
+.user-profile-modal .status-badge.active {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.user-profile-modal .status-badge.pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.user-profile-modal .status-badge.disabled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.user-profile-modal .status-badge.rejected {
+    background-color: #f5c6cb;
+    color: #721c24;
+}
+
+.user-profile-modal .profile-email {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.user-profile-modal .profile-actions {
+    flex-shrink: 0;
+}
+
+.user-profile-modal .btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.user-profile-modal .btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.user-profile-modal .btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.user-profile-modal .btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.user-profile-modal .btn-cancel:hover {
+    background-color: #545b62;
+}
+
+/* Profile Content */
+.user-profile-modal .profile-content {
+    padding: 2.5rem 3rem;
+}
+
+/* Loading State */
+.user-profile-modal .profile-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+}
+
+.user-profile-modal .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.user-profile-modal .profile-error {
+    text-align: center;
+    padding: 3rem;
+    color: #dc3545;
+}
+
+/* Messages */
+.user-profile-modal .profile-message {
+    margin: 1rem 2rem;
+    padding: 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+.user-profile-modal .profile-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.user-profile-modal .profile-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.user-profile-modal .profile-message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.user-profile-modal .message-icon {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Profile Section Overrides for Modal */
+.user-profile-modal .profile-section {
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.user-profile-modal .section-header {
+    background: #f8f9fa;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.user-profile-modal .section-content {
+    padding: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .user-profile-modal {
+        width: 98%;
+        min-width: auto;
+        margin: 0.5rem auto;
+        max-height: 95vh;
+    }
+
+    .user-profile-modal .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+        min-height: auto;
+    }
+
+    .user-profile-modal .profile-meta {
+        justify-content: center;
+    }
+
+    .user-profile-modal .profile-content {
+        padding: 1.5rem 1.5rem;
+    }
+
+    .user-profile-modal .profile-message {
+        margin: 1rem 1.5rem;
+    }
+
+    .user-profile-modal .profile-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-profile-modal .modal-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .user-profile-modal .modal-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .user-profile-modal .profile-photo,
+    .user-profile-modal .profile-photo-placeholder {
+        width: 100px;
+        height: 100px;
+    }
+
+    .user-profile-modal .photo-initials {
+        font-size: 2rem;
+    }
+
+    .user-profile-modal .profile-name {
+        font-size: 1.5rem;
+    }
+}
+
+/* Profile Section Overrides for Modal */
+.user-profile-modal .profile-section {
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.user-profile-modal .section-header {
+    background: #f8f9fa;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.user-profile-modal .section-content {
+    padding: 2rem;
+}
+
+.user-profile-modal .section-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.user-profile-modal .section-description {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.user-profile-modal .profile-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.user-profile-modal .profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.user-profile-modal .field-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.user-profile-modal .field-value {
+    padding: 0.5rem 0;
+    color: #212529;
+}
+
+.user-profile-modal .field-input,
+.user-profile-modal .field-textarea,
+.user-profile-modal .field-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.user-profile-modal .field-input.loading {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-style: italic;
+    cursor: not-allowed;
+}

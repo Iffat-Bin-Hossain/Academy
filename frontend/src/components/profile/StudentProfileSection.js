@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from '../../api/axiosInstance';
 
 const StudentProfileSection = ({ profile, editing, canEdit, isAdmin, onSave }) => {
     const [formData, setFormData] = useState({
@@ -10,10 +11,14 @@ const StudentProfileSection = ({ profile, editing, canEdit, isAdmin, onSave }) =
         gpa: '',
         retakeCount: 0
     });
+    
+    const [activeTeachers, setActiveTeachers] = useState([]);
+    const [loadingTeachers, setLoadingTeachers] = useState(false);
 
     useEffect(() => {
         if (profile) {
-            console.log('StudentProfileSection - Profile data:', profile);
+            console.log('StudentProfileSection - Profile data updated:', profile);
+            console.log('StudentProfileSection - Profile retakeCount:', profile.retakeCount);
             
             setFormData({
                 program: profile.program || '',
@@ -26,9 +31,30 @@ const StudentProfileSection = ({ profile, editing, canEdit, isAdmin, onSave }) =
         }
     }, [profile]);
 
+    // Fetch active teachers when editing mode is enabled
+    useEffect(() => {
+        if (editing && isAdmin) {
+            fetchActiveTeachers();
+        }
+    }, [editing, isAdmin]);
+
+    const fetchActiveTeachers = async () => {
+        try {
+            setLoadingTeachers(true);
+            const response = await axios.get('/admin/users?role=TEACHER&status=ACTIVE');
+            setActiveTeachers(response.data || []);
+        } catch (error) {
+            console.error('Error fetching active teachers:', error);
+            setActiveTeachers([]);
+        } finally {
+            setLoadingTeachers(false);
+        }
+    };
+
     // Reset form when editing mode changes
     useEffect(() => {
         if (!editing && profile) {
+            console.log('StudentProfileSection - Resetting form data, editing:', editing, 'profile retakeCount:', profile.retakeCount);
             // Reset form data to match current profile
             setFormData({
                 program: profile.program || '',
@@ -42,6 +68,7 @@ const StudentProfileSection = ({ profile, editing, canEdit, isAdmin, onSave }) =
     }, [editing, profile]);
 
     const handleInputChange = (field, value) => {
+        console.log(`StudentProfileSection - handleInputChange: ${field} = ${value} (type: ${typeof value})`);
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
@@ -55,11 +82,14 @@ const StudentProfileSection = ({ profile, editing, canEdit, isAdmin, onSave }) =
             dataToSave.yearSemester = formData.yearSemester;
             dataToSave.advisor = formData.advisor;
             dataToSave.gpa = formData.gpa;
-            dataToSave.retakeCount = formData.retakeCount;
+            dataToSave.retakeCount = parseInt(formData.retakeCount) || 0; // Ensure it's a number
         }
 
+        console.log('StudentProfileSection - handleSave data:', dataToSave);
         onSave(dataToSave);
-    };    const getGpaColor = (gpa) => {
+    };
+
+    const getGpaColor = (gpa) => {
         const numGpa = parseFloat(gpa);
         if (numGpa >= 3.5) return 'gpa-excellent';
         if (numGpa >= 3.0) return 'gpa-good';
@@ -148,13 +178,22 @@ const StudentProfileSection = ({ profile, editing, canEdit, isAdmin, onSave }) =
                         <div className="profile-field">
                             <label className="field-label">Academic Advisor</label>
                             {editing && isAdmin ? (
-                                <input
-                                    type="text"
-                                    className="field-input"
-                                    value={formData.advisor}
-                                    onChange={(e) => handleInputChange('advisor', e.target.value)}
-                                    placeholder="Advisor name"
-                                />
+                                loadingTeachers ? (
+                                    <div className="field-input loading">Loading teachers...</div>
+                                ) : (
+                                    <select
+                                        className="field-input"
+                                        value={formData.advisor}
+                                        onChange={(e) => handleInputChange('advisor', e.target.value)}
+                                    >
+                                        <option value="">Select an advisor...</option>
+                                        {activeTeachers.map((teacher) => (
+                                            <option key={teacher.id} value={teacher.name}>
+                                                {teacher.name} - {teacher.email}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )
                             ) : (
                                 <div className="field-value readonly">
                                     {profile.advisor || 'Not assigned'}
