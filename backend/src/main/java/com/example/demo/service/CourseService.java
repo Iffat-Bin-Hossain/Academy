@@ -73,6 +73,8 @@ public class CourseService {
         existingCourse.setCourseCode(updatedCourse.getCourseCode());
         existingCourse.setTitle(updatedCourse.getTitle());
         existingCourse.setDescription(updatedCourse.getDescription());
+        existingCourse.setLevel(updatedCourse.getLevel());
+        existingCourse.setTerm(updatedCourse.getTerm());
         existingCourse.setAssignedTeacher(updatedCourse.getAssignedTeacher());
         return courseRepo.save(existingCourse);
     }

@@ -549,7 +549,7 @@ const StudentCourseDetailsPage = () => {
         <div className="card-body">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 <h1 style={{ margin: 0, color: '#1e293b' }}>{course.title}</h1>
                 <span style={{
                   padding: '0.5rem 1rem',
@@ -561,13 +561,39 @@ const StudentCourseDetailsPage = () => {
                 }}>
                   {course.courseCode}
                 </span>
+                {course.level && (
+                  <span style={{
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    background: '#10b981',
+                    color: 'white'
+                  }}>
+                    {course.level}
+                  </span>
+                )}
+                {course.term && (
+                  <span style={{
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '6px',
+                    fontSize: '0.75rem',
+                    fontWeight: '600',
+                    background: '#f59e0b',
+                    color: 'white'
+                  }}>
+                    {course.term}
+                  </span>
+                )}
               </div>
               <p style={{ margin: '0 0 1rem 0', color: '#64748b', fontSize: '1.1rem' }}>
                 {course.description}
               </p>
-              <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b' }}>
+              <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
                 <span>👨‍🏫 Instructor: {course.assignedTeacher?.name || 'Not Assigned'}</span>
                 <span>📅 Created: {formatDate(course.createdAt)}</span>
+                {course.level && <span>🎓 Level: {course.level}</span>}
+                {course.term && <span>📚 Term: {course.term}</span>}
               </div>
             </div>
           </div>

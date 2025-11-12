@@ -149,14 +149,36 @@ const ModernTeacherDashboard = () => {
   };
 
   const getFilteredCourses = () => {
-    if (!searchTerm) return courses;
+    let filtered = courses;
     
-    const searchLower = searchTerm.toLowerCase();
-    return courses.filter(course => 
-      course.title.toLowerCase().includes(searchLower) ||
-      course.courseCode.toLowerCase().includes(searchLower) ||
-      course.description.toLowerCase().includes(searchLower)
-    );
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = courses.filter(course => 
+        course.title.toLowerCase().includes(searchLower) ||
+        course.courseCode.toLowerCase().includes(searchLower) ||
+        course.description.toLowerCase().includes(searchLower) ||
+        (course.level && course.level.toLowerCase().includes(searchLower)) ||
+        (course.term && course.term.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Sort courses by level → term → courseCode (ascending)
+    return filtered.sort((a, b) => {
+      // Sort by level first (1, 2, 3, 4)
+      const levelA = parseInt(a.level) || 0;
+      const levelB = parseInt(b.level) || 0;
+      if (levelA !== levelB) return levelA - levelB;
+      
+      // Then by term (1, 2, 3, 4)
+      const termA = parseInt(a.term) || 0;
+      const termB = parseInt(b.term) || 0;
+      if (termA !== termB) return termA - termB;
+      
+      // Finally by courseCode alphabetically
+      const codeA = a.courseCode || '';
+      const codeB = b.courseCode || '';
+      return codeA.localeCompare(codeB);
+    });
   };
 
   if (loading) {
@@ -378,7 +400,7 @@ const ModernTeacherDashboard = () => {
                   >
                     <div className="card-body" style={{ padding: '1.5rem' }}>
                       <div style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                           <span style={{
                             padding: '0.25rem 0.75rem',
                             borderRadius: '8px',
@@ -390,6 +412,30 @@ const ModernTeacherDashboard = () => {
                           }}>
                             {course.courseCode}
                           </span>
+                          {course.level && (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: '#10b981',
+                              color: 'white'
+                            }}>
+                              {course.level}
+                            </span>
+                          )}
+                          {course.term && (
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: '600',
+                              background: '#f59e0b',
+                              color: 'white'
+                            }}>
+                              {course.term}
+                            </span>
+                          )}
                         </div>
                         <h4 style={{ margin: '0', color: '#1e293b', fontSize: '1.25rem', fontWeight: '600', lineHeight: '1.4' }}>
                           {course.title}

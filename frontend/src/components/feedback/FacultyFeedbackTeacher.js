@@ -293,7 +293,24 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                   style={{ borderRadius: '8px', border: '2px solid #e5e7eb', fontSize: '0.875rem' }}
                 >
                   <option value="all">All Courses ({feedbackData.length})</option>
-                  {courses.map(course => {
+                  {courses
+                    .sort((a, b) => {
+                      // Sort by level first (1, 2, 3, 4)
+                      const levelA = parseInt(a.level) || 0;
+                      const levelB = parseInt(b.level) || 0;
+                      if (levelA !== levelB) return levelA - levelB;
+                      
+                      // Then by term (1, 2, 3, 4)
+                      const termA = parseInt(a.term) || 0;
+                      const termB = parseInt(b.term) || 0;
+                      if (termA !== termB) return termA - termB;
+                      
+                      // Finally by courseCode alphabetically
+                      const codeA = a.courseCode || '';
+                      const codeB = b.courseCode || '';
+                      return codeA.localeCompare(codeB);
+                    })
+                    .map(course => {
                     const courseFeedbackCount = feedbackData.filter(f => f.courseId === course.id).length;
                     return (
                       <option key={course.id} value={course.id}>

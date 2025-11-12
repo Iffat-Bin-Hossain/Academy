@@ -188,7 +188,24 @@ const StudentDashboard = ({ user, onLogout }) => {
           <h2 className="section-title">🔍 Browse Available Courses</h2>
           <div className="section-content">
             <div className="course-grid">
-              {availableCourses.map(course => {
+              {availableCourses
+                .sort((a, b) => {
+                  // Sort by level first (1, 2, 3, 4)
+                  const levelA = parseInt(a.level) || 0;
+                  const levelB = parseInt(b.level) || 0;
+                  if (levelA !== levelB) return levelA - levelB;
+                  
+                  // Then by term (1, 2, 3, 4)
+                  const termA = parseInt(a.term) || 0;
+                  const termB = parseInt(b.term) || 0;
+                  if (termA !== termB) return termA - termB;
+                  
+                  // Finally by courseCode alphabetically
+                  const codeA = a.courseCode || '';
+                  const codeB = b.courseCode || '';
+                  return codeA.localeCompare(codeB);
+                })
+                .map(course => {
                 const isEnrolled = isEnrolledInCourse(course.id);
                 return (
                   <div key={course.id} className={`course-card ${isEnrolled ? 'enrolled' : 'available'}`}>

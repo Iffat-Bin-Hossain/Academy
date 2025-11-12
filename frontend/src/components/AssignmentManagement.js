@@ -739,7 +739,24 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 style={{ minWidth: '150px' }}
               >
                 <option value="">All Courses</option>
-                {courses.map(course => (
+                {courses
+                  .sort((a, b) => {
+                    // Sort by level first (1, 2, 3, 4)
+                    const levelA = parseInt(a.level) || 0;
+                    const levelB = parseInt(b.level) || 0;
+                    if (levelA !== levelB) return levelA - levelB;
+                    
+                    // Then by term (1, 2, 3, 4)
+                    const termA = parseInt(a.term) || 0;
+                    const termB = parseInt(b.term) || 0;
+                    if (termA !== termB) return termA - termB;
+                    
+                    // Finally by courseCode alphabetically
+                    const codeA = a.courseCode || '';
+                    const codeB = b.courseCode || '';
+                    return codeA.localeCompare(codeB);
+                  })
+                  .map(course => (
                   <option key={course.id} value={course.id}>
                     {course.courseCode} - {course.title}
                   </option>
@@ -1026,7 +1043,24 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     required
                   >
                     <option value="">Select a course</option>
-                    {courses.map(course => (
+                    {courses
+                      .sort((a, b) => {
+                        // Sort by level first (1, 2, 3, 4)
+                        const levelA = parseInt(a.level) || 0;
+                        const levelB = parseInt(b.level) || 0;
+                        if (levelA !== levelB) return levelA - levelB;
+                        
+                        // Then by term (1, 2, 3, 4)
+                        const termA = parseInt(a.term) || 0;
+                        const termB = parseInt(b.term) || 0;
+                        if (termA !== termB) return termA - termB;
+                        
+                        // Finally by courseCode alphabetically
+                        const codeA = a.courseCode || '';
+                        const codeB = b.courseCode || '';
+                        return codeA.localeCompare(codeB);
+                      })
+                      .map(course => (
                       <option key={course.id} value={course.id}>
                         {course.courseCode} - {course.title}
                       </option>

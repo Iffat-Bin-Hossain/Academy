@@ -30,13 +30,13 @@ public class AdminController {
     private final EmailService emailService;
     private final NotificationService notificationService;
 
-        // 1) List all pending users sorted by registration time (newest first)
+        // 1) List all pending users sorted by role (ADMIN, TEACHER, STUDENT) then alphabetically by name
     @GetMapping("/pending")
     public List<User> listPending() {
         logger.info("Fetching pending users...");
-        List<User> pendingUsers = userRepo.findByStatusOrderByCreatedAtDesc(UserStatus.PENDING);
+        List<User> pendingUsers = userRepo.findByStatusPendingOrderByRoleAndName();
         logger.info("Found {} pending users", pendingUsers.size());
-        pendingUsers.forEach(user -> logger.info("User: {}, Status: {}", user.getName(), user.getStatus()));
+        pendingUsers.forEach(user -> logger.info("User: {}, Role: {}, Status: {}", user.getName(), user.getRole(), user.getStatus()));
         return pendingUsers;
     }
 
@@ -184,7 +184,8 @@ public class AdminController {
             }
         }
         
-        return userRepo.findAll();
+        // Return all users sorted by role order (ADMIN, TEACHER, STUDENT) then alphabetically by name
+        return userRepo.findAllOrderByRoleAndName();
     }
 
     // 5) Toggle user status (Enable/Disable)

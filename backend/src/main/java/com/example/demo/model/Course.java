@@ -22,6 +22,9 @@ public class Course {
     private String title;        // e.g., Data Structures
     private String description;  // Course description
     
+    private String level;        // e.g., Undergraduate, Graduate, PhD
+    private String term;         // e.g., Fall 2024, Spring 2025, Summer 2025
+    
     @ManyToOne
     private User assignedTeacher;  // One teacher per course
     

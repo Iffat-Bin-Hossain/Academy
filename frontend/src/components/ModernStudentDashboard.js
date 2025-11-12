@@ -30,6 +30,16 @@ const ModernStudentDashboard = () => {
   const [availableSearchTerm, setAvailableSearchTerm] = useState('');
   const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
   
+  // Expandable sections state
+  const [showAllEnrolled, setShowAllEnrolled] = useState(false);
+  const [showAllPending, setShowAllPending] = useState(false);
+  const [showAllAvailable, setShowAllAvailable] = useState(false);
+  
+  // Recommended only mode state
+  const [showOnlyRecommendedEnrolled, setShowOnlyRecommendedEnrolled] = useState(false);
+  const [showOnlyRecommendedPending, setShowOnlyRecommendedPending] = useState(false);
+  const [showOnlyRecommendedAvailable, setShowOnlyRecommendedAvailable] = useState(false);
+  
   // Retake modal states
   const [showRetakeModal, setShowRetakeModal] = useState(false);
   const [retakeCourseData, setRetakeCourseData] = useState(null);
@@ -50,7 +60,8 @@ const ModernStudentDashboard = () => {
         id: currentUser.id,
         name: currentUser.name,
         role: currentUser.role,
-        email: currentUser.email
+        email: currentUser.email,
+        yearSemester: currentUser.yearSemester
       });
       
       // Get student enrollments and all available courses
@@ -224,30 +235,197 @@ const ModernStudentDashboard = () => {
 
   // Search filter functions
   const filterEnrolledCourses = () => {
-    if (!enrolledSearchTerm) return enrolledCourses;
-    return enrolledCourses.filter(enrollment => 
-      enrollment.course.title.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
-      enrollment.course.courseCode.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
-      (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(enrolledSearchTerm.toLowerCase())
-    );
+    let filtered = enrolledCourses;
+    if (enrolledSearchTerm) {
+      filtered = enrolledCourses.filter(enrollment => 
+        enrollment.course.title.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
+        enrollment.course.courseCode.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
+        (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(enrolledSearchTerm.toLowerCase())
+      );
+    }
+    return sortCourses(filtered);
   };
 
   const filterPendingCourses = () => {
-    if (!pendingSearchTerm) return pendingCourses;
-    return pendingCourses.filter(enrollment => 
-      enrollment.course.title.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
-      enrollment.course.courseCode.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
-      (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(pendingSearchTerm.toLowerCase())
-    );
+    let filtered = pendingCourses;
+    if (pendingSearchTerm) {
+      filtered = pendingCourses.filter(enrollment => 
+        enrollment.course.title.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
+        enrollment.course.courseCode.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
+        (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(pendingSearchTerm.toLowerCase())
+      );
+    }
+    return sortCourses(filtered);
   };
 
   const filterAvailableCourses = () => {
-    if (!availableSearchTerm) return availableCourses;
-    return availableCourses.filter(course => 
-      course.title.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
-      course.courseCode.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
-      (course.assignedTeacher?.name || '').toLowerCase().includes(availableSearchTerm.toLowerCase())
-    );
+    let filtered = availableCourses;
+    if (availableSearchTerm) {
+      filtered = availableCourses.filter(course => 
+        course.title.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
+        course.courseCode.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
+        (course.assignedTeacher?.name || '').toLowerCase().includes(availableSearchTerm.toLowerCase())
+      );
+    }
+    return sortCourses(filtered);
+  };
+
+  // Helper function to parse student's current academic level and term
+  const getCurrentLevelAndTerm = (user) => {
+    if (!user?.yearSemester) {
+      return { level: null, term: null };
+    }
+    
+    const yearSemesterStr = user.yearSemester.toString().trim();
+    
+    let level = null;
+    let term = null;
+    
+    // Pattern 1: Simple format like "4-1" (Level 4, Term 1)
+    const simplePattern = yearSemesterStr.match(/^(\d+)-(\d+)$/);
+    if (simplePattern) {
+      level = parseInt(simplePattern[1]);
+      term = parseInt(simplePattern[2]);
+      console.log(`Parsed yearSemester "${yearSemesterStr}" as Level ${level}, Term ${term}`);
+      return { level, term };
+    }
+    
+    // Pattern 2: Format like "Level 4, Term 1" or "Year 2, Semester 1"
+    const lowerStr = yearSemesterStr.toLowerCase();
+    
+    // Extract level/year (1-4)
+    const levelMatches = [
+      lowerStr.match(/(?:year|level)\s*(\d+)/),
+      lowerStr.match(/(\d+)(?:st|nd|rd|th)\s*(?:year|level)/),
+      lowerStr.match(/^(\d+)/) // Just a number at the start
+    ];
+    
+    for (const match of levelMatches) {
+      if (match) {
+        level = parseInt(match[1]);
+        break;
+      }
+    }
+    
+    // Extract term/semester (1-4)
+    const termMatches = [
+      lowerStr.match(/(?:semester|term)\s*(\d+)/),
+      lowerStr.match(/(\d+)(?:st|nd|rd|th)\s*(?:semester|term)/),
+      lowerStr.match(/,\s*(\d+)/) // Number after comma
+    ];
+    
+    for (const match of termMatches) {
+      if (match) {
+        term = parseInt(match[1]);
+        break;
+      }
+    }
+    
+    // Pattern 3: Handle formats like "4th Year 1st Semester" or "Level 3 Term 2"
+    if (!level || !term) {
+      const complexPattern = lowerStr.match(/(?:(?:year|level)\s*)?(\d+)(?:st|nd|rd|th)?\s*(?:year|level)?\s*(?:,?\s*)?(?:(?:semester|term)\s*)?(\d+)(?:st|nd|rd|th)?\s*(?:semester|term)?/);
+      if (complexPattern) {
+        level = level || parseInt(complexPattern[1]);
+        term = term || parseInt(complexPattern[2]);
+      }
+    }
+    
+    // Validate ranges (typically 1-4 for both level and term)
+    if (level && (level < 1 || level > 4)) level = null;
+    if (term && (term < 1 || term > 4)) term = null;
+    
+    return { level, term };
+  };
+
+  // Helper function to sort courses consistently by level → term → courseCode
+  const sortCourses = (courses) => {
+    return courses.sort((a, b) => {
+      const courseA = a.course || a;
+      const courseB = b.course || b;
+      
+      // Sort by level first (1, 2, 3, 4)
+      const levelA = parseInt(courseA.level) || 0;
+      const levelB = parseInt(courseB.level) || 0;
+      if (levelA !== levelB) return levelA - levelB;
+      
+      // Then by term (1, 2, 3, 4)
+      const termA = parseInt(courseA.term) || 0;
+      const termB = parseInt(courseB.term) || 0;
+      if (termA !== termB) return termA - termB;
+      
+      // Finally by courseCode alphabetically
+      const codeA = courseA.courseCode || '';
+      const codeB = courseB.courseCode || '';
+      return codeA.localeCompare(codeB);
+    });
+  };
+
+  // Helper function to check if a course matches student's current level/term
+  const isCourseForCurrentLevelTerm = (course, studentLevel, studentTerm) => {
+    if (!studentLevel || !studentTerm || !course.level || !course.term) {
+      return false;
+    }
+    return parseInt(course.level) === studentLevel && parseInt(course.term) === studentTerm;
+  };
+
+  // Helper function to filter courses by relevance (current level/term vs others)
+  const filterCoursesByRelevance = (courses, showAll = false) => {
+    const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+    
+    // First, always sort courses by level → term → courseCode
+    const sortedCourses = sortCourses(courses);
+    
+    // If we have student's academic info, prioritize current level/term courses
+    if (studentLevel && studentTerm) {
+      const currentCourses = sortedCourses.filter(course => 
+        isCourseForCurrentLevelTerm(course.course || course, studentLevel, studentTerm)
+      );
+      const otherCourses = sortedCourses.filter(course => 
+        !isCourseForCurrentLevelTerm(course.course || course, studentLevel, studentTerm)
+      );
+      
+      // Return prioritized list: current level/term first, then others
+      return [...currentCourses, ...otherCourses];
+    }
+    
+    return sortedCourses;
+  };
+
+  // Helper function to get display courses (recommended first, then show more)
+  const getDisplayCourses = (courses, showAll, limit = 3, showOnlyRecommended = false) => {
+    const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+    const relevantCourses = filterCoursesByRelevance(courses, true); // Always get properly sorted courses
+    
+    if (showOnlyRecommended && studentLevel && studentTerm) {
+      // Show only recommended courses
+      return relevantCourses.filter(course => 
+        isCourseForCurrentLevelTerm(course.course || course, studentLevel, studentTerm)
+      );
+    } else if (showAll) {
+      // When "Show All" is active, show everything
+      return relevantCourses;
+    } else {
+      // When in compressed view, prioritize recommended courses
+      if (studentLevel && studentTerm) {
+        const recommendedCourses = relevantCourses.filter(course => 
+          isCourseForCurrentLevelTerm(course.course || course, studentLevel, studentTerm)
+        );
+        const otherCourses = relevantCourses.filter(course => 
+          !isCourseForCurrentLevelTerm(course.course || course, studentLevel, studentTerm)
+        );
+        
+        // Show up to 'limit' courses, prioritizing recommended ones
+        if (recommendedCourses.length >= limit) {
+          return recommendedCourses.slice(0, limit);
+        } else {
+          const remaining = limit - recommendedCourses.length;
+          return [...recommendedCourses, ...otherCourses.slice(0, remaining)];
+        }
+      } else {
+        // No academic info available, just show first 'limit' courses
+        return relevantCourses.slice(0, limit);
+      }
+    }
   };
 
   if (loading) {
@@ -278,6 +456,18 @@ const ModernStudentDashboard = () => {
               <h2 style={{ margin: 0, color: '#1e293b' }}>Welcome back, {user?.name}!</h2>
               <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
                 Here's your learning progress overview
+                {user?.yearSemester && (() => {
+                  const { level, term } = getCurrentLevelAndTerm(user);
+                  return level && term ? (
+                    <span style={{ marginLeft: '1rem', fontWeight: '600', color: '#059669' }}>
+                      • Academic Level: {level}, Term: {term}
+                    </span>
+                  ) : (
+                    <span style={{ marginLeft: '1rem', fontStyle: 'italic', color: '#f59e0b' }}>
+                      • Academic Info: {user.yearSemester}
+                    </span>
+                  );
+                })()}
               </p>
             </div>
             <div style={{ 
@@ -506,6 +696,24 @@ const ModernStudentDashboard = () => {
                   <h3 style={{ margin: 0 }}>📚 My Enrolled Courses</h3>
                   <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                     {enrolledCourses.length} course{enrolledCourses.length !== 1 ? 's' : ''} enrolled
+                    {user?.yearSemester && (() => {
+                      const { level, term } = getCurrentLevelAndTerm(user);
+                      if (level && term) {
+                        const recommendedCount = enrolledCourses.filter(enrollment => 
+                          isCourseForCurrentLevelTerm(enrollment.course, level, term)
+                        ).length;
+                        return (
+                          <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
+                            • Current: {user.yearSemester} ({recommendedCount} recommended)
+                          </span>
+                        );
+                      }
+                      return (
+                        <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
+                          • Current: {user.yearSemester}
+                        </span>
+                      );
+                    })()}
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -538,67 +746,179 @@ const ModernStudentDashboard = () => {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
-                  {filterEnrolledCourses().map(enrollment => (
-                    <div key={enrollment.id} className="card">
-                      <div className="card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                              <h4 style={{ margin: 0, color: '#1e293b' }}>
-                                {enrollment.course.title}
-                              </h4>
-                              <span style={{
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '6px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#3b82f6',
-                                color: 'white',
-                                border: '1px solid #2563eb'
-                              }}>
-                                {enrollment.course.courseCode}
-                              </span>
-                              <span style={{
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '12px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: enrollment.status === 'RETAKING' ? '#fef3c7' : '#dbeafe',
-                                color: enrollment.status === 'RETAKING' ? '#92400e' : '#1e40af'
-                              }}>
-                                {enrollment.status === 'RETAKING' ? 'RETAKING' : 'ENROLLED'}
-                              </span>
+                <>
+                  <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
+                    {getDisplayCourses(filterEnrolledCourses(), showAllEnrolled, 3, showOnlyRecommendedEnrolled).map(enrollment => {
+                      const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                      const isCurrentLevelTerm = isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm);
+                      
+                      return (
+                        <div key={enrollment.id} className="card" style={{
+                          border: isCurrentLevelTerm ? '2px solid #10b981' : '1px solid #e5e7eb',
+                          backgroundColor: isCurrentLevelTerm ? '#f0fdf4' : 'white'
+                        }}>
+                          <div className="card-body">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                  <h4 style={{ margin: 0, color: '#1e293b' }}>
+                                    {enrollment.course.title}
+                                  </h4>
+                                  <span style={{
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: '#3b82f6',
+                                    color: 'white',
+                                    border: '1px solid #2563eb'
+                                  }}>
+                                    {enrollment.course.courseCode}
+                                  </span>
+                                  {enrollment.course.level && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: isCurrentLevelTerm ? '#059669' : '#10b981',
+                                      color: 'white'
+                                    }}>
+                                      Level {enrollment.course.level}
+                                    </span>
+                                  )}
+                                  {enrollment.course.term && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: isCurrentLevelTerm ? '#d97706' : '#f59e0b',
+                                      color: 'white'
+                                    }}>
+                                      Term {enrollment.course.term}
+                                    </span>
+                                  )}
+                                  {isCurrentLevelTerm && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: '#16a34a',
+                                      color: 'white'
+                                    }}>
+                                      📌 Current
+                                    </span>
+                                  )}
+                                  {enrollment.status === 'RETAKING' && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: '#dc2626',
+                                      color: 'white'
+                                    }}>
+                                      🔄 Retaking
+                                    </span>
+                                  )}
+                                </div>
+                                <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
+                                  {enrollment.course.description}
+                                </p>
+                                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
+                                  <span>📅 Created: {formatDate(enrollment.course.createdAt)}</span>
+                                  <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
+                                  {enrollment.course.level && <span>🎓 Level: {enrollment.course.level}</span>}
+                                  {enrollment.course.term && <span>📚 Term: {enrollment.course.term}</span>}
+                                  <span>📊 Status: {enrollment.status === 'RETAKING' ? 'Retaking' : 'Enrolled'}</span>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                <button 
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() => navigate(`/student/${enrollment.course.courseCode}`)}
+                                >
+                                  📖 View Details
+                                </button>
+                                {enrollment.status === 'APPROVED' && (
+                                  <button 
+                                    className="btn btn-warning btn-sm"
+                                    onClick={() => retakeCourse(enrollment.course.id, enrollment.course.title)}
+                                  >
+                                    🔄 Retake
+                                  </button>
+                                )}
+                              </div>
                             </div>
-                            <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
-                              {enrollment.course.description}
-                            </p>
-                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                              <span>📅 Created: {formatDate(enrollment.course.createdAt)}</span>
-                              <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button 
-                              className="btn btn-primary btn-sm"
-                              onClick={() => navigate(`/student/${enrollment.course.courseCode}`)}
-                            >
-                              📖 View Details
-                            </button>
-                            {enrollment.status === 'APPROVED' && (
-                              <button 
-                                className="btn btn-warning btn-sm"
-                                onClick={() => retakeCourse(enrollment.course.id, enrollment.course.title)}
-                              >
-                                🔄 Retake
-                              </button>
-                            )}
                           </div>
                         </div>
-                      </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Show More/Less Button for Enrolled Courses */}
+                  {filterEnrolledCourses().length > 3 && (
+                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                      <button
+                        className="btn btn-outline-primary"
+                        onClick={() => {
+                          if (showOnlyRecommendedEnrolled) {
+                            setShowOnlyRecommendedEnrolled(false);
+                            setShowAllEnrolled(true);
+                          } else if (showAllEnrolled) {
+                            setShowAllEnrolled(false);
+                          } else {
+                            const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                            if (studentLevel && studentTerm) {
+                              const recommendedCount = filterEnrolledCourses().filter(enrollment => 
+                                isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm)
+                              ).length;
+                              
+                              if (recommendedCount > 0) {
+                                setShowOnlyRecommendedEnrolled(true);
+                              } else {
+                                setShowAllEnrolled(true);
+                              }
+                            } else {
+                              setShowAllEnrolled(true);
+                            }
+                          }
+                        }}
+                        style={{ 
+                          padding: '0.75rem 2rem',
+                          borderRadius: '8px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {showAllEnrolled ? (() => {
+                          const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                          const allCourses = filterEnrolledCourses();
+                          const recommendedCount = studentLevel && studentTerm ? 
+                            allCourses.filter(enrollment => 
+                              isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm)
+                            ).length : 0;
+                          
+                          return recommendedCount > 0 ? 
+                            `� Show Only Recommended (${recommendedCount})` :
+                            '📄 Show Less';
+                        })() : (() => {
+                          const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                          const allCourses = filterEnrolledCourses();
+                          const recommendedCount = studentLevel && studentTerm ? 
+                            allCourses.filter(enrollment => 
+                              isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm)
+                            ).length : 0;
+                          
+                          return recommendedCount > 0 ? 
+                            `📚 Show All ${allCourses.length} Courses (${recommendedCount} recommended shown)` :
+                            `📚 Show All ${allCourses.length} Courses`;
+                        })()}
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -611,6 +931,24 @@ const ModernStudentDashboard = () => {
                   <h3 style={{ margin: 0 }}>📋 Pending Course Approvals</h3>
                   <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                     {pendingCourses.length} course{pendingCourses.length !== 1 ? 's' : ''} waiting for teacher approval
+                    {user?.yearSemester && (() => {
+                      const { level, term } = getCurrentLevelAndTerm(user);
+                      if (level && term) {
+                        const recommendedCount = pendingCourses.filter(enrollment => 
+                          isCourseForCurrentLevelTerm(enrollment.course, level, term)
+                        ).length;
+                        return (
+                          <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
+                            • Current: {user.yearSemester} ({recommendedCount} recommended)
+                          </span>
+                        );
+                      }
+                      return (
+                        <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
+                          • Current: {user.yearSemester}
+                        </span>
+                      );
+                    })()}
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -643,56 +981,166 @@ const ModernStudentDashboard = () => {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
-                  {filterPendingCourses().map(enrollment => (
-                    <div key={enrollment.id} className="card">
-                      <div className="card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                              <h4 style={{ margin: 0, color: '#1e293b' }}>
-                                {enrollment.course.title}
-                              </h4>
-                              <span style={{
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '6px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#3b82f6',
-                                color: 'white',
-                                border: '1px solid #2563eb'
-                              }}>
-                                {enrollment.course.courseCode}
-                              </span>
-                              <span style={{
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '12px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#fef3c7',
-                                color: '#92400e'
-                              }}>
-                                PENDING
-                              </span>
+                <>
+                  <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
+                    {getDisplayCourses(filterPendingCourses(), showAllPending, 3, showOnlyRecommendedPending).map(enrollment => {
+                      const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                      const isCurrentLevelTerm = isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm);
+                      
+                      return (
+                        <div key={enrollment.id} className="card" style={{
+                          border: isCurrentLevelTerm ? '2px solid #f59e0b' : '1px solid #e5e7eb',
+                          backgroundColor: isCurrentLevelTerm ? '#fffbeb' : 'white'
+                        }}>
+                          <div className="card-body">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                  <h4 style={{ margin: 0, color: '#1e293b' }}>
+                                    {enrollment.course.title}
+                                  </h4>
+                                  <span style={{
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: '#3b82f6',
+                                    color: 'white',
+                                    border: '1px solid #2563eb'
+                                  }}>
+                                    {enrollment.course.courseCode}
+                                  </span>
+                                  {enrollment.course.level && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: isCurrentLevelTerm ? '#d97706' : '#10b981',
+                                      color: 'white'
+                                    }}>
+                                      Level {enrollment.course.level}
+                                    </span>
+                                  )}
+                                  {enrollment.course.term && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: isCurrentLevelTerm ? '#059669' : '#f59e0b',
+                                      color: 'white'
+                                    }}>
+                                      Term {enrollment.course.term}
+                                    </span>
+                                  )}
+                                  {isCurrentLevelTerm && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: '#f59e0b',
+                                      color: 'white'
+                                    }}>
+                                      📌 Current
+                                    </span>
+                                  )}
+                                  <span style={{
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: '#fef3c7',
+                                    color: '#92400e'
+                                  }}>
+                                    ⏳ PENDING
+                                  </span>
+                                </div>
+                                <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
+                                  {enrollment.course.description}
+                                </p>
+                                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
+                                  <span>📅 Applied: {enrollment.enrolledAt ? formatDate(enrollment.enrolledAt) : formatDate(enrollment.course.createdAt)}</span>
+                                  <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
+                                  {enrollment.course.level && <span>🎓 Level: {enrollment.course.level}</span>}
+                                  {enrollment.course.term && <span>📚 Term: {enrollment.course.term}</span>}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                <button className="btn btn-secondary btn-sm" disabled>
+                                  ⏳ Waiting for Approval
+                                </button>
+                              </div>
                             </div>
-                            <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
-                              {enrollment.course.description}
-                            </p>
-                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                              <span>📅 Applied: {enrollment.enrolledAt ? formatDate(enrollment.enrolledAt) : formatDate(enrollment.course.createdAt)}</span>
-                              <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button className="btn btn-secondary btn-sm" disabled>
-                              ⏳ Waiting for Approval
-                            </button>
                           </div>
                         </div>
-                      </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Show More/Less Button for Pending Courses */}
+                  {filterPendingCourses().length > 3 && (
+                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                      <button
+                        className="btn btn-outline-warning"
+                        onClick={() => {
+                          if (showOnlyRecommendedPending) {
+                            setShowOnlyRecommendedPending(false);
+                            setShowAllPending(true);
+                          } else if (showAllPending) {
+                            setShowAllPending(false);
+                          } else {
+                            const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                            if (studentLevel && studentTerm) {
+                              const recommendedCount = filterPendingCourses().filter(enrollment => 
+                                isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm)
+                              ).length;
+                              
+                              if (recommendedCount > 0) {
+                                setShowOnlyRecommendedPending(true);
+                              } else {
+                                setShowAllPending(true);
+                              }
+                            } else {
+                              setShowAllPending(true);
+                            }
+                          }
+                        }}
+                        style={{ 
+                          padding: '0.75rem 2rem',
+                          borderRadius: '8px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {showOnlyRecommendedPending ? '📋 Show All Pending Courses' : 
+                        showAllPending ? (() => {
+                          const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                          const allCourses = filterPendingCourses();
+                          const recommendedCount = studentLevel && studentTerm ? 
+                            allCourses.filter(enrollment => 
+                              isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm)
+                            ).length : 0;
+                          
+                          return recommendedCount > 0 ? 
+                            `� Show Only Recommended (${recommendedCount})` :
+                            '📄 Show Less';
+                        })() : (() => {
+                          const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                          const allCourses = filterPendingCourses();
+                          const recommendedCount = studentLevel && studentTerm ? 
+                            allCourses.filter(enrollment => 
+                              isCourseForCurrentLevelTerm(enrollment.course, studentLevel, studentTerm)
+                            ).length : 0;
+                          
+                          return recommendedCount > 0 ? 
+                            `⏳ Show All ${allCourses.length} Pending (${recommendedCount} recommended shown)` :
+                            `⏳ Show All ${allCourses.length} Pending`;
+                        })()}
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -705,6 +1153,24 @@ const ModernStudentDashboard = () => {
                   <h3 style={{ margin: 0 }}>🔍 Available Courses</h3>
                   <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                     {availableCourses.length} course{availableCourses.length !== 1 ? 's' : ''} available for enrollment
+                    {user?.yearSemester && (() => {
+                      const { level, term } = getCurrentLevelAndTerm(user);
+                      if (level && term) {
+                        const recommendedCount = availableCourses.filter(course => 
+                          isCourseForCurrentLevelTerm(course, level, term)
+                        ).length;
+                        return (
+                          <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
+                            • Current: {user.yearSemester} ({recommendedCount} recommended)
+                          </span>
+                        );
+                      }
+                      return (
+                        <span style={{ marginLeft: '0.5rem', fontWeight: '500' }}>
+                          • Current: {user.yearSemester}
+                        </span>
+                      );
+                    })()}
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
@@ -737,62 +1203,176 @@ const ModernStudentDashboard = () => {
                   )}
                 </div>
               ) : (
-                <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
-                  {filterAvailableCourses().map(course => (
-                    <div key={course.id} className="card">
-                      <div className="card-body">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-                              <h4 style={{ margin: 0, color: '#1e293b' }}>
-                                {course.title}
-                              </h4>
-                              <span style={{
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '6px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#3b82f6',
-                                color: 'white',
-                                border: '1px solid #2563eb'
-                              }}>
-                                {course.courseCode}
-                              </span>
-                              <span style={{
-                                padding: '0.25rem 0.75rem',
-                                borderRadius: '12px',
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                background: '#dcfce7',
-                                color: '#166534'
-                              }}>
-                                AVAILABLE
-                              </span>
+                <>
+                  <div className="grid grid-cols-1" style={{ gap: '1rem' }}>
+                    {getDisplayCourses(filterAvailableCourses(), showAllAvailable, 3, showOnlyRecommendedAvailable).map(course => {
+                      const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                      const isCurrentLevelTerm = isCourseForCurrentLevelTerm(course, studentLevel, studentTerm);
+                      
+                      return (
+                        <div key={course.id} className="card" style={{
+                          border: isCurrentLevelTerm ? '2px solid #059669' : '1px solid #e5e7eb',
+                          backgroundColor: isCurrentLevelTerm ? '#ecfdf5' : 'white'
+                        }}>
+                          <div className="card-body">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                  <h4 style={{ margin: 0, color: '#1e293b' }}>
+                                    {course.title}
+                                  </h4>
+                                  <span style={{
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '6px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: '#3b82f6',
+                                    color: 'white',
+                                    border: '1px solid #2563eb'
+                                  }}>
+                                    {course.courseCode}
+                                  </span>
+                                  {course.level && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: isCurrentLevelTerm ? '#059669' : '#10b981',
+                                      color: 'white'
+                                    }}>
+                                      Level {course.level}
+                                    </span>
+                                  )}
+                                  {course.term && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: isCurrentLevelTerm ? '#d97706' : '#f59e0b',
+                                      color: 'white'
+                                    }}>
+                                      Term {course.term}
+                                    </span>
+                                  )}
+                                  {isCurrentLevelTerm && (
+                                    <span style={{
+                                      padding: '0.25rem 0.5rem',
+                                      borderRadius: '6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: '600',
+                                      background: '#16a34a',
+                                      color: 'white'
+                                    }}>
+                                      📌 Recommended
+                                    </span>
+                                  )}
+                                  <span style={{
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: '600',
+                                    background: isCurrentLevelTerm ? '#dcfce7' : '#f0f9ff',
+                                    color: isCurrentLevelTerm ? '#166534' : '#0369a1',
+                                    border: isCurrentLevelTerm ? '1px solid #22c55e' : '1px solid #0ea5e9'
+                                  }}>
+                                    ✨ AVAILABLE
+                                  </span>
+                                </div>
+                                <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
+                                  {course.description}
+                                </p>
+                                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
+                                  <span>📅 Created: {formatDate(course.createdAt)}</span>
+                                  <span>👨‍🏫 Teacher: {course.assignedTeacher?.name || 'Not Assigned'}</span>
+                                  {course.level && <span>🎓 Level: {course.level}</span>}
+                                  {course.term && <span>📚 Term: {course.term}</span>}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
+                                <button className="btn btn-primary btn-sm">
+                                  📖 View Details
+                                </button>
+                                <button 
+                                  className={`btn btn-sm ${isCurrentLevelTerm ? 'btn-success' : 'btn-outline-success'}`}
+                                  onClick={() => enrollInCourse(course.id)}
+                                  style={{
+                                    fontWeight: isCurrentLevelTerm ? '600' : '500'
+                                  }}
+                                >
+                                  {isCurrentLevelTerm ? '⭐ Enroll Now' : '✅ Enroll'}
+                                </button>
+                              </div>
                             </div>
-                            <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
-                              {course.description}
-                            </p>
-                            <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
-                              <span>📅 Created: {formatDate(course.createdAt)}</span>
-                              <span>👨‍🏫 Teacher: {course.assignedTeacher?.name || 'Not Assigned'}</span>
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                            <button className="btn btn-primary btn-sm">
-                              📖 View Details
-                            </button>
-                            <button 
-                              className="btn btn-success btn-sm"
-                              onClick={() => enrollInCourse(course.id)}
-                            >
-                              ✅ Enroll
-                            </button>
                           </div>
                         </div>
-                      </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Show More/Less Button for Available Courses */}
+                  {filterAvailableCourses().length > 3 && (
+                    <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+                      <button
+                        className="btn btn-outline-success"
+                        onClick={() => {
+                          if (showOnlyRecommendedAvailable) {
+                            setShowOnlyRecommendedAvailable(false);
+                            setShowAllAvailable(true);
+                          } else if (showAllAvailable) {
+                            setShowAllAvailable(false);
+                          } else {
+                            const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                            if (studentLevel && studentTerm) {
+                              const recommendedCount = filterAvailableCourses().filter(course => 
+                                isCourseForCurrentLevelTerm(course, studentLevel, studentTerm)
+                              ).length;
+                              
+                              if (recommendedCount > 0) {
+                                setShowOnlyRecommendedAvailable(true);
+                              } else {
+                                setShowAllAvailable(true);
+                              }
+                            } else {
+                              setShowAllAvailable(true);
+                            }
+                          }
+                        }}
+                        style={{ 
+                          padding: '0.75rem 2rem',
+                          borderRadius: '8px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        {showOnlyRecommendedAvailable ? '🎓 Show All Available Courses' : 
+                        showAllAvailable ? (() => {
+                          const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                          const allCourses = filterAvailableCourses();
+                          const recommendedCount = studentLevel && studentTerm ? 
+                            allCourses.filter(course => 
+                              isCourseForCurrentLevelTerm(course, studentLevel, studentTerm)
+                            ).length : 0;
+                          
+                          return recommendedCount > 0 ? 
+                            `� Show Only Recommended (${recommendedCount})` :
+                            '📄 Show Less';
+                        })() : (() => {
+                          const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
+                          const allCourses = filterAvailableCourses();
+                          const recommendedCount = studentLevel && studentTerm ? 
+                            allCourses.filter(course => 
+                              isCourseForCurrentLevelTerm(course, studentLevel, studentTerm)
+                            ).length : 0;
+                          
+                          return recommendedCount > 0 ? 
+                            `🔍 Show All ${allCourses.length} Available (${recommendedCount} recommended shown)` :
+                            `🔍 Show All ${allCourses.length} Available`;
+                        })()}
+                      </button>
                     </div>
-                  ))}
-                </div>
+                  )}
+                </>
               )}
             </div>
           </div>

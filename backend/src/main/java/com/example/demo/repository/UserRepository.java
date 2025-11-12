@@ -16,6 +16,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByIsApprovedFalseOrderByCreatedAtDesc();
     List<User> findByStatusOrderByCreatedAtDesc(UserStatus status);
     List<User> findByStatus(UserStatus status);
+    
+    // Get pending users sorted by role order (ADMIN, TEACHER, STUDENT) then alphabetically by name
+    @Query("SELECT u FROM User u WHERE u.status = 'PENDING' ORDER BY " +
+           "CASE u.role " +
+           "WHEN 'ADMIN' THEN 1 " +
+           "WHEN 'TEACHER' THEN 2 " +
+           "WHEN 'STUDENT' THEN 3 " +
+           "ELSE 4 END, " +
+           "u.name ASC")
+    List<User> findByStatusPendingOrderByRoleAndName();
+    
     Long countByStatus(UserStatus status);
     List<User> findByRole(Role role);
     List<User> findByRoleAndStatus(Role role, UserStatus status);
@@ -27,4 +38,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
     @Query("SELECT ce.student FROM CourseEnrollment ce WHERE ce.course.id = :courseId AND ce.status = 'APPROVED' AND ce.student.status = 'ACTIVE'")
     List<User> findEnrolledStudentsByCourse(@Param("courseId") Long courseId);
+    
+    // Get all users sorted by role order (ADMIN, TEACHER, STUDENT) then alphabetically by name
+    @Query("SELECT u FROM User u ORDER BY " +
+           "CASE u.role " +
+           "WHEN 'ADMIN' THEN 1 " +
+           "WHEN 'TEACHER' THEN 2 " +
+           "WHEN 'STUDENT' THEN 3 " +
+           "ELSE 4 END, " +
+           "u.name ASC")
+    List<User> findAllOrderByRoleAndName();
 }

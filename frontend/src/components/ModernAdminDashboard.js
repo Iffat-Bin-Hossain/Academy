@@ -25,12 +25,16 @@ const ModernAdminDashboard = () => {
   const [newCourse, setNewCourse] = useState({
     title: '',
     courseCode: '',
-    description: ''
+    description: '',
+    level: '',
+    term: ''
   });
   const [editCourse, setEditCourse] = useState({
     title: '',
     courseCode: '',
-    description: ''
+    description: '',
+    level: '',
+    term: ''
   });
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [courseSearchTerm, setCourseSearchTerm] = useState('');
@@ -145,7 +149,7 @@ const ModernAdminDashboard = () => {
   };
 
   const createCourse = async () => {
-    if (!newCourse.title || !newCourse.courseCode || !newCourse.description) {
+    if (!newCourse.title || !newCourse.courseCode || !newCourse.description || !newCourse.level || !newCourse.term) {
       setModalError('Please fill in all required fields');
       return;
     }
@@ -158,7 +162,7 @@ const ModernAdminDashboard = () => {
       console.log('Create response:', response.data);
       showMessage('Course created successfully!', 'success');
       setShowCreateModal(false);
-      setNewCourse({ title: '', courseCode: '', description: '' });
+      setNewCourse({ title: '', courseCode: '', description: '', level: '', term: '' });
       setModalError('');
       fetchData();
     } catch (error) {
@@ -184,7 +188,9 @@ const ModernAdminDashboard = () => {
     setEditCourse({
       title: course.title,
       courseCode: course.courseCode,
-      description: course.description
+      description: course.description,
+      level: course.level || '',
+      term: course.term || ''
     });
     setShowEditModal(true);
   };
@@ -192,18 +198,23 @@ const ModernAdminDashboard = () => {
   const closeEditModal = () => {
     setShowEditModal(false);
     setSelectedCourse(null);
-    setEditCourse({ title: '', courseCode: '', description: '' });
+    setEditCourse({ title: '', courseCode: '', description: '', level: '', term: '' });
     setEditModalError('');
   };
 
   const closeCreateModal = () => {
     setShowCreateModal(false);
-    setNewCourse({ title: '', courseCode: '', description: '' });
+    setNewCourse({ title: '', courseCode: '', description: '', level: '', term: '' });
     setModalError('');
   };
 
   const updateCourse = async () => {
-    if (!editCourse.title || !editCourse.courseCode || !editCourse.description) {
+    console.log('🚀 updateCourse function called');
+    console.log('📝 Current editCourse state:', editCourse);
+    console.log('🎯 Selected course ID:', selectedCourse?.id);
+    
+    if (!editCourse.title || !editCourse.courseCode || !editCourse.description || !editCourse.level || !editCourse.term) {
+      console.log('❌ Validation failed - missing required fields');
       setEditModalError('Please fill in all required fields');
       return;
     }
@@ -212,13 +223,16 @@ const ModernAdminDashboard = () => {
     setEditModalError('');
 
     try {
+      console.log('📡 Sending PUT request to:', `/courses/${selectedCourse.id}`);
+      console.log('📦 Request payload:', editCourse);
+      
       const response = await axios.put(`/courses/${selectedCourse.id}`, editCourse);
-      console.log('Update response:', response.data);
+      console.log('✅ Update response:', response.data);
       showMessage('Course updated successfully!', 'success');
       closeEditModal();
       fetchData();
     } catch (error) {
-      console.error('Error updating course:', error);
+      console.error('❌ Error updating course:', error);
       let errorMessage = 'Failed to update course';
 
       if (error.response && error.response.data && error.response.data.error) {
@@ -357,6 +371,20 @@ const ModernAdminDashboard = () => {
       user.role?.toLowerCase().includes(searchLower) ||
       formatDate(user.createdAt).toLowerCase().includes(searchLower)
     );
+  }).sort((a, b) => {
+    // Define role order: ADMIN first, then TEACHER, then STUDENT
+    const roleOrder = { 'ADMIN': 1, 'TEACHER': 2, 'STUDENT': 3 };
+    
+    // First sort by role
+    const roleA = roleOrder[a.role] || 999;
+    const roleB = roleOrder[b.role] || 999;
+    
+    if (roleA !== roleB) {
+      return roleA - roleB;
+    }
+    
+    // If roles are the same, sort alphabetically by name
+    return a.name.localeCompare(b.name);
   });
 
   const filteredCourses = courses.filter(course => {
@@ -368,6 +396,8 @@ const ModernAdminDashboard = () => {
       course.title?.toLowerCase() || '',
       course.courseCode?.toLowerCase() || '',
       course.description?.toLowerCase() || '',
+      course.level?.toLowerCase() || '',
+      course.term?.toLowerCase() || '',
       course.assignedTeacher?.name?.toLowerCase() || '',
       course.id?.toString() || '',
       course.createdAt ? formatDate(course.createdAt).toLowerCase() : ''
@@ -375,6 +405,25 @@ const ModernAdminDashboard = () => {
 
     // Check if any field contains the search term
     return searchFields.some(field => field.includes(searchLower));
+  }).sort((a, b) => {
+    // Sort by level first (ascending)
+    const levelA = parseInt(a.level) || 0;
+    const levelB = parseInt(b.level) || 0;
+    if (levelA !== levelB) {
+      return levelA - levelB;
+    }
+    
+    // Then sort by term (ascending)
+    const termA = parseInt(a.term) || 0;
+    const termB = parseInt(b.term) || 0;
+    if (termA !== termB) {
+      return termA - termB;
+    }
+    
+    // Finally sort by course code (ascending)
+    const codeA = a.courseCode || '';
+    const codeB = b.courseCode || '';
+    return codeA.localeCompare(codeB);
   });
 
   // Handle tab change and clear search
@@ -519,7 +568,7 @@ const ModernAdminDashboard = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="🔍 Search courses by title, code, ID, description..."
+                  placeholder="🔍 Search courses by title, code, level, term, description..."
                   value={courseSearchTerm}
                   onChange={(e) => setCourseSearchTerm(e.target.value)}
                   style={{ fontSize: '0.875rem', minWidth: '300px' }}
@@ -568,7 +617,7 @@ const ModernAdminDashboard = () => {
                     <div className="card-body">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                             <h4 style={{ margin: '0', color: '#1e293b' }}>
                               {course.title}
                             </h4>
@@ -583,13 +632,39 @@ const ModernAdminDashboard = () => {
                             }}>
                               {course.courseCode}
                             </span>
+                            {course.level && (
+                              <span style={{
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '6px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: '#10b981',
+                                color: 'white'
+                              }}>
+                                {course.level}
+                              </span>
+                            )}
+                            {course.term && (
+                              <span style={{
+                                padding: '0.25rem 0.5rem',
+                                borderRadius: '6px',
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                background: '#f59e0b',
+                                color: 'white'
+                              }}>
+                                {course.term}
+                              </span>
+                            )}
                           </div>
                           <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
                             {course.description}
                           </p>
-                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
+                          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
                             <span>📅 Created: {course.createdAt ? formatDate(course.createdAt) : 'Unknown'}</span>
                             <span>👨‍🏫 Teacher: {course.assignedTeacher ? course.assignedTeacher.name : 'Not Assigned'}</span>
+                            {course.level && <span>🎓 Level: {course.level}</span>}
+                            {course.term && <span>📚 Term: {course.term}</span>}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -716,6 +791,42 @@ const ModernAdminDashboard = () => {
                   />
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label htmlFor="courseLevel">Level *</label>
+                    <select
+                      id="courseLevel"
+                      className="form-control"
+                      value={newCourse.level}
+                      onChange={(e) => setNewCourse({ ...newCourse, level: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Level</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
+                  </div>
+
+                                    <div className="form-group">
+                    <label htmlFor="courseTerm">Term *</label>
+                    <select
+                      id="courseTerm"
+                      className="form-control"
+                      value={newCourse.term}
+                      onChange={(e) => setNewCourse({ ...newCourse, term: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Term</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="modal-actions">
                   <button
                     type="button"
@@ -779,7 +890,16 @@ const ModernAdminDashboard = () => {
                 </div>
               )}
 
-              <form onSubmit={(e) => { e.preventDefault(); updateCourse(); }}>
+              <form onSubmit={(e) => { 
+                try {
+                  e.preventDefault(); 
+                  console.log('📝 Edit form submitted!');
+                  console.log('🎯 Form event:', e);
+                  updateCourse(); 
+                } catch (error) {
+                  console.error('❌ Error in form submission:', error);
+                }
+              }}>
                 <div className="form-group">
                   <label htmlFor="editCourseTitle">Course Title *</label>
                   <input
@@ -825,6 +945,42 @@ const ModernAdminDashboard = () => {
                   />
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label htmlFor="editCourseLevel">Level *</label>
+                    <select
+                      id="editCourseLevel"
+                      className="form-control"
+                      value={editCourse.level}
+                      onChange={(e) => setEditCourse({ ...editCourse, level: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Level</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="editCourseTerm">Term *</label>
+                    <select
+                      id="editCourseTerm"
+                      className="form-control"
+                      value={editCourse.term}
+                      onChange={(e) => setEditCourse({ ...editCourse, term: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Term</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div className="modal-actions">
                   <button
                     type="button"
@@ -838,6 +994,10 @@ const ModernAdminDashboard = () => {
                     type="submit"
                     className="btn btn-primary"
                     disabled={isUpdating}
+                    onClick={(e) => {
+                      console.log('🔘 Update button clicked directly!');
+                      // Don't prevent default - let form submission handle it
+                    }}
                   >
                     {isUpdating ? (
                       <>

@@ -1,107 +1,161 @@
 course Title: Structured Programming Language
 course code: CSE101
 description: Learn structured programming basics
+Level:1
+Term:1
 
 course Title: Structured Programming Sessional
 course code: CSE102
 description: Programming lab practice
+Level:1
+Term:1
 
 course Title: Discrete Mathematics
 course code: CSE103
 description: Mathematical foundations for computing
+Level:1
+Term:2
 
 course Title: Data Structures and Algorithms I
 course code: CSE105
 description: Basic DS & algorithms
+Level:2
+Term:1
 
 course Title: Computer Programming
 course code: CSE109
 description: Introduction to coding techniques
+Level:1
+Term:1
 
 course Title: Digital Logic Design
 course code: CSE205
 description: Logic circuits and design
+Level:2
+Term:1
 
 course Title: Data Structures and Algorithms II
 course code: CSE207
 description: Advanced DS & algorithm analysis
+Level:2
+Term:2
 
 course Title: Computer Architecture
 .course code: CSE209
 description: CPU and memory systems
+Level:2
+Term:2
 
 course Title: Theory of Computation
 .course code: CSE211
 description: Formal languages and automata
+Level:2
+Term:2
 
 course Title: Software Engineering
 .course code: CSE213
 description: Software development lifecycle principles
+Level:2
+Term:2
 
 course Title: Database
 course code: CSE215
 description: Relational database design fundamentals
+Level:2
+Term:2
 
 course Title: Technical Writing and Presentation
 course code: CSE300
 description: Communication and writing skills
+Level:3
+Term:1
 
 course Title: Computer Architecture
 course code: CSE305
 description: Advanced computer organization concepts
+Level:3
+Term:1
 
 course Title: Software Engineering
 course code: CSE307
 description: Software process & quality
+Level:3
+Term:2
 
 course Title: Compiler
 course code: CSE309
 description: Compiler design and construction
+Level:3
+Term:1
 
 course Title: Operating System
 course code: CSE313
 description: OS design and implementation
+Level:3
+Term:2
 
 course Title: Embedded Systems & Interfacing
 course code: CSE315
 description: Embedded hardware and software integration
+Level:3
+Term:1
 
 course Title: Artificial Intelligence
 course code: CSE317
 description: Basics of AI algorithms
+Level:3
+Term:2
 
 course Title: Computer Networks
 course code: CSE321
 description: Network protocols and architecture
+Level:3
+Term:2
 
 course Title: Machine Learning
-course code: CSE329
+course code: CSE429
 description: Foundations of machine learning models
+Level:4
+Term:2
 
 course Title: Simulation and Modeling
 course code: CSE411
 description: Modeling systems and simulation techniques
+Level:4
+Term:1
 
 course Title: High Performance Computing
 course code: CSE413
 description: Parallel computing and optimization
+Level:4
+Term:2
 
 course Title: Real‑time Embedded Systems
 course code: CSE415
 description: Real-time system design concepts
+Level:4
+Term:2
 
 course Title: Computer Networks
 course code: CSE451
 description: Practical networking topics
+Level:4
+Term:2
 
 course Title: Algorithm Engineering
 course code: CSE461
 description: Design efficient algorithm engineering
+Level:4
+Term:2
 
 course Title: Pattern Recognition
 course code: CSE473
 description: Recognize patterns using data models
+Level:4
+Term:2
 
 course Title: Robotics
 course code: CSE475
 description: Principles of robotics systems design
+Level:4
+Term:2

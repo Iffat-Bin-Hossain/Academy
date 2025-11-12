@@ -269,15 +269,6 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
                                 </div>
                             )}
 
-                            {editing && isAdmin && !isOwnProfile && (
-                                <div className="profile-message info">
-                                    <span className="message-icon">ℹ</span>
-                                    <span className="message-text">
-                                        As an admin, you can edit academic/administrative information but not personal details (name, email, phone, bio) of other users.
-                                    </span>
-                                </div>
-                            )}
-
                             {editing && !isAdmin && !isOwnProfile && (
                                 <div className="profile-message info">
                                     <span className="message-icon">⚠</span>

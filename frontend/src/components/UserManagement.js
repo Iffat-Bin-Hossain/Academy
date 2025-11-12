@@ -105,7 +105,7 @@ const UserManagement = () => {
     return null;
   };
 
-  // Filter users based on current filter and search term
+  // Filter and sort users based on current filter and search term
   const filteredUsers = users.filter(user => {
     // First filter by status
     const statusMatch = filter === 'ALL' 
@@ -124,6 +124,20 @@ const UserManagement = () => {
     );
     
     return statusMatch && searchMatch;
+  }).sort((a, b) => {
+    // Define role order: ADMIN first, then TEACHER, then STUDENT
+    const roleOrder = { 'ADMIN': 1, 'TEACHER': 2, 'STUDENT': 3 };
+    
+    // First sort by role
+    const roleA = roleOrder[a.role] || 999;
+    const roleB = roleOrder[b.role] || 999;
+    
+    if (roleA !== roleB) {
+      return roleA - roleB;
+    }
+    
+    // If roles are the same, sort alphabetically by name
+    return a.name.localeCompare(b.name);
   });
 
   // Helper function to determine if current filter supports bulk operations

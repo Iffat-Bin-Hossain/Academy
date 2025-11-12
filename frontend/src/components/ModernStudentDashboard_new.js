@@ -40,7 +40,8 @@ const ModernStudentDashboard = () => {
         id: currentUser.id,
         name: currentUser.name,
         role: currentUser.role,
-        email: currentUser.email
+        email: currentUser.email,
+        yearSemester: currentUser.yearSemester
       });
       
       // Get student enrollments and all available courses
@@ -149,30 +150,84 @@ const ModernStudentDashboard = () => {
 
   // Search filter functions
   const filterEnrolledCourses = () => {
-    if (!enrolledSearchTerm) return enrolledCourses;
-    return enrolledCourses.filter(enrollment => 
-      enrollment.course.title.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
-      enrollment.course.courseCode.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
-      (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(enrolledSearchTerm.toLowerCase())
-    );
+    let filtered = enrolledCourses;
+    if (enrolledSearchTerm) {
+      filtered = enrolledCourses.filter(enrollment => 
+        enrollment.course.title.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
+        enrollment.course.courseCode.toLowerCase().includes(enrolledSearchTerm.toLowerCase()) ||
+        (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(enrolledSearchTerm.toLowerCase())
+      );
+    }
+    // Sort by level → term → courseCode
+    return filtered.sort((a, b) => {
+      const courseA = a.course;
+      const courseB = b.course;
+      
+      const levelA = parseInt(courseA.level) || 0;
+      const levelB = parseInt(courseB.level) || 0;
+      if (levelA !== levelB) return levelA - levelB;
+      
+      const termA = parseInt(courseA.term) || 0;
+      const termB = parseInt(courseB.term) || 0;
+      if (termA !== termB) return termA - termB;
+      
+      const codeA = courseA.courseCode || '';
+      const codeB = courseB.courseCode || '';
+      return codeA.localeCompare(codeB);
+    });
   };
 
   const filterPendingCourses = () => {
-    if (!pendingSearchTerm) return pendingCourses;
-    return pendingCourses.filter(enrollment => 
-      enrollment.course.title.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
-      enrollment.course.courseCode.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
-      (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(pendingSearchTerm.toLowerCase())
-    );
+    let filtered = pendingCourses;
+    if (pendingSearchTerm) {
+      filtered = pendingCourses.filter(enrollment => 
+        enrollment.course.title.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
+        enrollment.course.courseCode.toLowerCase().includes(pendingSearchTerm.toLowerCase()) ||
+        (enrollment.course.assignedTeacher?.name || '').toLowerCase().includes(pendingSearchTerm.toLowerCase())
+      );
+    }
+    // Sort by level → term → courseCode
+    return filtered.sort((a, b) => {
+      const courseA = a.course;
+      const courseB = b.course;
+      
+      const levelA = parseInt(courseA.level) || 0;
+      const levelB = parseInt(courseB.level) || 0;
+      if (levelA !== levelB) return levelA - levelB;
+      
+      const termA = parseInt(courseA.term) || 0;
+      const termB = parseInt(courseB.term) || 0;
+      if (termA !== termB) return termA - termB;
+      
+      const codeA = courseA.courseCode || '';
+      const codeB = courseB.courseCode || '';
+      return codeA.localeCompare(codeB);
+    });
   };
 
   const filterAvailableCourses = () => {
-    if (!availableSearchTerm) return availableCourses;
-    return availableCourses.filter(course => 
-      course.title.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
-      course.courseCode.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
-      (course.assignedTeacher?.name || '').toLowerCase().includes(availableSearchTerm.toLowerCase())
-    );
+    let filtered = availableCourses;
+    if (availableSearchTerm) {
+      filtered = availableCourses.filter(course => 
+        course.title.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
+        course.courseCode.toLowerCase().includes(availableSearchTerm.toLowerCase()) ||
+        (course.assignedTeacher?.name || '').toLowerCase().includes(availableSearchTerm.toLowerCase())
+      );
+    }
+    // Sort by level → term → courseCode
+    return filtered.sort((a, b) => {
+      const levelA = parseInt(a.level) || 0;
+      const levelB = parseInt(b.level) || 0;
+      if (levelA !== levelB) return levelA - levelB;
+      
+      const termA = parseInt(a.term) || 0;
+      const termB = parseInt(b.term) || 0;
+      if (termA !== termB) return termA - termB;
+      
+      const codeA = a.courseCode || '';
+      const codeB = b.courseCode || '';
+      return codeA.localeCompare(codeB);
+    });
   };
 
   if (loading) {
