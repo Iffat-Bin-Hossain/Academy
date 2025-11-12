@@ -20,12 +20,6 @@ chmod +x run-docker.sh
 **Access:** Frontend: http://localhost:3000 | Backend: http://localhost:8081  
 **Login:** admin@academy.com / admin123
 
-## Recent Updates
-
-### Enhanced Messaging System (Latest)
-- Interactive messages with emoji reactions and replies
-- Improved message forwarding and file sharing
-- Real-time notifications and cross-tab sync
 
 ## Features
 
@@ -74,9 +68,10 @@ chmod +x run-docker.sh
 
 ### Communication System
 - Direct messaging with file attachments
-- Message reactions and replies
+- Interactive messages with emoji reactions and replies
+- Improved message forwarding and file sharing
 - Discussion forums with @mention system
-- Real-time notifications
+- Real-time notifications and cross-tab sync
 
 ### Notification System
 - Real-time notifications for 20+ event types
@@ -122,22 +117,3 @@ chmod +x run-docker.sh
 ./run-docker.sh stop     # Stop services
 ./run-docker.sh logs     # View logs
 ```
-
-
-
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -m 'Add feature'`
-4. Push to branch: `git push origin feature-name`
-5. Submit pull request
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-**Built for Educational Excellence**
