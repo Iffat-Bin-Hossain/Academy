@@ -23,11 +23,9 @@ chmod +x run-docker.sh
 ## Recent Updates
 
 ### Enhanced Messaging System (Latest)
-- **🚀 Interactive Messages**: Added emoji reactions, message replies, and smart forwarding
-- **🛠️ Error-Free Experience**: Eliminated hover-induced 400 errors with optimized polling
-- **✨ Clean Interface**: Improved message forwarding without repetitive prefixes
-- **⚡ Performance Optimized**: Reduced polling frequency and enhanced real-time updates
-- **📱 Better UX**: Improved spacing, modal positioning, and overall user experience
+- Interactive messages with emoji reactions and replies
+- Improved message forwarding and file sharing
+- Real-time notifications and cross-tab sync
 
 ## Features
 
@@ -36,6 +34,7 @@ chmod +x run-docker.sh
 - **Registration Workflow**: Admin approval system for new user accounts
 - **Profile Management**: User profiles with photo uploads and contact information
 - **Authentication**: JWT-based secure login with session management
+- **User Sorting**: Users sorted by role (Admin, Teacher, Student) then alphabetically by name
 
 ### Course Management
 - **Course Creation**: Admin creates courses with codes, titles, and descriptions
@@ -51,218 +50,81 @@ chmod +x run-docker.sh
 - **Assignment Types**: Different categories (Quiz, Project, Exam, etc.)
 
 ### Grading System
-- **Assessment Grid**: Real-time grading interface with auto-save functionality
-- **Grade Calculation**: Automatic percentage and GPA calculation
-- **Copy Penalty Enforcement**: Full mark deduction (-100%) for plagiarism cases
-- **Late Penalties**: Configurable penalties for late submissions
-- **Performance Visibility**: Copy penalties fully reflected in student analytics
-- **Grade Visibility**: Teachers control when grades are visible to students
-- **Bulk Operations**: Grade multiple students simultaneously
+- Real-time grading interface with auto-save
+- Automatic grade calculation and GPA
+- Copy penalty enforcement for plagiarism
+- Bulk grading operations
 
 ### Performance Analytics
-- **GPA Calculation**: Standard academic GPA formula implementation
-- **Course Performance**: Individual course grade breakdowns with copy penalty visibility
-- **Performance Trends**: Visual charts showing academic progress including disciplinary actions
-- **Assignment Type Analysis**: Performance by assignment categories
-- **Plagiarism Visibility**: Copy-detected courses displayed with clear warning indicators
-- **Academic Integrity**: Transparent display of F-grades for plagiarism violations
-- **Real-time Updates**: Live data refresh every 15 seconds
+- GPA calculation with standard academic formula
+- Course performance breakdowns
+- Performance trends with visual charts
+- Real-time data updates
 
 ### Attendance System
-- **Session Management**: Create and manage attendance sessions by teachers
-- **Bulk Operations**: Mark attendance for multiple students
-- **Attendance Reports**: Generate attendance reports and analytics
-- **Late Arrival Tracking**: Track and manage late arrivals
+- Session management by teachers
+- Bulk attendance operations
+- Attendance reports and analytics
 
 ### Plagiarism Detection
-- **Multi-Algorithm Analysis**: Shingles, Jaccard, and AST parsing algorithms
-- **File Format Support**: 15+ formats including code files and documents
-- **Similarity Reports**: Detailed comparison with confidence scores
-- **Copy Penalty System**: Automatic penalty application for flagged submissions
-- **Performance Integration**: Copy-detected courses fully visible in performance analytics
-- **Visual Indicators**: Clear red warnings and F-grade display for plagiarism cases
-- **Batch Processing**: Analyze multiple submissions simultaneously
-- **Transparency**: Academic integrity violations shown in student performance graphs
+- Multi-algorithm analysis (Shingles, Jaccard, AST)
+- Support for 15+ file formats
+- Similarity reports with confidence scores
+- Automatic penalty application
 
 ### Communication System
-- **Enhanced Direct Messaging**: Private messages with file attachments, message reactions, and reply functionality
-- **Message Interactions**: React to messages with emojis, reply to specific messages, and forward messages
-- **Smart Message Forwarding**: Clean message forwarding without repetitive prefixes
-- **File Sharing**: Support for multiple file types with image previews and download capabilities
-- **Real-time Reactions**: Instant emoji reactions with live updates across all participants
-- **Error-Free Experience**: Robust error handling eliminates hover-induced errors
-- **Optimized Performance**: Reduced polling frequency and silent error handling for smooth user experience
-- **Discussion Forums**: Course-based forums with threaded conversations
-- **@Mention System**: Tag users in discussions with autocomplete
-- **Real-time Notifications**: Instant alerts for messages and updates
-- **Cross-tab Sync**: Synchronized data across browser tabs
+- Direct messaging with file attachments
+- Message reactions and replies
+- Discussion forums with @mention system
+- Real-time notifications
 
 ### Notification System
-- **20+ Event Types**: Comprehensive notification coverage
-- **Real-time Delivery**: Instant notifications across the platform
-- **Notification Center**: Centralized view of all notifications
-- **Mark as Read**: Bulk and individual notification management
+- Real-time notifications for 20+ event types
+- Centralized notification center
+- Bulk notification management
 
 ### Faculty Feedback
-- **Anonymous Feedback**: Students can provide anonymous instructor evaluations
-- **Multi-criteria Rating**: Teaching quality, course content, responsiveness ratings
-- **Search and Filter**: Advanced filtering for feedback management
-- **Analytics Dashboard**: Visual feedback summaries for instructors
-- **Course-based Filtering**: Feedback organized by specific courses
+- Anonymous instructor evaluations
+- Multi-criteria rating system
+- Analytics dashboard for instructors
 
 ### AI Integration
-- **AI Study Assistant**: Intelligent chatbot for course-related questions and academic support
-- **Resource Discovery**: AI-powered search for learning materials from trusted educational sources
-- **Natural Language Processing**: Advanced chat interface for interactive learning support
-- **Multi-tab Interface**: Organized AI features including resource search, chat, suggestions, and study plans
-- **Educational Content Curation**: Curated learning materials with type-based categorization (videos, articles, tutorials)
+- AI study assistant chatbot
+- Resource discovery and search
+- Educational content curation
 
 
 ## Technology Stack
 
 ### Backend
-- **Framework**: Spring Boot 3.2.1
-- **Language**: Java 17
-- **Database**: PostgreSQL 15 + JPA/Hibernate
-- **Security**: Spring Security 6 + JWT
-- **Build**: Gradle 8.5
-- **AI Services**: Custom AI endpoints for educational assistance and intelligent resource discovery
+- Spring Boot 3.2.1 with Java 17
+- PostgreSQL 15 database
+- Spring Security with JWT authentication
+- Gradle 8.5 build system
 
 ### Frontend
-- **Framework**: React 18
-- **Routing**: React Router 6+
-- **HTTP Client**: Axios
-- **Styling**: CSS3 + Responsive Design + Custom AI Component Styling
-- **Real-time Messaging**: Enhanced messaging interface with reactions, replies, and optimized polling
-- **AI Interface**: Interactive chat components with real-time messaging
+- React 18 with modern UI
+- Responsive CSS design
+- Real-time messaging interface
 
 ### Infrastructure
-- **Containerization**: Docker + Docker Compose
-- **Database**: PostgreSQL with persistent volumes
-- **File Storage**: Docker volumes
+- Docker containerization
+- PostgreSQL with persistent volumes
 
 ## Development
 
 ### Prerequisites
 - Docker 24.0+ and Docker Compose 2.20+
-- Java 17, Node.js 18+ (for manual setup)
 
-### Docker Commands
+### Quick Start
 ```bash
 ./run-docker.sh start    # Start all services
 ./run-docker.sh stop     # Stop services
 ./run-docker.sh logs     # View logs
-./run-docker.sh clean    # Reset and rebuild
 ```
 
-### Manual Setup
-```bash
-# Backend
-cd backend
-./gradlew bootRun        # Starts on port 8081
 
-# Frontend
-cd frontend
-npm install && npm start # Starts on port 3000
-```
 
-### GPA Calculation Formula
-```
-Current GPA = (Sum of All Course GPAs) ÷ (Number of Courses with Grades)
-```
-
-**Conversion Scale:**
-- 80%+ → 4.00 (A+) | 75%+ → 3.75 (A) | 70%+ → 3.50 (A-) | 65%+ → 3.25 (B+)
-- 60%+ → 3.00 (B) | 55%+ → 2.75 (B-) | 50%+ → 2.50 (C) | 45%+ → 2.25 (D)
-- 40%+ → 2.00 (E) | <40% → 0.00 (F)
-
-## API Endpoints
-
-### Authentication
-```http
-POST /api/auth/signup          # User registration
-POST /api/auth/login           # JWT token generation
-POST /api/auth/logout          # Session termination
-```
-
-### Course Management
-```http
-GET    /api/courses                    # List courses
-POST   /api/courses                    # Create course (Admin)
-POST   /api/courses/enroll             # Student enrollment
-GET    /api/assignments/course/{id}    # Course assignments
-POST   /api/assignments                # Create assignment (Teacher)
-```
-
-### Grading & Analytics
-```http
-GET    /api/grades/student/{id}/performance      # Performance analytics
-GET    /api/grades/student/{id}                  # All student grades
-PUT    /api/assessment-grid/assessment          # Update assessment
-POST   /api/assessment-grid/copy-checker/{id}   # Process plagiarism
-```
-
-### Communication
-```http
-GET    /api/messages/conversations              # Message conversations
-POST   /api/messages/send                       # Send message
-POST   /api/messages/send-with-attachment       # Send message with file
-GET    /api/messages/conversation/{userId}      # Get conversation messages
-POST   /api/messages/react                      # Add/remove emoji reactions
-POST   /api/messages/reactions/bulk             # Get reactions for messages
-PUT    /api/messages/mark-read                  # Mark messages as read
-PUT    /api/messages/mark-all-seen              # Mark all messages as seen
-POST   /api/messages/delete-multiple            # Delete selected messages
-GET    /api/messages/unread-count               # Get unread message count
-GET    /api/messages/users/available            # Get available users for messaging
-GET    /api/notifications                       # Get notifications
-POST   /api/faculty-feedback                    # Submit feedback
-```
-
-### Attendance Management
-```http
-GET    /api/attendance/sessions/{courseId}      # Get attendance sessions
-POST   /api/attendance/sessions                 # Create attendance session
-POST   /api/attendance/mark                     # Mark attendance
-GET    /api/attendance/reports/{courseId}       # Generate attendance reports
-```
-
-### Plagiarism Detection
-```http
-POST   /api/plagiarism/analyze/{assignmentId}  # Start plagiarism analysis
-GET    /api/plagiarism/results/{assignmentId}  # Get analysis results
-POST   /api/plagiarism/compare                 # Compare specific files
-POST   /api/assessment-grid/copy-checker/{id}  # Apply copy penalties with notifications
-```
-
-### AI Integration
-```http
-POST   /ai-helper/resources                    # Search educational resources
-GET    /ai-helper/suggestions/{courseId}       # Get study suggestions
-GET    /ai-helper/study-plan/{courseId}        # Get personalized study plan
-POST   /chat/message                           # AI chat interaction
-```
-
-## Performance Metrics
-
-- **API Response Time**: <200ms average, <500ms 95th percentile
-- **Concurrent Users**: Tested up to 1,000 simultaneous users
-- **File Processing**: Plagiarism analysis <5s for documents up to 100KB
-- **AI Response Time**: AI chat responses <2s average, resource search <3s
-- **Real-time Updates**: Cross-tab synchronization with <50ms latency
-- **Database Performance**: Optimized queries with indexing
-- **Uptime**: 99.9% availability with Docker health monitoring
-- **Memory Usage**: <2GB RAM per service container
-- **AI Processing**: Smart suggestions generation <1s, study plan creation <2s
-
-## Recent Updates
-
-### v2.1.0 - Performance Analytics Enhancement (August 2025)
-- **🔧 Fixed**: Copy-detected courses now visible in performance graphs
-- **✨ Enhanced**: Clear visual indicators for plagiarism violations
-- **🎨 Improved**: Red warning banners and F-grade displays for copy penalties
-- **📊 Updated**: Performance analytics now include all courses regardless of penalty status
-- **🔍 Added**: Transparent academic integrity reporting in student dashboards
 
 ## Contributing
 
