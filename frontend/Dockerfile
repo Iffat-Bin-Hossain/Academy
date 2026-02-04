@@ -7,14 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies with increased timeout and retries
+RUN npm ci --legacy-peer-deps --timeout=120000 || npm ci --legacy-peer-deps --timeout=120000
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN npm run build 2>&1
 
 # Production stage
 FROM nginx:alpine
