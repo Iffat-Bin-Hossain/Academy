@@ -119,7 +119,7 @@ def create_course(course_data: Dict, admin_token: str) -> bool:
 def parse_students():
     """Parse student data from the text format"""
     students = []
-    with open('/home/iffat25082002/Desktop/Academy/miscellaneous/data/student.txt', 'r') as f:
+    with open('../miscellaneous/data/student.txt', 'r') as f:
         content = f.read().strip()
         
     entries = content.split('\n\n')
@@ -145,7 +145,7 @@ def parse_students():
 def parse_teachers():
     """Parse teacher data from the text format"""
     teachers = []
-    with open('/home/iffat25082002/Desktop/Academy/miscellaneous/data/teacher.txt', 'r') as f:
+    with open('../miscellaneous/data/teacher.txt', 'r') as f:
         content = f.read().strip()
         
     entries = content.split('\n\n')
@@ -171,7 +171,7 @@ def parse_teachers():
 def parse_courses():
     """Parse course data from the text format"""
     courses = []
-    with open('/home/iffat25082002/Desktop/Academy/miscellaneous/data/courses.txt', 'r') as f:
+    with open('../miscellaneous/data/courses.txt', 'r') as f:
         content = f.read().strip()
     
     lines = content.split('\n')

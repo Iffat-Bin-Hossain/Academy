@@ -39,8 +39,8 @@ check_docker() {
 
 # Check if Docker Compose is available
 check_docker_compose() {
-    if ! command -v docker-compose > /dev/null 2>&1; then
-        print_error "Docker Compose is not installed. Please install Docker Compose and try again."
+    if ! docker compose version > /dev/null 2>&1; then
+        print_error "Docker Compose is not available. Please ensure 'docker compose' is working."
         exit 1
     fi
     print_success "Docker Compose is available"
@@ -56,14 +56,14 @@ main() {
     
     # Build and run
     print_status "Building and starting all services..."
-    docker-compose up --build -d
+    docker compose up --build -d
     
     # Wait a moment for services to start
     sleep 5
     
     # Check service status
     print_status "Checking service status..."
-    docker-compose ps
+    docker compose ps
     
     print_success "Academy Project is running!"
     print_status "Access points:"
@@ -75,8 +75,8 @@ main() {
     echo "  - Email: admin@academy.com"
     echo "  - Password: admin123"
     echo ""
-    print_status "To view logs: docker-compose logs"
-    print_status "To stop services: docker-compose down"
+    print_status "To view logs: docker compose logs"
+    print_status "To stop services: docker compose down"
 }
 
 # Handle script arguments
@@ -86,17 +86,17 @@ case "${1:-}" in
         ;;
     "stop"|"down")
         print_status "Stopping Academy Project..."
-        docker-compose down
+        docker compose down
         print_success "Academy Project stopped"
         ;;
     "restart")
         print_status "Restarting Academy Project..."
-        docker-compose down
-        docker-compose up --build -d
+        docker compose down
+        docker compose up --build -d
         print_success "Academy Project restarted"
         ;;
     "logs")
-        docker-compose logs -f
+        docker compose logs -f
         ;;
     "clean")
         print_warning "This will remove all containers, networks, and volumes!"
@@ -104,7 +104,7 @@ case "${1:-}" in
         read -p "Are you sure? (y/N): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            docker-compose down -v
+            docker compose down -v
             docker system prune -f
             print_success "Cleanup completed"
         else

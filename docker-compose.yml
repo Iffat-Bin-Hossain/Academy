@@ -1,26 +1,6 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  database:
-    image: postgres:15-alpine
-    container_name: academy_db
-    environment:
-      POSTGRES_DB: academydb
-      POSTGRES_USER: academyuser
-      POSTGRES_PASSWORD: academy123
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - academy_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U academyuser -d academydb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Spring Boot Backend
   backend:
     build:
@@ -30,9 +10,9 @@ services:
     env_file:
       - .env
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/academydb
-      - SPRING_DATASOURCE_USERNAME=academyuser
-      - SPRING_DATASOURCE_PASSWORD=academy123
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SERVER_PORT=8081
       - UPLOAD_DIR=/app/data/uploads
@@ -40,9 +20,6 @@ services:
       - "8081:8081"
     volumes:
       - academy_uploads:/app/data/uploads
-    depends_on:
-      database:
-        condition: service_healthy
     networks:
       - academy_network
     restart: unless-stopped
@@ -64,7 +41,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data:
   academy_uploads:
 
 networks:
