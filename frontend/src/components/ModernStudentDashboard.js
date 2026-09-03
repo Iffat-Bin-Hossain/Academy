@@ -5,6 +5,20 @@ import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
 import FacultyFeedbackStudent from './feedback/FacultyFeedbackStudent';
 import StudentPerformanceAnalytics from './StudentPerformanceAnalytics';
+import { 
+  FiBarChart2, 
+  FiBookOpen, 
+  FiTarget, 
+  FiStar, 
+  FiSearch, 
+  FiClock, 
+  FiFileText, 
+  FiCalendar, 
+  FiUser, 
+  FiAlertTriangle, 
+  FiList 
+} from 'react-icons/fi';
+import { FaGraduationCap, FaChalkboardTeacher } from 'react-icons/fa';
 
 const ModernStudentDashboard = () => {
   const navigate = useNavigate();
@@ -487,10 +501,10 @@ const ModernStudentDashboard = () => {
         <div className="card-header">
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
-              { id: 'overview', label: 'Overview', icon: '📊', fallback: '[📊]' },
-              { id: 'courses', label: 'Courses', icon: '📚', fallback: '[📚]' },
-              { id: 'performance', label: 'Performance', icon: '🎯', fallback: '[🎯]' },
-              { id: 'feedback', label: 'Faculty Feedback', icon: '⭐', fallback: '[⭐]' }
+              { id: 'overview', label: 'Overview', icon: <FiBarChart2 style={{ marginRight: '0.5rem' }} /> },
+              { id: 'courses', label: 'Courses', icon: <FiBookOpen style={{ marginRight: '0.5rem' }} /> },
+              { id: 'performance', label: 'Performance', icon: <FiTarget style={{ marginRight: '0.5rem' }} /> },
+              { id: 'feedback', label: 'Faculty Feedback', icon: <FiStar style={{ marginRight: '0.5rem' }} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -535,9 +549,8 @@ const ModernStudentDashboard = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    fontSize: '1.5rem'
-                  }}>
-                    📚
+                    fontSize: '1.5rem', color: '#3b82f6' }}>
+                    <FiBookOpen />
                   </div>
                 </div>
               </div>
@@ -558,9 +571,8 @@ const ModernStudentDashboard = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    fontSize: '1.5rem'
-                  }}>
-                    🔍
+                    fontSize: '1.5rem', color: '#10b981' }}>
+                    <FiSearch />
                   </div>
                 </div>
               </div>
@@ -581,9 +593,8 @@ const ModernStudentDashboard = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    fontSize: '1.5rem'
-                  }}>
-                    ⭐
+                    fontSize: '1.5rem', color: '#f59e0b' }}>
+                    <FiStar />
                   </div>
                 </div>
               </div>
@@ -604,9 +615,8 @@ const ModernStudentDashboard = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center',
-                    fontSize: '1.5rem'
-                  }}>
-                    ⏳
+                    fontSize: '1.5rem', color: '#ef4444' }}>
+                    <FiClock />
                   </div>
                 </div>
               </div>
@@ -627,7 +637,7 @@ const ModernStudentDashboard = () => {
                   style={{ textAlign: 'left' }}
                 >
                   <div>
-                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>🔍</span>
+                    <FiSearch style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }} />
                     <strong>Browse Courses</strong>
                     <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
                       Discover new learning opportunities
@@ -644,7 +654,7 @@ const ModernStudentDashboard = () => {
                   style={{ textAlign: 'left' }}
                 >
                   <div>
-                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>🎯</span>
+                    <FiTarget style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }} />
                     <strong>Performance Analytics</strong>
                     <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
                       View your academic progress
@@ -658,7 +668,7 @@ const ModernStudentDashboard = () => {
                   style={{ textAlign: 'left' }}
                 >
                   <div>
-                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>⭐</span>
+                    <FiStar style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }} />
                     <strong>Faculty Feedback</strong>
                     <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
                       Rate your instructors
@@ -672,7 +682,7 @@ const ModernStudentDashboard = () => {
                   style={{ textAlign: 'left' }}
                 >
                   <div>
-                    <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }}>📝</span>
+                    <FiFileText style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.5rem' }} />
                     <strong>Assignments</strong>
                     <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>
                       Track your progress
@@ -693,7 +703,7 @@ const ModernStudentDashboard = () => {
             <div className="card-header">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0 }}>📚 My Enrolled Courses</h3>
+                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBookOpen style={{ color: '#3b82f6' }} /> My Enrolled Courses</h3>
                   <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                     {enrolledCourses.length} course{enrolledCourses.length !== 1 ? 's' : ''} enrolled
                     {user?.yearSemester && (() => {
@@ -725,14 +735,14 @@ const ModernStudentDashboard = () => {
                     className="form-control"
                     style={{ width: '250px' }}
                   />
-                  <span>🔍</span>
+                  <FiSearch />
                 </div>
               </div>
             </div>
             <div className="card-body">
               {filterEnrolledCourses().length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem' }}>📚</span>
+                  <FiBookOpen style={{ fontSize: '2rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>{enrolledSearchTerm ? 'No courses found' : 'No enrolled courses yet'}</h4>
                   <p>{enrolledSearchTerm ? 'Try adjusting your search terms' : 'Browse available courses below to start your learning journey.'}</p>
                   {enrolledSearchTerm && (
@@ -808,7 +818,7 @@ const ModernStudentDashboard = () => {
                                       background: '#16a34a',
                                       color: 'white'
                                     }}>
-                                      📌 Current
+                                      Current
                                     </span>
                                   )}
                                   {enrollment.status === 'RETAKING' && (
@@ -820,7 +830,7 @@ const ModernStudentDashboard = () => {
                                       background: '#dc2626',
                                       color: 'white'
                                     }}>
-                                      🔄 Retaking
+                                      Retaking
                                     </span>
                                   )}
                                 </div>
@@ -828,11 +838,11 @@ const ModernStudentDashboard = () => {
                                   {enrollment.course.description}
                                 </p>
                                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                                  <span>📅 Created: {formatDate(enrollment.course.createdAt)}</span>
-                                  <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
-                                  {enrollment.course.level && <span>🎓 Level: {enrollment.course.level}</span>}
-                                  {enrollment.course.term && <span>📚 Term: {enrollment.course.term}</span>}
-                                  <span>📊 Status: {enrollment.status === 'RETAKING' ? 'Retaking' : 'Enrolled'}</span>
+                                  <span><FiCalendar style={{ marginRight: '0.25rem' }} /> Created: {formatDate(enrollment.course.createdAt)}</span>
+                                  <span><FaChalkboardTeacher style={{ marginRight: '0.25rem' }} /> Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
+                                  {enrollment.course.level && <span><FaGraduationCap style={{ marginRight: '0.25rem' }} /> Level: {enrollment.course.level}</span>}
+                                  {enrollment.course.term && <span><FiBookOpen style={{ marginRight: '0.25rem' }} /> Term: {enrollment.course.term}</span>}
+                                  <span><FiBarChart2 style={{ marginRight: '0.25rem' }} /> Status: {enrollment.status === 'RETAKING' ? 'Retaking' : 'Enrolled'}</span>
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
@@ -840,14 +850,14 @@ const ModernStudentDashboard = () => {
                                   className="btn btn-primary btn-sm"
                                   onClick={() => navigate(`/student/${enrollment.course.courseCode}`)}
                                 >
-                                  📖 View Details
+                                  View Details
                                 </button>
                                 {enrollment.status === 'APPROVED' && (
                                   <button 
                                     className="btn btn-warning btn-sm"
                                     onClick={() => retakeCourse(enrollment.course.id, enrollment.course.title)}
                                   >
-                                    🔄 Retake
+                                    Retake
                                   </button>
                                 )}
                               </div>
@@ -902,7 +912,7 @@ const ModernStudentDashboard = () => {
                           
                           return recommendedCount > 0 ? 
                             `� Show Only Recommended (${recommendedCount})` :
-                            '📄 Show Less';
+                            'Show Less';
                         })() : (() => {
                           const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
                           const allCourses = filterEnrolledCourses();
@@ -912,8 +922,8 @@ const ModernStudentDashboard = () => {
                             ).length : 0;
                           
                           return recommendedCount > 0 ? 
-                            `📚 Show All ${allCourses.length} Courses (${recommendedCount} recommended shown)` :
-                            `📚 Show All ${allCourses.length} Courses`;
+                            ` Show All ${allCourses.length} Courses (${recommendedCount} recommended shown)` :
+                            ` Show All ${allCourses.length} Courses`;
                         })()}
                       </button>
                     </div>
@@ -928,7 +938,7 @@ const ModernStudentDashboard = () => {
             <div className="card-header">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0 }}>📋 Pending Course Approvals</h3>
+                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiList style={{ color: '#f59e0b' }} /> Pending Course Approvals</h3>
                   <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                     {pendingCourses.length} course{pendingCourses.length !== 1 ? 's' : ''} waiting for teacher approval
                     {user?.yearSemester && (() => {
@@ -960,7 +970,7 @@ const ModernStudentDashboard = () => {
                     className="form-control"
                     style={{ width: '250px' }}
                   />
-                  <span>🔍</span>
+                  <FiSearch />
                 </div>
               </div>
             </div>
@@ -1043,7 +1053,7 @@ const ModernStudentDashboard = () => {
                                       background: '#f59e0b',
                                       color: 'white'
                                     }}>
-                                      📌 Current
+                                      Current
                                     </span>
                                   )}
                                   <span style={{
@@ -1061,10 +1071,10 @@ const ModernStudentDashboard = () => {
                                   {enrollment.course.description}
                                 </p>
                                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                                  <span>📅 Applied: {enrollment.enrolledAt ? formatDate(enrollment.enrolledAt) : formatDate(enrollment.course.createdAt)}</span>
-                                  <span>👨‍🏫 Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
-                                  {enrollment.course.level && <span>🎓 Level: {enrollment.course.level}</span>}
-                                  {enrollment.course.term && <span>📚 Term: {enrollment.course.term}</span>}
+                                  <span><FiCalendar style={{ marginRight: '0.25rem' }} /> Applied: {enrollment.enrolledAt ? formatDate(enrollment.enrolledAt) : formatDate(enrollment.course.createdAt)}</span>
+                                  <span><FaChalkboardTeacher style={{ marginRight: '0.25rem' }} /> Teacher: {enrollment.course.assignedTeacher?.name || 'Not Assigned'}</span>
+                                  {enrollment.course.level && <span><FaGraduationCap style={{ marginRight: '0.25rem' }} /> Level: {enrollment.course.level}</span>}
+                                  {enrollment.course.term && <span><FiBookOpen style={{ marginRight: '0.25rem' }} /> Term: {enrollment.course.term}</span>}
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
@@ -1113,7 +1123,7 @@ const ModernStudentDashboard = () => {
                           fontWeight: '500'
                         }}
                       >
-                        {showOnlyRecommendedPending ? '📋 Show All Pending Courses' : 
+                        {showOnlyRecommendedPending ? 'Show All Pending Courses' : 
                         showAllPending ? (() => {
                           const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
                           const allCourses = filterPendingCourses();
@@ -1124,7 +1134,7 @@ const ModernStudentDashboard = () => {
                           
                           return recommendedCount > 0 ? 
                             `� Show Only Recommended (${recommendedCount})` :
-                            '📄 Show Less';
+                            'Show Less';
                         })() : (() => {
                           const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
                           const allCourses = filterPendingCourses();
@@ -1150,7 +1160,7 @@ const ModernStudentDashboard = () => {
             <div className="card-header">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3 style={{ margin: 0 }}>🔍 Available Courses</h3>
+                  <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiSearch style={{ color: '#10b981' }} /> Available Courses</h3>
                   <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                     {availableCourses.length} course{availableCourses.length !== 1 ? 's' : ''} available for enrollment
                     {user?.yearSemester && (() => {
@@ -1182,14 +1192,14 @@ const ModernStudentDashboard = () => {
                     className="form-control"
                     style={{ width: '250px' }}
                   />
-                  <span>🔍</span>
+                  <FiSearch />
                 </div>
               </div>
             </div>
             <div className="card-body">
               {filterAvailableCourses().length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem' }}>🎓</span>
+                  <FaGraduationCap style={{ fontSize: '2rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>{availableSearchTerm ? 'No courses found' : 'No courses available'}</h4>
                   <p>{availableSearchTerm ? 'Try adjusting your search terms' : 'All available courses have been enrolled or are pending approval.'}</p>
                   {availableSearchTerm && (
@@ -1265,7 +1275,7 @@ const ModernStudentDashboard = () => {
                                       background: '#16a34a',
                                       color: 'white'
                                     }}>
-                                      📌 Recommended
+                                      Recommended
                                     </span>
                                   )}
                                   <span style={{
@@ -1277,22 +1287,22 @@ const ModernStudentDashboard = () => {
                                     color: isCurrentLevelTerm ? '#166534' : '#0369a1',
                                     border: isCurrentLevelTerm ? '1px solid #22c55e' : '1px solid #0ea5e9'
                                   }}>
-                                    ✨ AVAILABLE
+                                    AVAILABLE
                                   </span>
                                 </div>
                                 <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
                                   {course.description}
                                 </p>
                                 <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                                  <span>📅 Created: {formatDate(course.createdAt)}</span>
-                                  <span>👨‍🏫 Teacher: {course.assignedTeacher?.name || 'Not Assigned'}</span>
-                                  {course.level && <span>🎓 Level: {course.level}</span>}
-                                  {course.term && <span>📚 Term: {course.term}</span>}
+                                  <span><FiCalendar style={{ marginRight: '0.25rem' }} /> Created: {formatDate(course.createdAt)}</span>
+                                  <span><FaChalkboardTeacher style={{ marginRight: '0.25rem' }} /> Teacher: {course.assignedTeacher?.name || 'Not Assigned'}</span>
+                                  {course.level && <span><FaGraduationCap style={{ marginRight: '0.25rem' }} /> Level: {course.level}</span>}
+                                  {course.term && <span><FiBookOpen style={{ marginRight: '0.25rem' }} /> Term: {course.term}</span>}
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
                                 <button className="btn btn-primary btn-sm">
-                                  📖 View Details
+                                  View Details
                                 </button>
                                 <button 
                                   className={`btn btn-sm ${isCurrentLevelTerm ? 'btn-success' : 'btn-outline-success'}`}
@@ -1301,7 +1311,7 @@ const ModernStudentDashboard = () => {
                                     fontWeight: isCurrentLevelTerm ? '600' : '500'
                                   }}
                                 >
-                                  {isCurrentLevelTerm ? '⭐ Enroll Now' : '✅ Enroll'}
+                                  {isCurrentLevelTerm ? 'Enroll Now' : 'Enroll'}
                                 </button>
                               </div>
                             </div>
@@ -1345,7 +1355,7 @@ const ModernStudentDashboard = () => {
                           fontWeight: '500'
                         }}
                       >
-                        {showOnlyRecommendedAvailable ? '🎓 Show All Available Courses' : 
+                        {showOnlyRecommendedAvailable ? 'Show All Available Courses' : 
                         showAllAvailable ? (() => {
                           const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
                           const allCourses = filterAvailableCourses();
@@ -1356,7 +1366,7 @@ const ModernStudentDashboard = () => {
                           
                           return recommendedCount > 0 ? 
                             `� Show Only Recommended (${recommendedCount})` :
-                            '📄 Show Less';
+                            'Show Less';
                         })() : (() => {
                           const { level: studentLevel, term: studentTerm } = getCurrentLevelAndTerm(user);
                           const allCourses = filterAvailableCourses();
@@ -1366,8 +1376,8 @@ const ModernStudentDashboard = () => {
                             ).length : 0;
                           
                           return recommendedCount > 0 ? 
-                            `🔍 Show All ${allCourses.length} Available (${recommendedCount} recommended shown)` :
-                            `🔍 Show All ${allCourses.length} Available`;
+                            ` Show All ${allCourses.length} Available (${recommendedCount} recommended shown)` :
+                            ` Show All ${allCourses.length} Available`;
                         })()}
                       </button>
                     </div>
@@ -1446,13 +1456,13 @@ const ModernStudentDashboard = () => {
           <div className="card-body">
             {allAssignments.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+                <FiFileText style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                 <h4>No assignments yet</h4>
                 <p>No assignments have been posted in your enrolled courses.</p>
               </div>
             ) : getFilteredAssignments().length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+                <FiSearch style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                 <h4>No matching assignments</h4>
                 <p>No assignments match your search criteria "{assignmentSearchTerm}".</p>
               </div>
@@ -1483,7 +1493,7 @@ const ModernStudentDashboard = () => {
                                           assignment.assignmentType === 'QUIZ' ? '#fed7aa' :
                                           assignment.assignmentType === 'LAB' ? '#bbf7d0' : '#e5e7eb',
                                 color: assignment.assignmentType === 'EXAM' ? '#dc2626' : 
-                                      assignment.assignmentType === 'PROJECT' ? '#7c3aed' :
+                                      assignment.assignmentType === 'PROJECT' ? '#0284c7' :
                                       assignment.assignmentType === 'QUIZ' ? '#ea580c' :
                                       assignment.assignmentType === 'LAB' ? '#059669' : '#374151'
                               }}>
@@ -1503,21 +1513,21 @@ const ModernStudentDashboard = () => {
                               }}
                               onClick={() => navigate(`/student/${assignment.courseCode}`)}
                               >
-                                📚 {assignment.courseName} ({assignment.courseCode})
+                                {assignment.courseName} ({assignment.courseCode})
                               </span>
                             </div>
                             
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-                              <span>👤 Instructor: {assignment.createdByName || 'Course Instructor'}</span>
+                              <span><FiUser style={{ marginRight: '0.25rem' }} /> Instructor: {assignment.createdByName || 'Course Instructor'}</span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                📅 Due: {formatDate(assignment.deadline)}
+                                Due: {formatDate(assignment.deadline)}
                                 {isOverdue && <span style={{ color: '#ef4444', fontWeight: '600' }}>(OVERDUE)</span>}
                                 {!isOverdue && isNearDue && <span style={{ color: '#f59e0b', fontWeight: '600' }}>(DUE SOON)</span>}
                               </span>
-                              <span>📊 Max Marks: {assignment.maxMarks}</span>
+                              <span><FiBarChart2 style={{ marginRight: '0.25rem' }} /> Max Marks: {assignment.maxMarks}</span>
                               {assignment.lateSubmissionDeadline && (
                                 <span style={{ color: canSubmitLate ? '#059669' : '#ef4444' }}>
-                                  📋 Late Until: {formatDate(assignment.lateSubmissionDeadline)}
+                                  Late Until: {formatDate(assignment.lateSubmissionDeadline)}
                                 </span>
                               )}
                             </div>
@@ -1535,7 +1545,7 @@ const ModernStudentDashboard = () => {
                               style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
                               onClick={() => navigate(`/student/${assignment.courseCode}`)}
                             >
-                              📋 View in Course
+                              View in Course
                             </button>
                             <button 
                               className={`btn btn-sm ${isOverdue && !canSubmitLate ? 'btn-secondary' : 'btn-success'}`}
@@ -1543,8 +1553,8 @@ const ModernStudentDashboard = () => {
                               disabled={isOverdue && !canSubmitLate}
                             >
                               {isOverdue && !canSubmitLate ? '⏰ Closed' : 
-                               isOverdue && canSubmitLate ? '📤 Submit Late' : 
-                               '📤 Submit'}
+                               isOverdue && canSubmitLate ? 'Submit Late' : 
+                               'Submit'}
                             </button>
                           </div>
                         </div>
@@ -1559,7 +1569,7 @@ const ModernStudentDashboard = () => {
                               color: '#0369a1',
                               fontWeight: '600'
                             }}>
-                              📊 Not Submitted
+                              Not Submitted
                             </span>
                             {isNearDue && !isOverdue && (
                               <span style={{
@@ -1622,8 +1632,7 @@ const ModernStudentDashboard = () => {
                 margin: '0 auto 1rem',
                 fontSize: '24px'
               }}>
-                🔄
-              </div>
+                              </div>
               <h3 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>
                 Retake Course Confirmation
               </h3>
@@ -1640,7 +1649,7 @@ const ModernStudentDashboard = () => {
               border: '1px solid #e2e8f0'
             }}>
               <h4 style={{ margin: '0 0 0.5rem 0', color: '#1e293b', fontSize: '1rem' }}>
-                📚 {retakeCourseData?.title}
+                {retakeCourseData?.title}
               </h4>
               <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
                 This will mark you as "retaking" and require teacher approval. Your previous progress will be maintained.
@@ -1655,7 +1664,7 @@ const ModernStudentDashboard = () => {
               marginBottom: '1.5rem'
             }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
-                <span style={{ color: '#f59e0b', fontSize: '1.25rem' }}>⚠️</span>
+                <FiAlertTriangle style={{ color: '#f59e0b', fontSize: '1.25rem' }} />
                 <div>
                   <h5 style={{ margin: '0 0 0.25rem 0', color: '#92400e', fontSize: '0.875rem' }}>
                     Important Notice:
@@ -1683,7 +1692,7 @@ const ModernStudentDashboard = () => {
                   color: '#374151'
                 }}
               >
-                ❌ Cancel
+                Cancel
               </button>
               <button
                 className="btn btn-warning"
@@ -1698,7 +1707,7 @@ const ModernStudentDashboard = () => {
                   color: 'white'
                 }}
               >
-                🔄 Yes, Retake Course
+                Yes, Retake Course
               </button>
             </div>
           </div>

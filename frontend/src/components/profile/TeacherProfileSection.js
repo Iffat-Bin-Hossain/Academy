@@ -102,7 +102,7 @@ const TeacherProfileSection = ({ profile, editing, canEdit, onSave }) => {
                                         rel="noopener noreferrer"
                                         className="link-external"
                                     >
-                                        {profile.personalWebsite} 🔗
+                                        {profile.personalWebsite}
                                     </a>
                                 ) : (
                                     'Not provided'
@@ -135,7 +135,7 @@ const TeacherProfileSection = ({ profile, editing, canEdit, onSave }) => {
                                         rel="noopener noreferrer"
                                         className="link-external"
                                     >
-                                        Google Scholar Profile 🎓
+                                        Google Scholar Profile
                                     </a>
                                 ) : (
                                     'Not provided'

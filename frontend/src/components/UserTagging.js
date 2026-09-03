@@ -161,7 +161,7 @@ const UserTagging = ({
               <div className="suggestion-info">
                 <div className="suggestion-name">{user.name}</div>
                 <div className="suggestion-role">
-                  {user.role === 'TEACHER' ? '👨‍🏫 Teacher' : '👨‍🎓 Student'}
+                  {user.role === 'TEACHER' ? 'Teacher' : 'Student'}
                 </div>
               </div>
             </div>

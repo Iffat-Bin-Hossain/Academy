@@ -5,6 +5,14 @@ import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
 import AssignmentManagement from './AssignmentManagement';
 import FacultyFeedbackTeacher from './feedback/FacultyFeedbackTeacher';
+import { 
+  FiBarChart2, 
+  FiBookOpen, 
+  FiFileText, 
+  FiStar, 
+  FiClipboard 
+} from 'react-icons/fi';
+import { FaGraduationCap } from 'react-icons/fa';
 
 const ModernTeacherDashboard = () => {
   const navigate = useNavigate();
@@ -211,10 +219,10 @@ const ModernTeacherDashboard = () => {
         <div className="card-header">
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'courses', label: 'Courses', icon: '📚' },
-              { id: 'assignments', label: 'Assignments', icon: '📝' },
-              { id: 'feedback', label: 'Feedback', icon: '⭐' }
+              { id: 'overview', label: 'Overview', icon: <FiBarChart2 style={{ marginRight: '0.5rem' }} /> },
+              { id: 'courses', label: 'Courses', icon: <FiBookOpen style={{ marginRight: '0.5rem' }} /> },
+              { id: 'assignments', label: 'Assignments', icon: <FiFileText style={{ marginRight: '0.5rem' }} /> },
+              { id: 'feedback', label: 'Feedback', icon: <FiStar style={{ marginRight: '0.5rem' }} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -236,22 +244,22 @@ const ModernTeacherDashboard = () => {
           {/* Stats Grid */}
           <div className="stats-grid">
             <div className="stat-card">
-              <span className="stat-icon">📚</span>
+              <span className="stat-icon"><FiBookOpen /></span>
               <div className="stat-value">{stats.totalCourses}</div>
               <div className="stat-label">My Courses</div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">👨‍🎓</span>
+              <span className="stat-icon"><FaGraduationCap /></span>
               <div className="stat-value">{stats.totalStudents}</div>
               <div className="stat-label">Total Students</div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">📋</span>
+              <span className="stat-icon"><FiClipboard /></span>
               <div className="stat-value">{stats.totalEnrollments}</div>
               <div className="stat-label">Enrollments</div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">📝</span>
+              <span className="stat-icon"><FiFileText /></span>
               <div className="stat-value">{stats.activeAssignments}</div>
               <div className="stat-label">Assignments</div>
             </div>
@@ -269,7 +277,7 @@ const ModernTeacherDashboard = () => {
                   className="btn btn-secondary btn-lg"
                   onClick={() => setActiveTab('courses')}
                 >
-                  <span style={{ marginRight: '0.5rem' }}>📚</span>
+                  <FiBookOpen style={{ marginRight: '0.5rem' }} />
                   View My Courses
                 </button>
               </div>
@@ -297,7 +305,7 @@ const ModernTeacherDashboard = () => {
                 <div style={{ position: 'relative', flex: 1 }}>
                   <input
                     type="text"
-                    placeholder="🔍 Search courses by title, code, or description..."
+                    placeholder="Search courses by title, code, or description..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
@@ -336,7 +344,7 @@ const ModernTeacherDashboard = () => {
                       e.target.style.borderColor = '#d1d5db';
                     }}
                   >
-                    ✕ Clear
+                    Clear
                   </button>
                 )}
               </div>
@@ -348,7 +356,7 @@ const ModernTeacherDashboard = () => {
               <div className="card-body">
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                   <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>
-                    {courses.length === 0 ? '📚' : '🔍'}
+                    {courses.length === 0 ? '' : ''}
                   </span>
                   <h4>
                     {courses.length === 0 
@@ -463,7 +471,7 @@ const ModernTeacherDashboard = () => {
                         borderTop: '1px solid #e2e8f0'
                       }}>
                         <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                          📅 {formatDate(course.createdAt)}
+                          {formatDate(course.createdAt)}
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           {approvedCount > 0 && (

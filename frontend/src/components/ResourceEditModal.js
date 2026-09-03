@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FiFile, FiLink, FiFileText, FiPaperclip, FiAlertTriangle } from 'react-icons/fi';
 
 const ResourceEditModal = ({ 
   isOpen, 
@@ -169,10 +170,10 @@ const ResourceEditModal = ({
 
   const getResourceTypeIcon = (type) => {
     switch (type) {
-      case 'FILE': return '📁';
-      case 'LINK': return '🔗';
-      case 'NOTE': return '📝';
-      default: return '📄';
+      case 'FILE': return <FiFile style={{ marginRight: '0.5rem' }} />;
+      case 'LINK': return <FiLink style={{ marginRight: '0.5rem' }} />;
+      case 'NOTE': return <FiFileText style={{ marginRight: '0.5rem' }} />;
+      default: return <FiFile style={{ marginRight: '0.5rem' }} />;
     }
   };
 
@@ -214,13 +215,13 @@ const ResourceEditModal = ({
               onChange={handleInputChange}
               className="form-select"
             >
-              <option value="FILE">📁 File Upload</option>
-              <option value="LINK">🔗 External Link</option>
-              <option value="NOTE">📝 Text Note</option>
+              <option value="FILE">File Upload</option>
+              <option value="LINK">External Link</option>
+              <option value="NOTE">Text Note</option>
             </select>
             {resourceTypeChanged && (
               <small className="type-change-info" style={{ color: '#f39c12', fontSize: '0.85rem' }}>
-                ⚠️ Changing resource type will replace all current content
+                Changing resource type will replace all current content
               </small>
             )}
           </div>
@@ -290,7 +291,7 @@ const ResourceEditModal = ({
                 <div className="current-file-info">
                   <h4>Current File</h4>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <span style={{ fontSize: '1.2rem' }}>📎</span>
+                    <FiPaperclip style={{ fontSize: '1.2rem' }} />
                     <div>
                       <div style={{ fontWeight: 'bold' }}>{resource.originalFilename}</div>
                       <div style={{ fontSize: '0.9rem', color: '#666' }}>

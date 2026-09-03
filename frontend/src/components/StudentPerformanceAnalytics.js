@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { 
+  FiBarChart2, 
+  FiTrendingUp, 
+  FiRefreshCw, 
+  FiAlertTriangle, 
+  FiFileText, 
+  FiBookOpen
+} from 'react-icons/fi';
+import { FaGraduationCap, FaLightbulb } from 'react-icons/fa';
 
 const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   console.log('🔧 StudentPerformanceAnalytics component mounted!');
@@ -24,7 +33,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     if (!user || !user.id) return;
 
     const interval = setInterval(() => {
-      console.log('🔄 Auto-refreshing analytics for grade updates...');
+      console.log('<FiRefreshCw /> Auto-refreshing analytics for grade updates...');
       fetchAnalytics();
     }, 30000); // Refresh every 30 seconds
 
@@ -35,7 +44,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && user?.id) {
-        console.log('🔄 Page became visible - refreshing analytics for potential teacher updates...');
+        console.log('<FiRefreshCw /> Page became visible - refreshing analytics for potential teacher updates...');
         setTimeout(() => fetchAnalytics(), 1000); // Small delay to ensure backend is ready
       }
     };
@@ -225,7 +234,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
         border: '1px solid #e2e8f0'
       }}>
-        <h5 style={{ margin: '0 0 1rem 0', color: '#374151' }}>📈 Performance Trend Analysis</h5>
+        <h5 style={{ margin: '0 0 1rem 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiTrendingUp style={{ color: '#3b82f6' }} /> Performance Trend Analysis</h5>
 
         {/* Summary Stats */}
         <div style={{
@@ -463,7 +472,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     if (!distribution || typeof distribution !== 'object' || Object.keys(distribution).length === 0) {
       return (
         <div style={{ marginBottom: '2rem' }}>
-          <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>📊 Grade Distribution</h4>
+          <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBarChart2 style={{ color: '#3b82f6' }} /> Grade Distribution</h4>
           <div style={{
             textAlign: 'center',
             padding: '3rem',
@@ -472,7 +481,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             borderRadius: '12px',
             border: '1px solid #e2e8f0'
           }}>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📊</span>
+            <FiBarChart2 style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
             <h5 style={{ color: '#374151', marginBottom: '0.5rem' }}>No Grade Distribution Available</h5>
             <p style={{ margin: 0, fontSize: '0.875rem' }}>
               Complete more assignments to see your grade distribution analysis.
@@ -517,7 +526,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
     return (
       <div style={{ marginBottom: '2rem' }}>
-        <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>📊 Grade Distribution</h4>
+        <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBarChart2 style={{ color: '#3b82f6' }} /> Grade Distribution</h4>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
@@ -593,7 +602,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   const renderDetailedCoursePerformance = (performanceTrends) => {
     return (
       <div style={{ marginBottom: '2rem' }}>
-        <h4 style={{ marginBottom: '1rem', color: '#1e293b' }}>📚 Detailed Course Performance</h4>
+        <h4 style={{ marginBottom: '1rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBookOpen style={{ color: '#3b82f6' }} /> Detailed Course Performance</h4>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
@@ -741,14 +750,14 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
       <div className="card">
         <div className="card-body">
           <div style={{ textAlign: 'center', padding: '3rem', color: '#ef4444' }}>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>⚠️</span>
+            <FiAlertTriangle style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#ef4444' }} />
             <h4>Error Loading Analytics</h4>
             <p style={{ marginBottom: '2rem', color: '#64748b' }}>{error}</p>
             <button
               className="btn btn-primary"
               onClick={fetchAnalytics}
             >
-              🔄 Retry
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiRefreshCw /> Retry</span>
             </button>
           </div>
         </div>
@@ -762,7 +771,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
       <div className="card">
         <div className="card-body">
           <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📊</span>
+            <FiBarChart2 style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
             <h4>No Analytics Data</h4>
             <p>No performance data available yet.</p>
           </div>
@@ -870,7 +879,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
       {/* Header */}
       <div style={{ marginBottom: '2rem', textAlign: 'center', position: 'relative' }}>
-        <h2 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>📊 Performance Analytics</h2>
+        <h2 style={{ margin: '0 0 0.5rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><FiBarChart2 style={{ color: '#3b82f6' }} /> Performance Analytics</h2>
         <p style={{ margin: 0, color: '#64748b' }}>
           Comprehensive overview of your academic performance across all courses
         </p>
@@ -890,7 +899,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
         {/* Refresh Button */}
         <button
           onClick={() => {
-            console.log('🔄 Manual refresh triggered');
+            console.log('<FiRefreshCw /> Manual refresh triggered');
             fetchAnalytics();
           }}
           disabled={loading}
@@ -917,7 +926,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             display: 'inline-block',
             animation: loading ? 'spin 1s linear infinite' : 'none'
           }}>
-            🔄
+            <FiRefreshCw />
           </span>
           {loading ? 'Updating...' : 'Refresh'}
         </button>
@@ -928,9 +937,9 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
         <div className="card-header" style={{ padding: 0, border: 'none' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
             {[
-              { id: 'overview', label: '📊 Overall Performance', icon: '📊' },
-              { id: 'courses', label: '📈 Course Progress', icon: '📈' },
-              { id: 'insights', label: '💡 Insights & Analysis', icon: '💡' }
+              { id: 'overview', label: 'Overall Performance', icon: <FiBarChart2 style={{ marginRight: '0.5rem' }} /> },
+              { id: 'courses', label: 'Course Progress', icon: <FiTrendingUp style={{ marginRight: '0.5rem' }} /> },
+              { id: 'insights', label: 'Insights & Analysis', icon: <FaLightbulb style={{ marginRight: '0.5rem' }} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -946,7 +955,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   transition: 'all 0.2s ease'
                 }}
               >
-                {tab.label}
+                {tab.icon}{tab.label}
               </button>
             ))}
           </div>
@@ -959,12 +968,12 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
               <div style={{
                 marginBottom: '2rem',
                 padding: '2rem',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 100%)',
                 borderRadius: '16px',
                 color: 'white',
                 textAlign: 'center'
               }}>
-                <h3 style={{ margin: '0 0 1.5rem 0', color: 'white' }}>🎓 Academic Journey Overview</h3>
+                <h3 style={{ margin: '0 0 1.5rem 0', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><FaGraduationCap /> Academic Journey Overview</h3>
                 <div style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
@@ -1012,7 +1021,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                   border: '1px solid #e2e8f0'
                 }}>
-                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>📊 Course Performance Summary</h4>
+                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBarChart2 style={{ color: '#3b82f6' }} /> Course Performance Summary</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                     {performanceTrends.slice(0, 6).map((course, index) => {
                       const percentage = typeof course?.percentage === 'number' ? course.percentage : 0;
@@ -1033,7 +1042,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                             <div>
                               <div style={{ fontWeight: 'bold', color: '#1e293b' }}>{courseCode}</div>
                               <div style={{ fontSize: '0.8rem', color: isCopyPenalty ? '#ef4444' : '#64748b' }}>
-                                {isCopyPenalty ? '🚫 Copy Detected' : gradeInfo.description}
+                                {isCopyPenalty ? 'Copy Detected' : gradeInfo.description}
                               </div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
@@ -1053,7 +1062,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                             fontSize: '0.8rem'
                           }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                              <span style={{ color: '#64748b' }}>📈 Attendance:</span>
+                              <span style={{ color: '#64748b' }}>Attendance:</span>
                               <span style={{
                                 fontWeight: 'bold',
                                 color: attendancePercentage >= 75 ? '#059669' :
@@ -1063,7 +1072,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                               </span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span style={{ color: '#64748b' }}>🎯 Attendance Marks:</span>
+                              <span style={{ color: '#64748b' }}>Attendance Marks:</span>
                               <span style={{ fontWeight: 'bold', color: '#374151' }}>
                                 {attendanceMarks.toFixed(0)}/30
                               </span>
@@ -1103,7 +1112,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                   border: '1px solid #e2e8f0'
                 }}>
-                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b' }}>💡 Quick Insights</h4>
+                  <h4 style={{ margin: '0 0 1rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaLightbulb style={{ color: '#f59e0b' }} /> Quick Insights</h4>
                   <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -1116,7 +1125,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                         borderRadius: '8px',
                         border: '1px solid #22c55e'
                       }}>
-                        <h6 style={{ margin: '0 0 0.5rem 0', color: '#15803d' }}>💪 Top Strengths ({insights.strengths.length})</h6>
+                        <h6 style={{ margin: '0 0 0.5rem 0', color: '#15803d' }}>Top Strengths ({insights.strengths.length})</h6>
                         <div style={{ fontSize: '0.875rem', color: '#166534' }}>
                           {insights.strengths.slice(0, 2).map((strength, index) => (
                             <div key={index}>• {String(strength)}</div>
@@ -1137,7 +1146,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                         borderRadius: '8px',
                         border: '1px solid #f59e0b'
                       }}>
-                        <h6 style={{ margin: '0 0 0.5rem 0', color: '#d97706' }}>📈 Focus Areas ({insights.areasForImprovement.length})</h6>
+                        <h6 style={{ margin: '0 0 0.5rem 0', color: '#d97706' }}>Focus Areas ({insights.areasForImprovement.length})</h6>
                         <div style={{ fontSize: '0.875rem', color: '#b45309' }}>
                           {insights.areasForImprovement.slice(0, 2).map((area, index) => (
                             <div key={index}>• {String(area)}</div>
@@ -1174,7 +1183,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
           {activeTab === 'courses' && (
             <div>
-              <h4 style={{ margin: '0 0 1.5rem 0', color: '#1e293b' }}>📈 Course Performance Analysis</h4>
+              <h4 style={{ margin: '0 0 1.5rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiTrendingUp style={{ color: '#3b82f6' }} /> Course Performance Analysis</h4>
 
               {performanceTrends.length > 0 ? (
                 <div>
@@ -1190,7 +1199,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                     border: '1px solid #e2e8f0'
                   }}>
-                    <h5 style={{ margin: '0 0 1rem 0', color: '#374151' }}>📊 Detailed Course Performance</h5>
+                    <h5 style={{ margin: '0 0 1rem 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBarChart2 style={{ color: '#3b82f6' }} /> Detailed Course Performance</h5>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {performanceTrends.map((course, index) => {
                         const percentage = typeof course?.percentage === 'number' ? course.percentage : 0;
@@ -1220,7 +1229,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                                 fontWeight: 'bold',
                                 textAlign: 'center'
                               }}>
-                                🚫 PLAGIARISM DETECTED - FULL PENALTY APPLIED
+                                PLAGIARISM DETECTED - FULL PENALTY APPLIED
                               </div>
                             )}
                             <div style={{
@@ -1317,7 +1326,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                             }}>
                               <div style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                                  📈 Attendance Rate
+                                  Attendance Rate
                                 </div>
                                 <div style={{
                                   fontSize: '1.25rem',
@@ -1331,7 +1340,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
                               <div style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                                  🎯 Attendance Marks
+                                  Attendance Marks
                                 </div>
                                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#374151' }}>
                                   {attendanceMarks.toFixed(0)}/30
@@ -1340,7 +1349,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
                               <div style={{ textAlign: 'center' }}>
                                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>
-                                  📊 Total Score
+                                  Total Score
                                 </div>
                                 <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: gradeInfo.color }}>
                                   {percentage.toFixed(1)}%
@@ -1362,7 +1371,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                       border: '1px solid #e2e8f0'
                     }}>
-                      <h5 style={{ margin: '0 0 1rem 0', color: '#374151' }}>📝 Performance by Assignment Type</h5>
+                      <h5 style={{ margin: '0 0 1rem 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiFileText style={{ color: '#3b82f6' }} /> Performance by Assignment Type</h5>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
                         {assignmentTypePerformance.map((type, index) => {
                           // Enhanced validation and precision for assignment type performance
@@ -1427,7 +1436,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📚</span>
+                  <FiBookOpen style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>No Course Performance Data</h4>
                   <p>Complete some assignments to see your course performance trends and analysis.</p>
                 </div>
@@ -1437,7 +1446,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
 
           {activeTab === 'insights' && (
             <div>
-              <h4 style={{ margin: '0 0 1.5rem 0', color: '#1e293b' }}>💡 Performance Insights & Recommendations</h4>
+              <h4 style={{ margin: '0 0 1.5rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FaLightbulb style={{ color: '#f59e0b' }} /> Performance Insights & Recommendations</h4>
 
               {/* Detailed Insights */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
@@ -1449,7 +1458,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     border: '2px solid #22c55e'
                   }}>
                     <h5 style={{ margin: '0 0 1rem 0', color: '#15803d', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      💪 Your Strengths
+                      Your Strengths
                     </h5>
                     <ul style={{ margin: 0, paddingLeft: '1rem', color: '#166534' }}>
                       {insights.strengths.map((strength, index) => (
@@ -1457,7 +1466,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       ))}
                     </ul>
                     <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#dcfce7', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '0.875rem', color: '#15803d', fontWeight: '600' }}>� Recommendation:</div>
+                      <div style={{ fontSize: '0.875rem', color: '#15803d', fontWeight: '600' }}>�Recommendation:</div>
                       <div style={{ fontSize: '0.8rem', color: '#166534', marginTop: '0.25rem' }}>
                         Keep up the excellent work! These are your strongest areas. Consider helping classmates in these subjects.
                       </div>
@@ -1473,7 +1482,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     border: '2px solid #f59e0b'
                   }}>
                     <h5 style={{ margin: '0 0 1rem 0', color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      📈 Areas for Growth
+                      Areas for Growth
                     </h5>
                     <ul style={{ margin: 0, paddingLeft: '1rem', color: '#b45309' }}>
                       {insights.areasForImprovement.map((area, index) => (
@@ -1481,7 +1490,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       ))}
                     </ul>
                     <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#fef3c7', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '0.875rem', color: '#d97706', fontWeight: '600' }}>💡 Recommendation:</div>
+                      <div style={{ fontSize: '0.875rem', color: '#d97706', fontWeight: '600' }}>💡Recommendation:</div>
                       <div style={{ fontSize: '0.8rem', color: '#b45309', marginTop: '0.25rem' }}>
                         Focus extra study time on these areas. Consider seeking help from teachers or study groups.
                       </div>
@@ -1497,7 +1506,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                   border: '2px solid #3b82f6'
                 }}>
                   <h5 style={{ margin: '0 0 1rem 0', color: '#1d4ed8', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    📊 Academic Progress
+                    Academic Progress
                   </h5>
                   <div style={{ color: '#1e40af' }}>
                     <div style={{ marginBottom: '0.75rem' }}>
@@ -1511,7 +1520,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                     </div>
                   </div>
                   <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#dbeafe', borderRadius: '6px' }}>
-                    <div style={{ fontSize: '0.875rem', color: '#1d4ed8', fontWeight: '600' }}>💡 Next Steps:</div>
+                    <div style={{ fontSize: '0.875rem', color: '#1d4ed8', fontWeight: '600' }}>Next Steps:</div>
                     <div style={{ fontSize: '0.8rem', color: '#1e40af', marginTop: '0.25rem' }}>
                       {(() => {
                         const gpa = overallSummary.overallGPA;

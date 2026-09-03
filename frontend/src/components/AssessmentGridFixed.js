@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { FiBarChart2, FiClock, FiAlertTriangle } from 'react-icons/fi';
 
 const AssessmentGrid = ({ courseId, userId, courseName }) => {
   const [assessmentData, setAssessmentData] = useState([]);
@@ -231,7 +232,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
     if (assignments.length === 0) {
       return (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-          <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📊</span>
+          <FiBarChart2 style={{ fontSize: '3rem', color: '#94a3b8', display: 'block', margin: '0 auto 1rem' }} />
           <h4>No assignments found</h4>
           <p>Assessment grid will appear here once assignments are created for this course.</p>
         </div>
@@ -271,7 +272,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                   </div>
                   
                   <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.75rem' }}>
-                    📅 Due: {new Date(assignment.deadline).toLocaleDateString('en-US', { 
+                    Due: {new Date(assignment.deadline).toLocaleDateString('en-US', { 
                       month: 'short', day: 'numeric', year: 'numeric' 
                     })}
                   </div>
@@ -304,7 +305,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                       width: '100%'
                     }}
                   >
-                    {processingGrading ? 'Processing...' : '📋 Process'}
+                    {processingGrading ? 'Processing...' : 'Process'}
                   </button>
                 </div>
               </div>
@@ -407,9 +408,9 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                             assessment.submissionStatus === 'SUBMITTED' ? 'bg-success' : 
                             assessment.submissionStatus === 'LATE' ? 'bg-warning text-dark' : 'bg-danger'
                           }`} style={{ fontSize: '0.6rem', padding: '0.2rem 0.4rem' }}>
-                            {assessment.submissionStatus === 'SUBMITTED' ? '✓ SUBMITTED' :
-                             assessment.submissionStatus === 'LATE' ? '⚠ LATE' : 
-                             '✗ NOT SUBMITTED'}
+                            {assessment.submissionStatus === 'SUBMITTED' ? 'SUBMITTED' :
+                             assessment.submissionStatus === 'LATE' ? 'LATE' : 
+                             'NOT SUBMITTED'}
                           </span>
                         )}
                       </div>
@@ -435,7 +436,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                 cursor: 'pointer'
                               }}
                             >
-                              📎 {(file.originalFilename || file.fileName).length > 15 ? 
+                              {(file.originalFilename || file.fileName).length > 15 ? 
                                   `${(file.originalFilename || file.fileName).substring(0, 15)}...` : 
                                   (file.originalFilename || file.fileName)}
                             </button>
@@ -503,13 +504,13 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                           }}>
                             Final: {assessment.finalMark.toFixed(1)} / {assignment.fullMark}
                             {assessment.latePenaltyApplied && (
-                              <div style={{ fontSize: '0.6rem', color: '#d97706' }}>
-                                ⏰ Late penalty (-20%)
+                              <div style={{ fontSize: '0.6rem', color: '#d97706', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                                <FiClock /> Late penalty (-20%)
                               </div>
                             )}
                             {assessment.copyPenaltyApplied && (
                               <div style={{ fontSize: '0.6rem', color: '#dc2626' }}>
-                                🚫 Copy penalty (0 marks)
+                                Copy penalty (0 marks)
                               </div>
                             )}
                           </div>
@@ -540,7 +541,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
       <div className="card-header">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ margin: 0 }}>📊 Assessment Grid - {courseName}</h3>
+            <h3 style={{ margin: 0 }}>Assessment Grid - {courseName}</h3>
             <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
               Grade students and manage assessment data for all assignments
             </p>
@@ -554,14 +555,14 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
             onClick={() => setShowCopyCheckerModal(true)}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            📤 Upload Copy Checker
+            Upload Copy Checker
           </button>
           <button 
             className="btn btn-secondary btn-sm"
             onClick={fetchAssessmentGrid}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            🔄 Refresh
+            Refresh
           </button>
         </div>
       </div>
@@ -626,7 +627,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
             <div className="modal-content" style={{ boxShadow: '0 10px 30px rgba(0,0,0,0.3)', border: 'none' }}>
               <div className="modal-header" style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                 <h5 className="modal-title" style={{ color: '#1e293b', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  📤 Upload Copy Checker File
+                  Upload Copy Checker File
                 </h5>
                 <button 
                   type="button" 
@@ -676,7 +677,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     }}
                   />
                   <div className="form-text" style={{ color: '#6b7280', fontSize: '0.8rem', marginTop: '0.5rem' }}>
-                    📄 Upload a CSV file containing flagged student emails for plagiarism detection
+                    Upload a CSV file containing flagged student emails for plagiarism detection
                   </div>
                 </div>
               </div>

@@ -1,4 +1,18 @@
 import React from 'react';
+import { 
+  FiFileText, 
+  FiFolder, 
+  FiLink, 
+  FiFile, 
+  FiTag, 
+  FiCalendar, 
+  FiEdit3, 
+  FiTrash2, 
+  FiDownload, 
+  FiEye, 
+  FiUser, 
+  FiExternalLink 
+} from 'react-icons/fi';
 
 const ResourceCard = ({ 
   resource, 
@@ -39,13 +53,13 @@ const ResourceCard = ({
   const getResourceIcon = (type) => {
     switch (type) {
       case 'FILE':
-        return '📁';
+        return <FiFile style={{ fontSize: '1.5rem', color: '#3b82f6' }} />;
       case 'LINK':
-        return '🔗';
+        return <FiLink style={{ fontSize: '1.5rem', color: '#10b981' }} />;
       case 'NOTE':
-        return '📝';
+        return <FiFileText style={{ fontSize: '1.5rem', color: '#f59e0b' }} />;
       default:
-        return '📄';
+        return <FiFile style={{ fontSize: '1.5rem', color: '#64748b' }} />;
     }
   };
 
@@ -73,8 +87,8 @@ const ResourceCard = ({
           <h3 className="resource-title">{resource.title}</h3>
           <div className="resource-info">
             <span className="resource-type">{resource.resourceType}</span>
-            {resource.topic && <span className="resource-topic">📋 {resource.topic}</span>}
-            {resource.week && <span className="resource-week">📅 Week {resource.week}</span>}
+            {resource.topic && <span className="resource-topic" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiTag /> {resource.topic}</span>}
+            {resource.week && <span className="resource-week" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiCalendar /> Week {resource.week}</span>}
           </div>
         </div>
         {isTeacher && (
@@ -84,14 +98,14 @@ const ResourceCard = ({
               onClick={handleEdit}
               title="Edit Resource"
             >
-              ✏️
+              <FiEdit3 />
             </button>
             <button 
               className="action-btn delete-btn" 
               onClick={handleDelete}
               title="Delete Resource"
             >
-              🗑️
+              <FiTrash2 />
             </button>
           </div>
         )}
@@ -104,9 +118,9 @@ const ResourceCard = ({
         
         {resource.resourceType === 'FILE' && resource.fileSize && (
           <div className="file-info">
-            <span className="file-size">📏 {formatFileSize(resource.fileSize)}</span>
+            <span className="file-size">{formatFileSize(resource.fileSize)}</span>
             {resource.originalFilename && (
-              <span className="file-name">📄 {resource.originalFilename}</span>
+              <span className="file-name">{resource.originalFilename}</span>
             )}
           </div>
         )}
@@ -120,7 +134,7 @@ const ResourceCard = ({
               onClick={(e) => e.stopPropagation()}
               className="resource-link"
             >
-              🔗 Open Link
+              Open Link
             </a>
           </div>
         )}
@@ -149,11 +163,11 @@ const ResourceCard = ({
 
       <div className="resource-footer">
         <div className="resource-stats">
-          <span className="stat">👁️ {resource.viewCount || 0}</span>
+          <span className="stat" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiEye /> {resource.viewCount || 0}</span>
           {resource.resourceType === 'FILE' && (
-            <span className="stat">📥 {resource.downloadCount || 0}</span>
+            <span className="stat" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiDownload /> {resource.downloadCount || 0}</span>
           )}
-          <span className="stat">📅 {formatDate(resource.createdAt)}</span>
+          <span className="stat" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiCalendar /> {formatDate(resource.createdAt)}</span>
         </div>
         
         {resource.resourceType === 'FILE' && (
@@ -162,14 +176,14 @@ const ResourceCard = ({
             onClick={handleDownload}
             title="Download File"
           >
-            📥 Download
+            Download
           </button>
         )}
       </div>
 
       {resource.uploadedBy && (
         <div className="resource-author">
-          👤 {resource.uploadedBy.firstName} {resource.uploadedBy.lastName}
+          {resource.uploadedBy.firstName} {resource.uploadedBy.lastName}
         </div>
       )}
     </div>

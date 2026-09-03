@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { 
+  FiEye, 
+  FiEyeOff, 
+  FiLock, 
+  FiCheckCircle, 
+  FiClock, 
+  FiFileText, 
+  FiInfo, 
+  FiLayers 
+} from 'react-icons/fi';
 
 const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
   const [assignments, setAssignments] = useState([]);
@@ -70,7 +80,9 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
   return (
     <div className="card">
       <div className="card-header">
-        <h3 className="card-title">👁️ Grade Visibility Control</h3>
+        <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FiEye style={{ color: '#2563eb' }} /> Grade Visibility Control
+        </h3>
         <p className="card-subtitle">
           Control which assignment grades are visible to students
         </p>
@@ -79,7 +91,7 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
       <div className="card-body">
         {assignments.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+            <FiFileText style={{ fontSize: '3rem', color: '#94a3b8', marginBottom: '1rem' }} />
             <h4>No Assignments</h4>
             <p>No assignments found for this course.</p>
           </div>
@@ -99,6 +111,9 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
                         <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
                           padding: '0.25rem 0.75rem',
                           borderRadius: '12px',
                           fontSize: '0.75rem',
@@ -106,11 +121,14 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                           background: assignment.gradesVisible ? '#dcfce7' : '#f1f5f9',
                           color: assignment.gradesVisible ? '#166534' : '#64748b'
                         }}>
-                          {assignment.gradesVisible ? '👁️ Visible to Students' : '🔒 Hidden from Students'}
+                          {assignment.gradesVisible ? <><FiEye /> Visible to Students</> : <><FiEyeOff /> Hidden from Students</>}
                         </span>
                         
                         {assignment.hasGrades && (
                           <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
                             padding: '0.25rem 0.75rem',
                             borderRadius: '12px',
                             fontSize: '0.75rem',
@@ -118,7 +136,7 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                             background: '#dbeafe',
                             color: '#1e40af'
                           }}>
-                            ✅ Has Grades
+                            <FiCheckCircle /> Has Grades
                           </span>
                         )}
                       </div>
@@ -126,17 +144,17 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                       <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
                         {assignment.hasGrades ? (
                           assignment.gradesVisible ? (
-                            <span style={{ color: '#166534' }}>
-                              ✅ Students can see their grades and feedback
+                            <span style={{ color: '#166534', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <FiCheckCircle /> Students can see their grades and feedback
                             </span>
                           ) : (
-                            <span style={{ color: '#dc2626' }}>
-                              🔒 Grades are hidden - students see "Pending Review"
+                            <span style={{ color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <FiLock /> Grades are hidden - students see "Pending Review"
                             </span>
                           )
                         ) : (
-                          <span style={{ color: '#64748b' }}>
-                            ⏳ No grades entered yet
+                          <span style={{ color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <FiClock /> No grades entered yet
                           </span>
                         )}
                       </div>
@@ -147,19 +165,19 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                         <button
                           onClick={() => toggleVisibility(assignment.assignmentId, assignment.gradesVisible)}
                           disabled={updating[assignment.assignmentId]}
-                          className={`btn btn-sm ${assignment.gradesVisible ? 'btn-warning' : 'btn-success'}`}
+                          className={`btn btn-sm ${assignment.gradesVisible ? 'btn-secondary' : 'btn-primary'}`}
                           style={{ 
                             minWidth: '120px',
-                            fontSize: '0.875rem',
-                            fontWeight: '600'
+                            fontSize: '0.85rem',
+                            fontWeight: '500'
                           }}
                         >
                           {updating[assignment.assignmentId] ? (
-                            <span>⏳ Updating...</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><FiClock /> Updating...</span>
                           ) : assignment.gradesVisible ? (
-                            <span>🔒 Hide Grades</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><FiEyeOff /> Hide Grades</span>
                           ) : (
-                            <span>👁️ Show Grades</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><FiEye /> Show Grades</span>
                           )}
                         </button>
                       )}
@@ -186,12 +204,15 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                       border: `1px solid ${assignment.gradesVisible ? '#bbf7d0' : '#fde047'}`
                     }}>
                       <div style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.35rem',
                         fontSize: '0.75rem', 
                         color: assignment.gradesVisible ? '#166534' : '#a16207',
                         marginBottom: '0.25rem',
                         fontWeight: '600'
                       }}>
-                        💡 Student View:
+                        <FiInfo /> Student View:
                       </div>
                       <div style={{ 
                         fontSize: '0.875rem', 
@@ -218,7 +239,9 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                 borderRadius: '8px',
                 border: '1px solid #e2e8f0'
               }}>
-                <h6 style={{ margin: '0 0 1rem 0', color: '#374151' }}>Bulk Actions</h6>
+                <h6 style={{ margin: '0 0 1rem 0', color: '#374151', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <FiLayers style={{ color: '#2563eb' }} /> Bulk Actions
+                </h6>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <button
                     onClick={() => {
@@ -226,10 +249,10 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                         .filter(a => a.hasGrades && !a.gradesVisible)
                         .forEach(a => toggleVisibility(a.assignmentId, false));
                     }}
-                    className="btn btn-success btn-sm"
+                    className="btn btn-primary btn-sm"
                     disabled={Object.values(updating).some(Boolean)}
                   >
-                    👁️ Show All Grades
+                    <FiEye /> Show All Grades
                   </button>
                   
                   <button
@@ -238,10 +261,10 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
                         .filter(a => a.hasGrades && a.gradesVisible)
                         .forEach(a => toggleVisibility(a.assignmentId, true));
                     }}
-                    className="btn btn-warning btn-sm"
+                    className="btn btn-secondary btn-sm"
                     disabled={Object.values(updating).some(Boolean)}
                   >
-                    🔒 Hide All Grades
+                    <FiEyeOff /> Hide All Grades
                   </button>
                 </div>
                 

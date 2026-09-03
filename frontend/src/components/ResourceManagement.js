@@ -3,6 +3,17 @@ import axios from '../api/axiosInstance';
 import ResourceCard from './ResourceCard';
 import ResourceCreateModal from './ResourceCreateModal';
 import ResourceEditModal from './ResourceEditModal';
+import { 
+  FiBookOpen, 
+  FiPlus, 
+  FiSearch, 
+  FiFile, 
+  FiLink, 
+  FiFileText, 
+  FiX, 
+  FiGrid, 
+  FiList 
+} from 'react-icons/fi';
 import './ResourceManagement.css';
 
 const ResourceManagement = ({ courseId, user, onShowMessage }) => {
@@ -290,10 +301,10 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
 
   const getResourceTypeIcon = (type) => {
     switch (type) {
-      case 'FILE': return '📁';
-      case 'LINK': return '🔗';
-      case 'NOTE': return '📝';
-      default: return '📄';
+      case 'FILE': return <FiFile style={{ marginRight: '0.5rem' }} />;
+      case 'LINK': return <FiLink style={{ marginRight: '0.5rem' }} />;
+      case 'NOTE': return <FiFileText style={{ marginRight: '0.5rem' }} />;
+      default: return <FiFile style={{ marginRight: '0.5rem' }} />;
     }
   };
 
@@ -313,7 +324,7 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
       {/* Header */}
       <div className="resource-header">
         <div className="header-content">
-          <h3>📚 Learning Resources</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiBookOpen /> Learning Resources</h3>
           <p>Access course materials, links, and notes</p>
         </div>
         
@@ -322,7 +333,7 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
             className="btn btn-primary"
             onClick={() => setShowCreateModal(true)}
           >
-            ➕ Add Resource
+            Add Resource
           </button>
         )}
       </div>
@@ -338,9 +349,7 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             className="search-input"
           />
-          <button onClick={handleSearch} className="search-btn">
-            🔍
-          </button>
+          <button onClick={handleSearch} className="search-btn"><FiSearch /></button>
         </div>
 
         <div className="filters-container">
@@ -372,14 +381,14 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
             className="filter-select"
           >
             <option value="">All Types</option>
-            <option value="FILE">📁 Files</option>
-            <option value="LINK">🔗 Links</option>
-            <option value="NOTE">📝 Notes</option>
+            <option value="FILE">Files</option>
+            <option value="LINK">Links</option>
+            <option value="NOTE">Notes</option>
           </select>
 
           {(selectedTopic || selectedWeek || selectedType || searchTerm) && (
             <button onClick={clearFilters} className="clear-filters-btn">
-              ✕ Clear
+              Clear
             </button>
           )}
         </div>
@@ -401,13 +410,13 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
               className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
             >
-              ⚏
+              Grid
             </button>
             <button
               className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
             >
-              ☰
+              List
             </button>
           </div>
         </div>
@@ -432,7 +441,7 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
       <div className="resources-container">
         {sortedResources.length === 0 ? (
           <div className="empty-state">
-            <span className="empty-icon">📚</span>
+            <FiBookOpen style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
             <h4>No resources found</h4>
             <p>
               {(selectedTopic || selectedWeek || selectedType || searchTerm) 

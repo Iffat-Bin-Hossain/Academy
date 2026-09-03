@@ -175,12 +175,12 @@ const Profile = () => {
                                     hidden
                                 />
                                 <label htmlFor="photo-upload" className="photo-btn upload">
-                                    📷 {profile.profilePhotoUrl ? 'Change' : 'Upload'}
+                                    {profile.profilePhotoUrl ? 'Change' : 'Upload'}
                                 </label>
                                 {selectedFile && (
                                     <>
                                         <button onClick={handlePhotoUpload} className="photo-btn save">
-                                            ✓ Save
+                                            Save
                                         </button>
                                         <button 
                                             onClick={() => {
@@ -189,13 +189,13 @@ const Profile = () => {
                                             }} 
                                             className="photo-btn cancel"
                                         >
-                                            ✗ Cancel
+                                            Cancel
                                         </button>
                                     </>
                                 )}
                                 {profile.profilePhotoUrl && !selectedFile && (
                                     <button onClick={handlePhotoDelete} className="photo-btn delete">
-                                        🗑️ Delete
+                                        Delete
                                     </button>
                                 )}
                             </div>
@@ -229,8 +229,8 @@ const Profile = () => {
             {message && (
                 <div className={`profile-message ${messageType}`}>
                     <span className="message-icon">
-                        {messageType === 'success' && '✓'}
-                        {messageType === 'error' && '⚠'}
+                        {messageType === 'success' && ''}
+                        {messageType === 'error' && ''}
                         {messageType === 'info' && 'ℹ'}
                     </span>
                     <span className="message-text">{message}</span>
@@ -238,7 +238,7 @@ const Profile = () => {
                         className="message-close" 
                         onClick={() => {setMessage(''); setMessageType('');}}
                     >
-                        ✕
+                        
                     </button>
                 </div>
             )}

@@ -2,6 +2,19 @@ import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
 import UserProfileModal from './UserProfileModal';
 import './UserManagement.css';
+import { 
+  FiUsers, 
+  FiCheck, 
+  FiAlertTriangle, 
+  FiInfo, 
+  FiCheckCircle, 
+  FiXCircle, 
+  FiLock, 
+  FiUnlock, 
+  FiShield, 
+  FiEdit3, 
+  FiUser 
+} from 'react-icons/fi';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -540,7 +553,7 @@ const UserManagement = () => {
   return (
     <div className="user-management">
       <div className="user-management-header">
-        <h2>👥 User Management</h2>
+        <h2><FiUsers style={{ marginRight: '0.5rem' }} /> User Management</h2>
         <div className="user-stats">
           <span className="stat">Active Users: {statusCounts.ALL}</span>
           <span className="stat pending">Pending: {statusCounts.PENDING}</span>
@@ -555,9 +568,9 @@ const UserManagement = () => {
         <div className={`user-management-message ${messageType}`}>
           <div className="message-content">
             <span className="message-icon">
-              {messageType === 'success' && '✓'}
-              {messageType === 'error' && '⚠'}
-              {messageType === 'info' && 'ℹ'}
+              {messageType === 'success' && <FiCheck />}
+              {messageType === 'error' && <FiAlertTriangle />}
+              {messageType === 'info' && <FiInfo />}
             </span>
             <span className="message-text">{message}</span>
             <button 
@@ -565,7 +578,7 @@ const UserManagement = () => {
               onClick={() => {setMessage(''); setMessageType('');}}
               aria-label="Close message"
             >
-              ✕
+              
             </button>
           </div>
         </div>
@@ -577,7 +590,7 @@ const UserManagement = () => {
           <div className="search-input-wrapper">
             <input
               type="text"
-              placeholder="🔍 Search users by name, email, role, or status..."
+              placeholder="Search users by name, email, role, or status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -588,7 +601,7 @@ const UserManagement = () => {
                 onClick={() => setSearchTerm('')}
                 title="Clear search"
               >
-                ✕
+                
               </button>
             )}
           </div>
@@ -619,14 +632,14 @@ const UserManagement = () => {
                       onClick={handleBulkApprove}
                       disabled={bulkOperationLoading}
                     >
-                      {bulkOperationLoading ? '⏳ Processing...' : '✅ Approve Selected'}
+                      {bulkOperationLoading ? 'Processing...' : 'Approve Selected'}
                     </button>
                     <button
                       className="btn btn-sm btn-danger"
                       onClick={handleBulkReject}
                       disabled={bulkOperationLoading}
                     >
-                      {bulkOperationLoading ? '⏳ Processing...' : '❌ Reject Selected'}
+                      {bulkOperationLoading ? 'Processing...' : 'Reject Selected'}
                     </button>
                   </>
                 );
@@ -637,7 +650,7 @@ const UserManagement = () => {
                     onClick={handleBulkDisable}
                     disabled={bulkOperationLoading}
                   >
-                    {bulkOperationLoading ? '⏳ Processing...' : '🔒 Disable Selected'}
+                    {bulkOperationLoading ? 'Processing...' : 'Disable Selected'}
                   </button>
                 );
               } else if (selectedStatus === 'DISABLED') {
@@ -647,7 +660,7 @@ const UserManagement = () => {
                     onClick={handleBulkEnable}
                     disabled={bulkOperationLoading}
                   >
-                    {bulkOperationLoading ? '⏳ Processing...' : '🔓 Enable Selected'}
+                    {bulkOperationLoading ? 'Processing...' : 'Enable Selected'}
                   </button>
                 );
               } else {
@@ -703,7 +716,7 @@ const UserManagement = () => {
       {searchTerm && (
         <div className="search-results-info">
           <span className="results-count">
-            📊 Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{searchTerm}"
+            Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{searchTerm}"
           </span>
           {filteredUsers.length === 0 && (
             <span className="no-results">
@@ -814,14 +827,14 @@ const UserManagement = () => {
                             onClick={() => handleApproveUser(user.id)}
                             title="Approve User"
                           >
-                            ✅
+                            <FiCheckCircle />
                           </button>
                           <button
                             className="action-btn reject"
                             onClick={() => handleRejectUser(user.id)}
                             title="Reject User"
                           >
-                            ❌
+                            <FiXCircle />
                           </button>
                         </>
                       )}
@@ -836,7 +849,7 @@ const UserManagement = () => {
                               : (user.status === 'ACTIVE' ? 'Disable User' : 'Enable User')
                           }
                         >
-                          {user.role === 'ADMIN' ? '🛡️' : (user.status === 'ACTIVE' ? '🔒' : '🔓')}
+                          {user.role === 'ADMIN' ? <FiShield /> : (user.status === 'ACTIVE' ? <FiLock /> : <FiUnlock />)}
                         </button>
                       )}
                       <button
@@ -844,14 +857,14 @@ const UserManagement = () => {
                         onClick={() => handleEditUser(user)}
                         title="Edit User"
                       >
-                        ✏️
+                        <FiEdit3 />
                       </button>
                       <button
                         className="action-btn view-profile"
                         onClick={() => handleViewProfile(user.id)}
                         title="View Profile"
                       >
-                        👤
+                        <FiUser />
                       </button>
                     </>
                   )}

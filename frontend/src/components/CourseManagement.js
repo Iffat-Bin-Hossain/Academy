@@ -2,6 +2,23 @@ import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import './CourseManagement.css';
+import { 
+  FiArrowLeft, 
+  FiCalendar, 
+  FiHash, 
+  FiUsers, 
+  FiXCircle, 
+  FiPlus, 
+  FiCheckCircle, 
+  FiClock, 
+  FiBookOpen, 
+  FiFileText, 
+  FiRefreshCw, 
+  FiCheck, 
+  FiX, 
+  FiUser 
+} from 'react-icons/fi';
+import { FaChalkboardTeacher, FaGraduationCap } from 'react-icons/fa';
 
 const CourseManagement = ({ courseId, onBack }) => {
   const [user, setUser] = useState(null);
@@ -220,7 +237,7 @@ const CourseManagement = ({ courseId, onBack }) => {
           onClick={onBack}
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          ← Back to Courses
+          Back to Courses
         </button>
       </div>
 
@@ -270,10 +287,10 @@ const CourseManagement = ({ courseId, onBack }) => {
                 {course.description}
               </p>
               <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b' }}>
-                <span>📅 Created: {formatDate(course.createdAt)}</span>
-                <span>🆔 Course ID: {course.id}</span>
-                {course.level && <span>🎓 Level: {course.level}</span>}
-                {course.term && <span>📚 Term: {course.term}</span>}
+                <span><FiCalendar style={{ marginRight: '0.25rem' }} /> Created: {formatDate(course.createdAt)}</span>
+                <span><FiHash style={{ marginRight: '0.25rem' }} /> Course ID: {course.id}</span>
+                {course.level && <span><FaGraduationCap style={{ marginRight: '0.25rem' }} /> Level: {course.level}</span>}
+                {course.term && <span><FiBookOpen style={{ marginRight: '0.25rem' }} /> Term: {course.term}</span>}
               </div>
             </div>
           </div>
@@ -283,22 +300,22 @@ const CourseManagement = ({ courseId, onBack }) => {
       {/* Stats Cards */}
       <div className="stats-grid" style={{ marginBottom: '2rem' }}>
         <div className="stat-card">
-          <span className="stat-icon">👨‍🎓</span>
+          <span className="stat-icon"><FaGraduationCap /></span>
           <div className="stat-value">{stats.approved}</div>
           <div className="stat-label">Enrolled Students</div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon">⏳</span>
+          <span className="stat-icon"><FiClock /></span>
           <div className="stat-value">{stats.pending}</div>
           <div className="stat-label">Pending Requests</div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon">❌</span>
+          <span className="stat-icon"><FiXCircle /></span>
           <div className="stat-value">{stats.rejected}</div>
           <div className="stat-label">Rejected Requests</div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon">👨‍🏫</span>
+          <span className="stat-icon"><FaChalkboardTeacher /></span>
           <div className="stat-value">{course.assignedTeacher ? '1' : '0'}</div>
           <div className="stat-label">Assigned Teachers</div>
         </div>
@@ -307,7 +324,7 @@ const CourseManagement = ({ courseId, onBack }) => {
       {/* Teacher Management Section */}
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div className="card-header">
-          <h3 className="card-title">👨‍🏫 Teacher Assignment</h3>
+          <h3 className="card-title"><FaChalkboardTeacher style={{ marginRight: '0.5rem' }} /> Teacher Assignment</h3>
           <p className="card-subtitle">Manage course instructor</p>
         </div>
         <div className="card-body">
@@ -343,25 +360,25 @@ const CourseManagement = ({ courseId, onBack }) => {
                   className="btn btn-secondary btn-sm"
                   onClick={openTeacherModal}
                 >
-                  🔄 Change Teacher
+                  Change Teacher
                 </button>
                 <button 
                   className="btn btn-danger btn-sm"
                   onClick={removeTeacher}
                 >
-                  ❌ Remove Teacher
+                  Remove Teacher
                 </button>
                 <button 
                   className="btn btn-info btn-sm"
                   onClick={() => setShowTeacherHistory(!showTeacherHistory)}
                 >
-                  📊 View Details
+                  View Details
                 </button>
               </div>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '2rem' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>👨‍🏫</span>
+              <FaChalkboardTeacher style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
               <h4 style={{ color: '#64748b' }}>No Teacher Assigned</h4>
               <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
                 This course needs a teacher to manage student enrollments
@@ -370,7 +387,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                 className="btn btn-primary"
                 onClick={openTeacherModal}
               >
-                <span style={{ marginRight: '0.5rem' }}>➕</span>
+                <FiPlus style={{ marginRight: '0.5rem' }} />
                 Assign Teacher
               </button>
             </div>
@@ -402,7 +419,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                 <div>
                   <strong>Status:</strong>
                   <p style={{ margin: '0.25rem 0', color: '#10b981' }}>
-                    {course.assignedTeacher.approved ? '✅ Approved' : '⏳ Pending Approval'}
+                    {course.assignedTeacher.approved ? 'Approved' : 'Pending Approval'}
                   </p>
                 </div>
               </div>
@@ -410,13 +427,13 @@ const CourseManagement = ({ courseId, onBack }) => {
                 <strong>Assignment Summary:</strong>
                 <div style={{ marginTop: '0.5rem', display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
                   <span style={{ color: '#64748b' }}>
-                    📚 Managing: {stats.approved} enrolled student(s)
+                    Managing: {stats.approved} enrolled student(s)
                   </span>
                   <span style={{ color: '#64748b' }}>
-                    ⏳ Pending: {stats.pending} enrollment request(s)
+                    Pending: {stats.pending} enrollment request(s)
                   </span>
                   <span style={{ color: '#64748b' }}>
-                    📅 Assigned: {formatDate(course.updatedAt)}
+                    Assigned: {formatDate(course.updatedAt)}
                   </span>
                 </div>
               </div>
@@ -432,7 +449,7 @@ const CourseManagement = ({ courseId, onBack }) => {
         <div className="card-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <h3 className="card-title">👨‍🎓 Student Enrollments</h3>
+              <h3 className="card-title"><FaGraduationCap style={{ marginRight: '0.5rem' }} /> Student Enrollments</h3>
               <p className="card-subtitle">View student enrollment status and activity</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -454,7 +471,7 @@ const CourseManagement = ({ courseId, onBack }) => {
         <div className="card-body">
           {getFilteredEnrollments().length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+              <FiFileText style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
               <h4>No {enrollmentFilter === 'ALL' ? 'Enrollment Requests' : `${enrollmentFilter.toLowerCase()} requests`}</h4>
               <p>
                 {enrollmentFilter === 'ALL' 
@@ -497,10 +514,10 @@ const CourseManagement = ({ courseId, onBack }) => {
                     </div>
                     <div className="enrollment-status">
                       <span className={`status-badge status-${enrollment.status.toLowerCase()}`}>
-                        {enrollment.status === 'APPROVED' && '✅'}
-                        {enrollment.status === 'PENDING' && '⏳'}
-                        {enrollment.status === 'REJECTED' && '❌'}
-                        {enrollment.status === 'RETAKING' && '🔄'}
+                        {enrollment.status === 'APPROVED' && <FiCheckCircle style={{ marginRight: '0.25rem' }} />}
+                        {enrollment.status === 'PENDING' && <FiClock style={{ marginRight: '0.25rem' }} />}
+                        {enrollment.status === 'REJECTED' && <FiXCircle style={{ marginRight: '0.25rem' }} />}
+                        {enrollment.status === 'RETAKING' && <FiRefreshCw style={{ marginRight: '0.25rem' }} />}
                         {' '}
                         {enrollment.status}
                       </span>
@@ -529,7 +546,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                 onClick={closeTeacherModal}
                 aria-label="Close modal"
               >
-                ✕
+                
               </button>
             </div>
             <div className="modal-body">
@@ -607,12 +624,12 @@ const CourseManagement = ({ courseId, onBack }) => {
               >
                 {isAssigning ? (
                   <>
-                    <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                    <FiClock style={{ marginRight: '0.5rem' }} />
                     Assigning...
                   </>
                 ) : (
                   <>
-                    <span style={{ marginRight: '0.5rem' }}>✅</span>
+                    <FiCheck style={{ marginRight: '0.5rem' }} />
                     Assign Teacher
                   </>
                 )}

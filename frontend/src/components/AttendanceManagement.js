@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { 
+  FiCheckSquare, 
+  FiPlus, 
+  FiLock, 
+  FiUnlock, 
+  FiEyeOff, 
+  FiCalendar, 
+  FiClock, 
+  FiTrash2, 
+  FiEdit3, 
+  FiSave 
+} from 'react-icons/fi';
 import './AttendanceManagement.css';
 
 const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
@@ -325,12 +337,12 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
   return (
     <div className="attendance-management">
       <div className="attendance-header">
-        <h2>📋 Attendance Management</h2>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiCheckSquare /> Attendance Management</h2>
         <button 
           className="btn btn-primary"
           onClick={() => setShowCreateModal(true)}
         >
-          <span>➕</span> Create Session
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}><FiPlus /> Create Session</span>
         </button>
       </div>
 
@@ -351,13 +363,13 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
               <div className="session-header">
                 <h3>{session.sessionTitle}</h3>
                 <div className="session-badges">
-                  {session.isLocked && <span className="badge locked">🔒 Locked</span>}
-                  {!session.isVisibleToStudents && <span className="badge hidden">👁️‍🗨️ Hidden</span>}
+                  {session.isLocked && <span className="badge locked" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiLock /> Locked</span>}
+                  {!session.isVisibleToStudents && <span className="badge hidden" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><FiEyeOff /> Hidden</span>}
                 </div>
               </div>
               <div className="session-details">
-                <p className="session-date">📅 {formatDate(session.sessionDate)}</p>
-                <p className="session-created">🕐 Created: {formatDateTime(session.createdAt)}</p>
+                <p className="session-date" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><FiCalendar /> {formatDate(session.sessionDate)}</p>
+                <p className="session-created" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><FiClock /> Created: {formatDateTime(session.createdAt)}</p>
                 {session.description && <p className="session-description">{session.description}</p>}
                 <div className="session-stats">
                   <span className="stat present">Present: {session.presentCount || 0}</span>
@@ -378,13 +390,13 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
                   className="btn btn-warning"
                   onClick={() => toggleSessionLock(session.id, session.isLocked)}
                 >
-                  {session.isLocked ? '🔓 Unlock' : '🔒 Lock'}
+                  {session.isLocked ? 'Unlock' : 'Lock'}
                 </button>
                 <button
                   className="btn btn-danger"
                   onClick={() => deleteSession(session.id)}
                 >
-                  🗑️ Delete
+                  Delete
                 </button>
               </div>
             </div>
@@ -477,7 +489,7 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
                     className="btn btn-primary"
                     onClick={toggleEditMode}
                   >
-                    ✏️ Edit
+                    Edit
                   </button>
                 )}
                 {!selectedSession.isLocked && editMode && (
@@ -487,20 +499,20 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
                       onClick={() => saveAttendance(false)}
                       title="Save changes and continue editing"
                     >
-                      💾 Save
+                      Save
                     </button>
                     <button
                       className="btn btn-primary"
                       onClick={() => saveAttendance(true)}
                       title="Save changes and close modal"
                     >
-                      💾 Save & Close
+                      Save & Close
                     </button>
                   </>
                 )}
                 {selectedSession.isLocked && (
                   <span className="locked-indicator" title="Session is locked - cannot edit">
-                    🔒 Locked
+                    Locked
                   </span>
                 )}
                 <button
@@ -626,7 +638,7 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
                           <div className="status-display">
                             <span className="status-text">{record.status}</span>
                             {selectedSession.isLocked && (
-                              <small className="locked-note">🔒 Session locked</small>
+                              <small className="locked-note">Session locked</small>
                             )}
                           </div>
                         )}

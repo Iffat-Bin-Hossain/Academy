@@ -4,6 +4,23 @@ import Layout from './Layout';
 import CourseManagement from './CourseManagement';
 import UserManagement from './UserManagement';
 import { useTabSync } from '../utils/useTabSync';
+import { 
+  FiBarChart2, 
+  FiUsers, 
+  FiBookOpen, 
+  FiSettings, 
+  FiClipboard, 
+  FiSearch, 
+  FiPlus, 
+  FiTrash2, 
+  FiCalendar, 
+  FiEdit3, 
+  FiX, 
+  FiAlertTriangle, 
+  FiSave,
+  FiClock
+} from 'react-icons/fi';
+import { FaChalkboardTeacher, FaGraduationCap } from 'react-icons/fa';
 
 const ModernAdminDashboard = () => {
   const [user, setUser] = useState(null);
@@ -51,23 +68,23 @@ const ModernAdminDashboard = () => {
 
   const fetchData = async () => {
     try {
-      console.log('🔄 fetchData called - starting data fetch...');
+      console.log(' fetchData called - starting data fetch...');
       setLoading(true);
 
       // First get current user info
-      console.log('📡 Making API call to /user/me...');
+      console.log(' Making API call to /user/me...');
       const userResponse = await axios.get('/user/me');
-      console.log('✅ /user/me response received:', userResponse.data);
+      console.log(' /user/me response received:', userResponse.data);
       const currentUser = userResponse.data;
 
-      console.log('🔄 Setting user state with ID:', currentUser.id);
+      console.log(' Setting user state with ID:', currentUser.id);
       setUser({
         id: currentUser.id,
         name: currentUser.name,
         role: currentUser.role,
         email: currentUser.email
       });
-      console.log('✅ User state set successfully');
+      console.log(' User state set successfully');
 
       const [pendingResponse, coursesResponse, allUsersResponse, statsResponse] = await Promise.all([
         axios.get('/admin/pending'),
@@ -209,12 +226,12 @@ const ModernAdminDashboard = () => {
   };
 
   const updateCourse = async () => {
-    console.log('🚀 updateCourse function called');
-    console.log('📝 Current editCourse state:', editCourse);
-    console.log('🎯 Selected course ID:', selectedCourse?.id);
+    console.log(' updateCourse function called');
+    console.log(' Current editCourse state:', editCourse);
+    console.log(' Selected course ID:', selectedCourse?.id);
     
     if (!editCourse.title || !editCourse.courseCode || !editCourse.description || !editCourse.level || !editCourse.term) {
-      console.log('❌ Validation failed - missing required fields');
+      console.log(' Validation failed - missing required fields');
       setEditModalError('Please fill in all required fields');
       return;
     }
@@ -223,16 +240,16 @@ const ModernAdminDashboard = () => {
     setEditModalError('');
 
     try {
-      console.log('📡 Sending PUT request to:', `/courses/${selectedCourse.id}`);
-      console.log('📦 Request payload:', editCourse);
+      console.log(' Sending PUT request to:', `/courses/${selectedCourse.id}`);
+      console.log(' Request payload:', editCourse);
       
       const response = await axios.put(`/courses/${selectedCourse.id}`, editCourse);
-      console.log('✅ Update response:', response.data);
+      console.log(' Update response:', response.data);
       showMessage('Course updated successfully!', 'success');
       closeEditModal();
       fetchData();
     } catch (error) {
-      console.error('❌ Error updating course:', error);
+      console.error(' Error updating course:', error);
       let errorMessage = 'Failed to update course';
 
       if (error.response && error.response.data && error.response.data.error) {
@@ -297,7 +314,7 @@ const ModernAdminDashboard = () => {
   };
 
   const clearAllCourses = async () => {
-    if (!window.confirm(`⚠️ WARNING: This will permanently delete ALL ${courses.length} courses and their related data (enrollments, assignments, etc.). This action cannot be undone. Are you absolutely sure?`)) {
+    if (!window.confirm(`️ WARNING: This will permanently delete ALL ${courses.length} courses and their related data (enrollments, assignments, etc.). This action cannot be undone. Are you absolutely sure?`)) {
       return;
     }
 
@@ -474,10 +491,10 @@ const ModernAdminDashboard = () => {
         <div className="card-header">
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'users', label: 'User Management', icon: '👥' },
-              { id: 'courses', label: 'Courses', icon: '📚' },
-              { id: 'settings', label: 'Settings', icon: '⚙️' }
+              { id: 'overview', label: 'Overview', icon: <FiBarChart2 style={{ marginRight: '0.5rem' }} /> },
+              { id: 'users', label: 'User Management', icon: <FiUsers style={{ marginRight: '0.5rem' }} /> },
+              { id: 'courses', label: 'Courses', icon: <FiBookOpen style={{ marginRight: '0.5rem' }} /> },
+              { id: 'settings', label: 'Settings', icon: <FiSettings style={{ marginRight: '0.5rem' }} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -499,22 +516,22 @@ const ModernAdminDashboard = () => {
           {/* Stats Grid */}
           <div className="stats-grid">
             <div className="stat-card">
-              <span className="stat-icon">👥</span>
+              <span className="stat-icon"><FiUsers /></span>
               <div className="stat-value">{stats.totalUsers}</div>
               <div className="stat-label">Total Users</div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">⏳</span>
+              <span className="stat-icon"><FiClock /></span>
               <div className="stat-value">{stats.pendingUsers}</div>
               <div className="stat-label">Pending Approvals</div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">📚</span>
+              <span className="stat-icon"><FiBookOpen /></span>
               <div className="stat-value">{stats.totalCourses}</div>
               <div className="stat-label">Total Courses</div>
             </div>
             <div className="stat-card">
-              <span className="stat-icon">📋</span>
+              <span className="stat-icon"><FiClipboard /></span>
               <div className="stat-value">{stats.totalEnrollments}</div>
               <div className="stat-label">Enrollments</div>
             </div>
@@ -532,14 +549,14 @@ const ModernAdminDashboard = () => {
                   className="btn btn-primary btn-lg"
                   onClick={() => handleTabChange('users')}
                 >
-                  <span style={{ marginRight: '0.5rem' }}>👥</span>
+                  <FiUsers style={{ marginRight: '0.5rem' }} />
                   Review Pending Users ({stats.pendingUsers})
                 </button>
                 <button
                   className="btn btn-secondary btn-lg"
                   onClick={() => handleTabChange('courses')}
                 >
-                  <span style={{ marginRight: '0.5rem' }}>📚</span>
+                  <FiBookOpen style={{ marginRight: '0.5rem' }} />
                   Manage Courses
                 </button>
               </div>
@@ -568,7 +585,7 @@ const ModernAdminDashboard = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="🔍 Search courses by title, code, level, term, description..."
+                  placeholder="Search courses by title, code, level, term, description..."
                   value={courseSearchTerm}
                   onChange={(e) => setCourseSearchTerm(e.target.value)}
                   style={{ fontSize: '0.875rem', minWidth: '300px' }}
@@ -578,7 +595,7 @@ const ModernAdminDashboard = () => {
                   onClick={() => setShowCreateModal(true)}
                   style={{ whiteSpace: 'nowrap' }}
                 >
-                  <span style={{ marginRight: '0.5rem' }}>➕</span>
+                  <FiPlus style={{ marginRight: '0.5rem' }} />
                   Create New Course
                 </button>
                 <button
@@ -587,7 +604,7 @@ const ModernAdminDashboard = () => {
                   style={{ whiteSpace: 'nowrap' }}
                   disabled={courses.length === 0}
                 >
-                  <span style={{ marginRight: '0.5rem' }}>🗑️</span>
+                  <FiTrash2 style={{ marginRight: '0.5rem' }} />
                   Clear All Courses
                 </button>
               </div>
@@ -598,13 +615,13 @@ const ModernAdminDashboard = () => {
               <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
                 {courses.length === 0 ? (
                   <>
-                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📚</span>
+                    <FiBookOpen style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                     <h4>No courses yet</h4>
                     <p>Click "Create New Course" to add your first course.</p>
                   </>
                 ) : (
                   <>
-                    <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+                    <FiSearch style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                     <h4>No courses found</h4>
                     <p>No courses match your search criteria. Try different keywords.</p>
                   </>
@@ -661,10 +678,10 @@ const ModernAdminDashboard = () => {
                             {course.description}
                           </p>
                           <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                            <span>📅 Created: {course.createdAt ? formatDate(course.createdAt) : 'Unknown'}</span>
-                            <span>👨‍🏫 Teacher: {course.assignedTeacher ? course.assignedTeacher.name : 'Not Assigned'}</span>
-                            {course.level && <span>🎓 Level: {course.level}</span>}
-                            {course.term && <span>📚 Term: {course.term}</span>}
+                            <span><FiCalendar style={{ marginRight: '0.25rem' }} /> Created: {course.createdAt ? formatDate(course.createdAt) : 'Unknown'}</span>
+                            <span><FaChalkboardTeacher style={{ marginRight: '0.25rem' }} /> Teacher: {course.assignedTeacher ? course.assignedTeacher.name : 'Not Assigned'}</span>
+                            {course.level && <span><FaGraduationCap style={{ marginRight: '0.25rem' }} /> Level: {course.level}</span>}
+                            {course.term && <span><FiBookOpen style={{ marginRight: '0.25rem' }} /> Term: {course.term}</span>}
                           </div>
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -673,19 +690,19 @@ const ModernAdminDashboard = () => {
                             onClick={() => openCourseManagement(course.id)}
                             title="Manage course details, teachers, and enrollments"
                           >
-                            ⚙️ Manage
+                            Manage
                           </button>
                           <button
                             className="btn btn-secondary btn-sm"
                             onClick={() => openEditModal(course)}
                           >
-                            ✏️ Edit
+                            Edit
                           </button>
                           <button
                             className="btn btn-danger btn-sm"
                             onClick={() => deleteCourse(course.id)}
                           >
-                            🗑️ Delete
+                            Delete
                           </button>
                         </div>
                       </div>
@@ -707,7 +724,7 @@ const ModernAdminDashboard = () => {
           </div>
           <div className="card-body">
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>⚙️</span>
+              <FiSettings style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
               <h4>Settings Coming Soon</h4>
               <p>System configuration options will be available here.</p>
             </div>
@@ -726,7 +743,7 @@ const ModernAdminDashboard = () => {
                 onClick={closeCreateModal}
                 aria-label="Close modal"
               >
-                ✕
+                
               </button>
             </div>
             <div className="modal-body">
@@ -741,7 +758,7 @@ const ModernAdminDashboard = () => {
                   color: '#dc2626',
                   fontSize: '0.875rem'
                 }}>
-                  <strong>⚠️ Error:</strong> {modalError}
+                  <strong>Error:</strong> {modalError}
                 </div>
               )}
 
@@ -848,7 +865,7 @@ const ModernAdminDashboard = () => {
                       </>
                     ) : (
                       <>
-                        <span style={{ marginRight: '0.5rem' }}>➕</span>
+                        <FiPlus style={{ marginRight: '0.5rem' }} />
                         Create Course
                       </>
                     )}
@@ -871,7 +888,7 @@ const ModernAdminDashboard = () => {
                 onClick={closeEditModal}
                 aria-label="Close modal"
               >
-                ✕
+                
               </button>
             </div>
             <div className="modal-body">
@@ -886,18 +903,18 @@ const ModernAdminDashboard = () => {
                   color: '#dc2626',
                   fontSize: '0.875rem'
                 }}>
-                  <strong>⚠️ Error:</strong> {editModalError}
+                  <strong>Error:</strong> {editModalError}
                 </div>
               )}
 
               <form onSubmit={(e) => { 
                 try {
                   e.preventDefault(); 
-                  console.log('📝 Edit form submitted!');
-                  console.log('🎯 Form event:', e);
+                  console.log(' Edit form submitted!');
+                  console.log(' Form event:', e);
                   updateCourse(); 
                 } catch (error) {
-                  console.error('❌ Error in form submission:', error);
+                  console.error(' Error in form submission:', error);
                 }
               }}>
                 <div className="form-group">
@@ -995,7 +1012,7 @@ const ModernAdminDashboard = () => {
                     className="btn btn-primary"
                     disabled={isUpdating}
                     onClick={(e) => {
-                      console.log('🔘 Update button clicked directly!');
+                      console.log(' Update button clicked directly!');
                       // Don't prevent default - let form submission handle it
                     }}
                   >
@@ -1006,7 +1023,7 @@ const ModernAdminDashboard = () => {
                       </>
                     ) : (
                       <>
-                        <span style={{ marginRight: '0.5rem' }}>💾</span>
+                        <FiSave style={{ marginRight: '0.5rem' }} />
                         Update Course
                       </>
                     )}

@@ -216,16 +216,16 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
                                                     style={{ display: 'none' }}
                                                 />
                                                 <label htmlFor="photo-upload" className="photo-btn upload">
-                                                    📷 Change Photo
+                                                    Change Photo
                                                 </label>
                                                 {selectedFile && (
                                                     <button onClick={handlePhotoUpload} className="photo-btn save">
-                                                        💾 Save Photo
+                                                        Save Photo
                                                     </button>
                                                 )}
                                                 {profile.profilePhotoUrl && (
                                                     <button onClick={handlePhotoDelete} className="photo-btn delete">
-                                                        🗑️ Delete Photo
+                                                        Delete Photo
                                                     </button>
                                                 )}
                                             </div>
@@ -261,8 +261,8 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
                             {message && (
                                 <div className={`profile-message ${messageType}`}>
                                     <span className="message-icon">
-                                        {messageType === 'success' && '✓'}
-                                        {messageType === 'error' && '⚠'}
+                                        
+                                        
                                         {messageType === 'info' && 'ℹ'}
                                     </span>
                                     <span className="message-text">{message}</span>

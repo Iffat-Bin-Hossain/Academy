@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: academy_db
+    environment:
+      POSTGRES_DB: academydb
+      POSTGRES_USER: academyuser
+      POSTGRES_PASSWORD: academy123
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - academy_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U academyuser -d academydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   # Spring Boot Backend
   backend:
     build:
@@ -22,6 +42,9 @@ services:
       - "8081:8081"
     volumes:
       - academy_uploads:/app/data/uploads
+    depends_on:
+      database:
+        condition: service_healthy
     networks:
       - academy_network
     restart: unless-stopped
@@ -43,6 +66,7 @@ services:
     restart: unless-stopped
 
 volumes:
+  postgres_data:
   academy_uploads:
 
 networks:

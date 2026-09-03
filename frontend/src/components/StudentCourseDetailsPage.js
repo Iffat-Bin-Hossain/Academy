@@ -7,6 +7,16 @@ import ResourceManagement from './ResourceManagement';
 import StudentAttendanceView from './StudentAttendanceView';
 import StudentGrades from './StudentGrades';
 import AIHelper from './AIHelper';
+import { 
+  FiFileText, 
+  FiMessageSquare, 
+  FiCheckSquare, 
+  FiCpu, 
+  FiBell, 
+  FiBookOpen, 
+  FiAward, 
+  FiXCircle 
+} from 'react-icons/fi';
 
 const StudentCourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -440,20 +450,20 @@ const StudentCourseDetailsPage = () => {
   };
 
   const getFileIcon = (filename) => {
-    if (!filename) return '📄';
+    if (!filename) return '';
     const extension = filename.split('.').pop().toLowerCase();
     switch (extension) {
-      case 'pdf': return '📄';
+      case 'pdf': return '';
       case 'doc':
-      case 'docx': return '📝';
-      case 'txt': return '📃';
+      case 'docx': return '';
+      case 'txt': return '';
       case 'zip':
-      case 'rar': return '📦';
+      case 'rar': return '';
       case 'jpg':
       case 'jpeg':
       case 'png':
       case 'gif':
-      case 'bmp': return '🖼️';
+      case 'bmp': return '️';
       case 'java':
       case 'py':
       case 'js':
@@ -461,8 +471,8 @@ const StudentCourseDetailsPage = () => {
       case 'css':
       case 'cpp':
       case 'c':
-      case 'cs': return '💻';
-      default: return '📄';
+      case 'cs': return '';
+      default: return '';
     }
   };
 
@@ -508,7 +518,7 @@ const StudentCourseDetailsPage = () => {
         <div className="card">
           <div className="card-body">
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>❌</span>
+              <FiXCircle style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#ef4444' }} />
               <h4>Course not found or access denied</h4>
               <p>The course "{courseCode}" was not found or you don't have access to it.</p>
               <button
@@ -590,10 +600,10 @@ const StudentCourseDetailsPage = () => {
                 {course.description}
               </p>
               <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                <span>👨‍🏫 Instructor: {course.assignedTeacher?.name || 'Not Assigned'}</span>
-                <span>📅 Created: {formatDate(course.createdAt)}</span>
-                {course.level && <span>🎓 Level: {course.level}</span>}
-                {course.term && <span>📚 Term: {course.term}</span>}
+                <span>Instructor: {course.assignedTeacher?.name || 'Not Assigned'}</span>
+                <span>Created: {formatDate(course.createdAt)}</span>
+                {course.level && <span>Level: {course.level}</span>}
+                {course.term && <span>Term: {course.term}</span>}
               </div>
             </div>
           </div>
@@ -605,13 +615,13 @@ const StudentCourseDetailsPage = () => {
         <div className="card-header">
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
-              { id: 'announcements', label: 'Announcements', icon: '📢' },
-              { id: 'assignments', label: 'Assignments', icon: '📝' },
-              { id: 'resources', label: 'Resources', icon: '📚' },
-              { id: 'discussions', label: 'Discussions', icon: '💬' },
-              { id: 'attendance', label: 'Attendance', icon: '📋' },
-              { id: 'grades', label: 'Grades', icon: '🏆' },
-              { id: 'ai-helper', label: 'AI Helper', icon: '🤖' }
+              { id: 'announcements', label: 'Announcements', icon: <FiBell /> },
+              { id: 'assignments', label: 'Assignments', icon: <FiFileText /> },
+              { id: 'resources', label: 'Resources', icon: <FiBookOpen /> },
+              { id: 'discussions', label: 'Discussions', icon: <FiMessageSquare /> },
+              { id: 'attendance', label: 'Attendance', icon: <FiCheckSquare /> },
+              { id: 'grades', label: 'Grades', icon: <FiAward /> },
+              { id: 'ai-helper', label: 'AI Helper', icon: <FiCpu /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -635,7 +645,7 @@ const StudentCourseDetailsPage = () => {
             <div>
               {sortByCreationTime(announcements).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📢</span>
+                  <FiBell style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>No announcements found</h4>
                   <p>No announcements have been posted for this course yet.</p>
                 </div>
@@ -669,7 +679,7 @@ const StudentCourseDetailsPage = () => {
             <div>
               {sortByCreationTime(assignments).length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+                  <FiFileText style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>No assignments found</h4>
                   <p>No assignments have been posted for this course yet.</p>
                 </div>
@@ -705,7 +715,7 @@ const StudentCourseDetailsPage = () => {
                                       assignment.assignmentType === 'QUIZ' ? '#fed7aa' :
                                         assignment.assignmentType === 'LAB' ? '#bbf7d0' : '#e5e7eb',
                                   color: assignment.assignmentType === 'EXAM' ? '#dc2626' :
-                                    assignment.assignmentType === 'PROJECT' ? '#7c3aed' :
+                                    assignment.assignmentType === 'PROJECT' ? '#0284c7' :
                                       assignment.assignmentType === 'QUIZ' ? '#ea580c' :
                                         assignment.assignmentType === 'LAB' ? '#059669' : '#374151'
                                 }}>
@@ -714,20 +724,20 @@ const StudentCourseDetailsPage = () => {
                               </div>
 
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-                                <span>👤 Instructor: {assignment.createdByName || 'Course Instructor'}</span>
+                                <span>Instructor: {assignment.createdByName || 'Course Instructor'}</span>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                  📅 Due: {formatDate(assignment.deadline)}
+                                  Due: {formatDate(assignment.deadline)}
                                   {isOverdue && <span style={{ color: '#ef4444', fontWeight: '600' }}>(OVERDUE)</span>}
                                   {!isOverdue && isNearDue && <span style={{ color: '#f59e0b', fontWeight: '600' }}>(DUE SOON)</span>}
                                 </span>
-                                <span>📊 Max Marks: {assignment.maxMarks}</span>
+                                <span>Max Marks: {assignment.maxMarks}</span>
                                 {assignment.lateSubmissionDeadline && (
                                   <span style={{ color: canSubmitLate ? '#059669' : '#ef4444' }}>
-                                    📋 Late Until: {formatDate(assignment.lateSubmissionDeadline)}
+                                    Late Until: {formatDate(assignment.lateSubmissionDeadline)}
                                   </span>
                                 )}
                                 <span style={{ color: '#64748b' }}>
-                                  📝 Posted: {formatDate(assignment.createdAt)}
+                                  Posted: {formatDate(assignment.createdAt)}
                                 </span>
                               </div>
 
@@ -752,7 +762,7 @@ const StudentCourseDetailsPage = () => {
                               {assignment.attachments && assignment.attachments.length > 0 && (
                                 <div style={{ marginBottom: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
                                   <h6 style={{ margin: '0 0 0.75rem 0', color: '#0c4a6e', fontSize: '0.875rem', fontWeight: '600' }}>
-                                    📎 Attachments ({assignment.attachments.length}):
+                                    Attachments ({assignment.attachments.length}):
                                   </h6>
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                     {assignment.attachments.map(file => (
@@ -767,7 +777,7 @@ const StudentCourseDetailsPage = () => {
                                       }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                           <span style={{ fontSize: '1rem' }}>
-                                            {file.attachmentType === 'URL' ? '🔗' : getFileIcon(file.originalFilename || 'file')}
+                                            {file.attachmentType === 'URL' ? '' : getFileIcon(file.originalFilename || 'file')}
                                           </span>
                                           <div>
                                             <div style={{ fontSize: '0.875rem', color: '#0c4a6e', fontWeight: '500' }}>
@@ -811,7 +821,7 @@ const StudentCourseDetailsPage = () => {
                                               e.target.style.borderColor = '#3b82f6';
                                             }}
                                           >
-                                            🔗 Open
+                                            Open
                                           </button>
                                         ) : (
                                           <button
@@ -838,7 +848,7 @@ const StudentCourseDetailsPage = () => {
                                               e.target.style.borderColor = '#0ea5e9';
                                             }}
                                           >
-                                            ⬇️ Download
+                                            Download
                                           </button>
                                         )}
                                       </div>
@@ -869,7 +879,7 @@ const StudentCourseDetailsPage = () => {
                                         style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
                                         onClick={() => openEditModal(assignment)}
                                       >
-                                        ✏️ Edit Submission
+                                        Edit Submission
                                       </button>
                                     );
                                   })()}
@@ -880,7 +890,7 @@ const StudentCourseDetailsPage = () => {
                                     style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
                                     onClick={() => downloadSubmissionForAssignment(assignment.id)}
                                   >
-                                    ⬇️ Download
+                                    Download
                                   </button>
 
                                   {/* Status indicator */}
@@ -893,7 +903,7 @@ const StudentCourseDetailsPage = () => {
                                     color: '#16a34a',
                                     fontWeight: '600'
                                   }}>
-                                    ✅ Submitted
+                                    Submitted
                                   </span>
                                 </>
                               ) : (
@@ -907,9 +917,9 @@ const StudentCourseDetailsPage = () => {
                                     disabled={isOverdue && !canSubmitLate}
                                     onClick={() => openSubmissionModal(assignment)}
                                   >
-                                    {isOverdue && !canSubmitLate ? '⏰ Closed' :
-                                      isOverdue && canSubmitLate ? '📤 Submit Late' :
-                                        '📤 Submit'}
+                                    {isOverdue && !canSubmitLate ? 'Closed' :
+                                      isOverdue && canSubmitLate ? 'Submit Late' :
+                                        'Submit'}
                                   </button>
                                 </>
                               )}
@@ -919,7 +929,7 @@ const StudentCourseDetailsPage = () => {
                                   className="btn btn-warning btn-sm"
                                   style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
                                 >
-                                  🎯 Take Exam
+                                  Take Exam
                                 </button>
                               )}
                             </div>
@@ -938,8 +948,8 @@ const StudentCourseDetailsPage = () => {
                                 fontWeight: '600'
                               }}>
                                 {hasSubmitted ?
-                                  (isActuallyLate ? '📤 Submitted Late' : '✅ Submitted On Time') :
-                                  '❌ Not Submitted'}
+                                  (isActuallyLate ? 'Submitted Late' : 'Submitted On Time') :
+                                  'Not Submitted'}
                               </span>
                               {isNearDue && !isOverdue && !hasSubmitted && (
                                 <span style={{
@@ -949,7 +959,7 @@ const StudentCourseDetailsPage = () => {
                                   color: '#d97706',
                                   fontWeight: '600'
                                 }}>
-                                  ⏰ Due Soon
+                                  Due Soon
                                 </span>
                               )}
                             </div>
@@ -1068,19 +1078,19 @@ const StudentCourseDetailsPage = () => {
                 }}
                 disabled={isSubmitting}
               >
-                ✕
+                
               </button>
             </div>
 
             <div style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <h4 style={{ margin: '0 0 0.5rem 0', color: '#374151' }}>{submittingAssignment.title}</h4>
               <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                <span style={{ marginRight: '1rem' }}>📅 Due: {formatDate(submittingAssignment.deadline)}</span>
-                <span>📊 Max Marks: {submittingAssignment.maxMarks}</span>
+                <span style={{ marginRight: '1rem' }}>Due: {formatDate(submittingAssignment.deadline)}</span>
+                <span>Max Marks: {submittingAssignment.maxMarks}</span>
               </div>
               {submittingAssignment.lateSubmissionDeadline && (
                 <div style={{ fontSize: '0.875rem', color: '#dc2626', marginTop: '0.5rem' }}>
-                  📋 Late submission allowed until: {formatDate(submittingAssignment.lateSubmissionDeadline)}
+                  Late submission allowed until: {formatDate(submittingAssignment.lateSubmissionDeadline)}
                 </div>
               )}
             </div>
@@ -1124,7 +1134,7 @@ const StudentCourseDetailsPage = () => {
                 disabled={isSubmitting}
               />
               <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.5rem' }}>
-                📦 Only ZIP files are allowed (Max 50MB)
+                Only ZIP files are allowed (Max 50MB)
                 {editMode && ' - Uploading a new file will replace the existing one'}
               </div>
 
@@ -1140,7 +1150,7 @@ const StudentCourseDetailsPage = () => {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  <span style={{ fontSize: '1.2rem' }}>📦</span>
+                  <span style={{ fontSize: '1.2rem' }}></span>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
                       Current: {currentSubmissionData.files[0].originalFilename}
@@ -1162,7 +1172,7 @@ const StudentCourseDetailsPage = () => {
                       cursor: 'pointer'
                     }}
                   >
-                    ⬇️ Download Current
+                    Download Current
                   </button>
                 </div>
               )}
@@ -1178,7 +1188,7 @@ const StudentCourseDetailsPage = () => {
                   alignItems: 'center',
                   gap: '0.5rem'
                 }}>
-                  <span style={{ fontSize: '1.2rem' }}>📦</span>
+                  <span style={{ fontSize: '1.2rem' }}></span>
                   <div>
                     <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
                       {submissionFile.name}
@@ -1239,11 +1249,11 @@ const StudentCourseDetailsPage = () => {
                   const now = new Date();
                   const deadline = new Date(submittingAssignment.deadline);
                   if (editMode && now > deadline) {
-                    return '⚠️ Late Edit Warning';
+                    return 'Late Edit Warning';
                   } else if (now > deadline) {
-                    return '⚠️ Late Submission';
+                    return 'Late Submission';
                   } else {
-                    return '✅ On-Time Submission';
+                    return 'On-Time Submission';
                   }
                 })()}
               </div>
@@ -1298,7 +1308,7 @@ const StudentCourseDetailsPage = () => {
                 {isSubmitting ? (
                   <>⏳ {editMode ? 'Updating...' : 'Submitting...'}</>
                 ) : (
-                  <>{editMode ? '💾 Update Submission' : '📤 Submit Assignment'}</>
+                  <>{editMode ? 'Update Submission' : 'Submit Assignment'}</>
                 )}
               </button>
             </div>

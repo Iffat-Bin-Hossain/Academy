@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import NotificationBell from './NotificationBell';
 import MessageIcon from './MessageIcon';
+import { FiLogOut } from 'react-icons/fi';
 import './Navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
@@ -114,7 +115,7 @@ const Navbar = ({ user, onLogout }) => {
                 </Link>
               </div>
               <button onClick={handleLogout} className="logout-btn">
-                <span className="logout-icon">🚪</span>
+                <FiLogOut className="logout-icon" style={{ marginRight: '0.5rem' }} />
                 <span className="logout-text">Logout</span>
               </button>
             </div>
@@ -171,7 +172,7 @@ const Navbar = ({ user, onLogout }) => {
                   <NotificationBell user={user} />
                 </div>
                 <button onClick={handleLogout} className="mobile-logout-btn">
-                  <span className="mobile-logout-icon">🚪</span>
+                  <FiLogOut className="mobile-logout-icon" style={{ marginRight: '0.5rem' }} />
                   <span className="mobile-logout-text">Logout</span>
                 </button>
               </>

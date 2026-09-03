@@ -267,7 +267,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
     color: white;
     display: flex;
     align-items: center;
@@ -749,7 +749,7 @@
     height: 30px;
     /* Smaller avatar */
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2132,7 +2132,8 @@
 .selected-recipients-bar {
     display: flex;
     align-items: center;
-    padding: 12px 20px;
+    padding: 6px 14px;
+  font-size: 0.85rem;
     background: #f8f9fa;
     border-bottom: 1px solid #e9ecef;
     gap: 12px;
@@ -2260,7 +2261,8 @@
 .modern-recipient-item {
     display: flex;
     align-items: center;
-    padding: 12px 20px;
+    padding: 6px 14px;
+  font-size: 0.85rem;
     cursor: pointer;
     transition: all 0.2s ease;
     gap: 16px;
@@ -2305,7 +2307,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
     color: white;
     display: flex;
     align-items: center;
@@ -2385,7 +2387,8 @@
 
 .forward-action-btn {
     width: 100%;
-    padding: 12px 24px;
+    padding: 6px 14px;
+  font-size: 0.85rem;
     border-radius: 8px;
     border: none;
     font-weight: 500;

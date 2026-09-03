@@ -510,7 +510,7 @@ const PlagiarismChecker = () => {
                 <div style={{
                   width: `${progress.total > 0 ? (progress.current / progress.total) * 100 : 10}%`,
                   height: '100%',
-                  background: 'linear-gradient(90deg, #3b82f6, #1d4ed8, #7c3aed)',
+                  background: 'linear-gradient(90deg, #1e40af, #2563eb, #3b82f6)',
                   borderRadius: '10px',
                   transition: 'width 0.8s ease',
                   animation: 'pulse 2s infinite'

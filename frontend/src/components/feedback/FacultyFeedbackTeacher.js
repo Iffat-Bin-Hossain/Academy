@@ -140,7 +140,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div className="card-header">
           <h4 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            📊 Feedback Overview
+            Feedback Overview
           </h4>
         </div>
         <div className="card-body">
@@ -206,7 +206,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          ⭐ Faculty Feedback
+          Faculty Feedback
         </h3>
         <p style={{ marginTop: '0.5rem', color: '#64748b' }}>
           View feedback from your students to improve your teaching effectiveness
@@ -223,7 +223,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
             {/* Search Box */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                🔍 Search Feedback
+                Search Feedback
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -265,7 +265,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
             {/* Sort Options */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                📊 Sort By
+                Sort By
               </label>
               <select
                 className="form-control"
@@ -273,10 +273,10 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                 onChange={(e) => setSortBy(e.target.value)}
                 style={{ borderRadius: '8px', border: '2px solid #e5e7eb', fontSize: '0.875rem' }}
               >
-                <option value="newest">📅 Newest First</option>
-                <option value="oldest">📅 Oldest First</option>
-                <option value="rating-high">⭐ Highest Rating</option>
-                <option value="rating-low">⭐ Lowest Rating</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="rating-high">Highest Rating</option>
+                <option value="rating-low">Lowest Rating</option>
               </select>
             </div>
 
@@ -284,7 +284,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
             {courses.length > 0 && (
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                  📚 Filter by Course
+                  Filter by Course
                 </label>
                 <select 
                   className="form-control" 
@@ -380,7 +380,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                   setSelectedCourse('all');
                 }}
               >
-                🔄 Clear All Filters
+                Clear All Filters
               </button>
             )}
           </div>
@@ -409,7 +409,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                         <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.875rem' }}>
                           {feedback.courseCode} • 
                           {feedback.isAnonymous ? (
-                            <span style={{ color: '#6b7280', fontStyle: 'italic' }}> 🕶️ Anonymous Feedback</span>
+                            <span style={{ color: '#6b7280', fontStyle: 'italic' }}> Anonymous Feedback</span>
                           ) : (
                             <span style={{ color: '#374151', fontWeight: '500' }}> 👤 {feedback.studentName}</span>
                           )}
@@ -451,10 +451,10 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                       gap: '1.25rem', 
                       marginBottom: feedback.comments ? '1.5rem' : '0' 
                     }}>
-                      {renderRatingStars(feedback.teachingQuality, '👨‍🏫 Teaching Quality')}
-                      {renderRatingStars(feedback.courseContent, '📖 Course Content')}
-                      {renderRatingStars(feedback.responsiveness, '💬 Responsiveness')}
-                      {renderRatingStars(feedback.overallSatisfaction, '🎯 Overall Satisfaction')}
+                      {renderRatingStars(feedback.teachingQuality, 'Teaching Quality')}
+                      {renderRatingStars(feedback.courseContent, 'Course Content')}
+                      {renderRatingStars(feedback.responsiveness, 'Responsiveness')}
+                      {renderRatingStars(feedback.overallSatisfaction, 'Overall Satisfaction')}
                     </div>
                     
                     {feedback.comments && (
@@ -476,7 +476,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                           fontSize: '0.75rem',
                           fontWeight: '600'
                         }}>
-                          💭 Student Comments
+                          Student Comments
                         </div>
                         <p style={{ 
                           margin: '0.75rem 0 0 0', 
@@ -505,7 +505,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
         border: '1px solid #bae6fd'
       }}>
         <h6 style={{ margin: '0 0 0.5rem 0', color: '#0369a1', fontSize: '0.875rem' }}>
-          💡 Using Feedback Effectively
+          Using Feedback Effectively
         </h6>
         <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.75rem', color: '#0369a1' }}>
           <li>Use feedback to identify areas for improvement in your teaching methods</li>

@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { 
+  FiCheckCircle, 
+  FiXCircle, 
+  FiClock, 
+  FiFileText, 
+  FiHelpCircle, 
+  FiCalendar, 
+  FiBookOpen, 
+  FiTrendingUp, 
+  FiAlertTriangle, 
+  FiUser 
+} from 'react-icons/fi';
 import './StudentAttendanceView.css';
 
 const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
@@ -68,11 +80,11 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'PRESENT': return '✅';
-      case 'ABSENT': return '❌';
-      case 'LATE': return '⏰';
-      case 'EXCUSED': return '📝';
-      default: return '❓';
+      case 'PRESENT': return <FiCheckCircle />;
+      case 'ABSENT': return <FiXCircle />;
+      case 'LATE': return <FiClock />;
+      case 'EXCUSED': return <FiFileText />;
+      default: return <FiHelpCircle />;
     }
   };
 
@@ -97,7 +109,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
   if (!sessions.length && !summary) {
     return (
       <div className="student-attendance-empty">
-        <div className="empty-icon">📋</div>
+        <FiCalendar style={{ fontSize: '3rem', color: '#94a3b8' }} />
         <h3>No Attendance Records</h3>
         <p>Your instructor hasn't set up attendance tracking for this course yet.</p>
       </div>
@@ -108,7 +120,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
     <div className="student-attendance-view">
       <div className="attendance-header">
         <div className="header-info">
-          <h2>📋 My Attendance</h2>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiCalendar /> My Attendance</h2>
           <p className="course-info">{courseCode} - {courseTitle}</p>
         </div>
         <div className="view-toggle">
@@ -116,13 +128,13 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
             className={`toggle-btn ${view === 'sessions' ? 'active' : ''}`}
             onClick={() => setView('sessions')}
           >
-            📅 Sessions
+            Sessions
           </button>
           <button
             className={`toggle-btn ${view === 'summary' ? 'active' : ''}`}
             onClick={() => setView('summary')}
           >
-            📊 Summary
+            Summary
           </button>
         </div>
       </div>
@@ -131,28 +143,28 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
         <div className="attendance-summary">
           <div className="summary-cards">
             <div className="summary-card total">
-              <div className="card-icon">📚</div>
+              <div className="card-icon"><FiBookOpen /></div>
               <div className="card-content">
                 <h3>Total Sessions</h3>
                 <div className="card-value">{summary.totalSessions || 0}</div>
               </div>
             </div>
             <div className="summary-card present">
-              <div className="card-icon">✅</div>
+              <div className="card-icon"><FiCheckCircle /></div>
               <div className="card-content">
                 <h3>Present</h3>
                 <div className="card-value">{summary.presentCount || 0}</div>
               </div>
             </div>
             <div className="summary-card absent">
-              <div className="card-icon">❌</div>
+              <div className="card-icon"><FiXCircle /></div>
               <div className="card-content">
                 <h3>Absent</h3>
                 <div className="card-value">{summary.absentCount || 0}</div>
               </div>
             </div>
             <div className="summary-card percentage">
-              <div className="card-icon">📈</div>
+              <div className="card-icon"><FiTrendingUp /></div>
               <div className="card-content">
                 <h3>Attendance Rate</h3>
                 <div className="card-value">
@@ -187,7 +199,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
               </div>
               {summary.attendancePercentage < 75 && (
                 <div className="attendance-warning">
-                  <div className="warning-icon">⚠️</div>
+                  <div className="warning-icon"><FiAlertTriangle /></div>
                   <div className="warning-content">
                     <strong>Attendance Notice</strong>
                     <p>Your attendance is below the recommended 75%. Please make an effort to attend future sessions.</p>
@@ -230,7 +242,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
                           </div>
                         ) : (
                           <div className="status-badge pending">
-                            <span className="status-icon">❓</span>
+                            <span className="status-icon"><FiHelpCircle /></span>
                             <span className="status-text">Pending</span>
                           </div>
                         )}
@@ -243,7 +255,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
                     )}
                     {myRecord?.teacherOverride && (
                       <div className="teacher-override">
-                        <span className="override-icon">👨‍🏫</span>
+                        <span className="override-icon"><FiUser /></span>
                         <span>Manually marked by instructor</span>
                       </div>
                     )}
@@ -257,7 +269,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
 
       {/* Tips Section */}
       <div className="attendance-tips">
-        <h3>📝 Attendance Tips</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FiFileText /> Attendance Tips</h3>
         <ul>
           <li><strong>Be punctual:</strong> Arrive on time to avoid being marked as late</li>
           <li><strong>Communicate:</strong> Inform your instructor about planned absences</li>

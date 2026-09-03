@@ -174,7 +174,7 @@ function Signup() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white focus:outline-none"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none z-10 bg-transparent border-0 cursor-pointer"
                   >
                     {showPassword ? (
                       <AiOutlineEyeInvisible className="h-5 w-5" />
@@ -220,7 +220,7 @@ function Signup() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white focus:outline-none"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none z-10 bg-transparent border-0 cursor-pointer"
                   >
                     {showConfirmPassword ? (
                       <AiOutlineEyeInvisible className="h-5 w-5" />

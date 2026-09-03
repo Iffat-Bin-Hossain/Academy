@@ -261,7 +261,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
       {/* Header */}
       <div style={{ marginBottom: '2rem' }}>
         <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          ⭐ Faculty Feedback
+          Faculty Feedback
         </h3>
         <p style={{ marginTop: '0.5rem', color: '#64748b' }}>
           Share your experience with your instructors to help improve course quality. Your feedback is valuable!
@@ -272,7 +272,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
       <div className="card" style={{ marginBottom: '2rem', border: '1px solid #e0f2fe' }}>
         <div className="card-body" style={{ padding: '1.5rem' }}>
           <h5 style={{ margin: '0 0 1rem 0', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            📊 Feedback Overview
+            Feedback Overview
           </h5>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1.5rem' }}>
             <div style={{
@@ -345,7 +345,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
             {/* Search Box */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                🔍 Search Courses
+                Search Courses
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -387,7 +387,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
             {/* Status Filter */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '600', color: '#374151', fontSize: '0.875rem' }}>
-                📊 Filter by Status
+                Filter by Status
               </label>
               <select
                 className="form-control"
@@ -424,7 +424,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                       setFilterBy('all');
                     }}
                   >
-                    🔄 Clear Filters
+                    Clear Filters
                   </button>
                 )}
               </div>
@@ -469,7 +469,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                   setFilterBy('all');
                 }}
               >
-                🔄 Clear All Filters
+                Clear All Filters
               </button>
             )}
           </div>
@@ -516,7 +516,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                         alignItems: 'center',
                         gap: '0.5rem'
                       }}>
-                        ✅ FEEDBACK SUBMITTED
+                        FEEDBACK SUBMITTED
                       </div>
                     )}
                   </div>
@@ -534,12 +534,12 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                         border: '1px solid #bae6fd'
                       }}>
                         <h5 style={{ margin: '0 0 1rem 0', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          📊 Your Submitted Ratings
+                          Your Submitted Ratings
                         </h5>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
                           <div style={{ padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                              👨‍🏫 Teaching Quality
+                              Teaching Quality
                             </div>
                             <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {'★'.repeat(existingFeedback.teachingQuality)}{'☆'.repeat(5 - existingFeedback.teachingQuality)}
@@ -550,7 +550,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                           </div>
                           <div style={{ padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                              📖 Course Content
+                              Course Content
                             </div>
                             <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {'★'.repeat(existingFeedback.courseContent)}{'☆'.repeat(5 - existingFeedback.courseContent)}
@@ -561,7 +561,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                           </div>
                           <div style={{ padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                              💬 Responsiveness
+                              Responsiveness
                             </div>
                             <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {'★'.repeat(existingFeedback.responsiveness)}{'☆'.repeat(5 - existingFeedback.responsiveness)}
@@ -572,7 +572,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                           </div>
                           <div style={{ padding: '1rem', background: 'white', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
-                              🎯 Overall Satisfaction
+                              Overall Satisfaction
                             </div>
                             <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               {'★'.repeat(existingFeedback.overallSatisfaction)}{'☆'.repeat(5 - existingFeedback.overallSatisfaction)}
@@ -604,7 +604,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                             fontSize: '0.75rem',
                             fontWeight: '600'
                           }}>
-                            💭 Your Comments
+                            Your Comments
                           </div>
                           <p style={{
                             margin: '0.75rem 0 0 0',
@@ -628,7 +628,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                         border: '1px solid #fde047'
                       }}>
                         <div style={{ fontSize: '0.875rem', color: '#ca8a04', fontWeight: '600' }}>
-                          📅 Submitted: {new Date(existingFeedback.submittedAt).toLocaleDateString('en-US', {
+                          Submitted: {new Date(existingFeedback.submittedAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric'
@@ -642,7 +642,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                           color: '#ca8a04',
                           fontWeight: '600'
                         }}>
-                          {existingFeedback.isAnonymous ? '🕶️ Anonymous' : '👤 Named'} Feedback
+                          {existingFeedback.isAnonymous ? 'Anonymous' : 'Named'} Feedback
                         </div>
                       </div>
                     </div>
@@ -663,14 +663,14 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                           alignItems: 'center',
                           gap: '0.5rem'
                         }}>
-                          ⭐ Rate Your Experience
+                          Rate Your Experience
                         </h5>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                          {renderStarRating(courseId, 'teachingQuality', form?.teachingQuality || 0, '👨‍🏫 Teaching Quality')}
-                          {renderStarRating(courseId, 'courseContent', form?.courseContent || 0, '📖 Course Content')}
-                          {renderStarRating(courseId, 'responsiveness', form?.responsiveness || 0, '💬 Instructor Responsiveness')}
-                          {renderStarRating(courseId, 'overallSatisfaction', form?.overallSatisfaction || 0, '🎯 Overall Satisfaction *')}
+                          {renderStarRating(courseId, 'teachingQuality', form?.teachingQuality || 0, 'Teaching Quality')}
+                          {renderStarRating(courseId, 'courseContent', form?.courseContent || 0, 'Course Content')}
+                          {renderStarRating(courseId, 'responsiveness', form?.responsiveness || 0, 'Instructor Responsiveness')}
+                          {renderStarRating(courseId, 'overallSatisfaction', form?.overallSatisfaction || 0, 'Overall Satisfaction *')}
                         </div>
                       </div>
 
@@ -682,7 +682,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                           color: '#374151',
                           fontSize: '0.9rem'
                         }}>
-                          💭 Additional Comments (Optional)
+                          Additional Comments (Optional)
                         </label>
                         <textarea
                           className="form-control"
@@ -729,19 +729,19 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                             }}
                           />
                           <span style={{ fontSize: '0.9rem' }}>
-                            {form?.isAnonymous ? '🕶️ Submit as Anonymous Feedback' : '👤 Submit with Your Name'}
+                            {form?.isAnonymous ? 'Submit as Anonymous Feedback' : 'Submit with Your Name'}
                           </span>
                         </label>
                         <p style={{
                           fontSize: '0.8rem',
-                          color: form?.isAnonymous ? '#0369a1' : '#7c3aed',
+                          color: form?.isAnonymous ? '#0369a1' : '#2563eb',
                           marginTop: '0.5rem',
                           marginLeft: '2rem',
                           fontWeight: '500'
                         }}>
                           {form?.isAnonymous ?? true
-                            ? '🔒 Your identity will not be revealed to the instructor'
-                            : '👁️ Your name will be visible to the instructor'
+                            ? 'Your identity will not be revealed to the instructor'
+                            : 'Your name will be visible to the instructor'
                           }
                         </p>
                       </div>
@@ -794,7 +794,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
             border: '1px solid #bae6fd'
           }}>
             <h5 style={{ margin: '0 0 0.5rem 0', color: '#0369a1', fontSize: '0.875rem' }}>
-              📝 Feedback Guidelines
+              Feedback Guidelines
             </h5>
             <ul style={{ margin: 0, paddingLeft: '1.25rem', fontSize: '0.75rem', color: '#0369a1' }}>
               <li>Be honest and constructive in your feedback</li>

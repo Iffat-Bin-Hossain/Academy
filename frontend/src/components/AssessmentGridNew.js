@@ -244,7 +244,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
       <>
         {/* Clean Assignment Header Bar */}
         <div style={{ 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 100%)',
           borderRadius: '16px',
           padding: '1.5rem',
           marginBottom: '2rem',
@@ -304,8 +304,8 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
               {/* Enhanced Student Header */}
               <div style={{ 
                 background: `linear-gradient(135deg, ${
-                  studentIndex % 4 === 0 ? '#667eea, #764ba2' :
-                  studentIndex % 4 === 1 ? '#f093fb, #f5576c' :
+                  studentIndex % 4 === 0 ? '#1e40af, #2563eb' :
+                  studentIndex % 4 === 1 ? '#0284c7, #0369a1' :
                   studentIndex % 4 === 2 ? '#4facfe, #00f2fe' :
                   '#43e97b, #38f9d7'
                 })`,
@@ -711,7 +711,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
           overflow: 'hidden'
         }}>
           <div style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #1e40af 0%, #2563eb 100%)',
             padding: '2.5rem',
             color: 'white'
           }}>

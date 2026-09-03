@@ -26,8 +26,8 @@ const AcademyIcon = ({ size = 32, className = "" }) => {
             <stop offset="100%" stopColor="#f8fafc" />
           </linearGradient>
           <linearGradient id="capGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7c3aed" />
-            <stop offset="100%" stopColor="#9333ea" />
+            <stop offset="0%" stopColor="#1e40af" />
+            <stop offset="100%" stopColor="#3b82f6" />
           </linearGradient>
         </defs>
         
@@ -59,7 +59,7 @@ const AcademyIcon = ({ size = 32, className = "" }) => {
         {/* Academic Cap */}
         <g transform="translate(42, 8)">
           <polygon points="2,4 10,4 10,6 8,7 4,7 2,6" fill="url(#capGradient)" stroke="#7c2d12" strokeWidth="0.5"/>
-          <rect x="3" y="6" width="6" height="1" fill="#7c3aed" opacity="0.8"/>
+          <rect x="3" y="6" width="6" height="1" fill="#1e40af" opacity="0.8"/>
           <circle cx="9" cy="5.5" r="0.5" fill="#fbbf24"/>
         </g>
         

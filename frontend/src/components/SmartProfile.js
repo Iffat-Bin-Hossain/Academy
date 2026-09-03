@@ -6,6 +6,15 @@ import CommonProfileSection from './profile/CommonProfileSection';
 import TeacherProfileSection from './profile/TeacherProfileSection';
 import StudentProfileSection from './profile/StudentProfileSection';
 import AdminProfileSection from './profile/AdminProfileSection';
+import { 
+  FiUser, 
+  FiBookOpen, 
+  FiSettings, 
+  FiCheck, 
+  FiAlertTriangle, 
+  FiInfo 
+} from 'react-icons/fi';
+import { FaGraduationCap } from 'react-icons/fa';
 import './SmartProfile.css';
 
 const SmartProfile = () => {
@@ -147,15 +156,15 @@ const SmartProfile = () => {
 
     const getProfileTabs = () => {
         const tabs = [
-            { id: 'common', label: 'Personal', icon: '👤' }
+            { id: 'common', label: 'Personal', icon: <FiUser /> }
         ];
 
         if (profile?.role === 'TEACHER') {
-            tabs.push({ id: 'teaching', label: 'Teaching', icon: '🎓' });
+            tabs.push({ id: 'teaching', label: 'Teaching', icon: <FaGraduationCap /> });
         } else if (profile?.role === 'STUDENT') {
-            tabs.push({ id: 'academic', label: 'Academic', icon: '📚' });
+            tabs.push({ id: 'academic', label: 'Academic', icon: <FiBookOpen /> });
         } else if (profile?.role === 'ADMIN') {
-            tabs.push({ id: 'admin', label: 'Administration', icon: '⚙️' });
+            tabs.push({ id: 'admin', label: 'Administration', icon: <FiSettings /> });
         }
 
         return tabs;
@@ -277,12 +286,12 @@ const SmartProfile = () => {
                                     hidden
                                 />
                                 <label htmlFor="photo-upload" className="photo-btn upload">
-                                    📷 {profile.profilePhotoUrl ? 'Change' : 'Upload'}
+                                    {profile.profilePhotoUrl ? 'Change Photo' : 'Upload Photo'}
                                 </label>
                                 {selectedFile && (
                                     <>
                                         <button onClick={handlePhotoUpload} className="photo-btn save">
-                                            ✓ Save
+                                            Save
                                         </button>
                                         <button 
                                             onClick={() => {
@@ -291,13 +300,13 @@ const SmartProfile = () => {
                                             }} 
                                             className="photo-btn cancel"
                                         >
-                                            ✗ Cancel
+                                            Cancel
                                         </button>
                                     </>
                                 )}
                                 {profile.profilePhotoUrl && !selectedFile && (
                                     <button onClick={handlePhotoDelete} className="photo-btn delete">
-                                        🗑️ Delete
+                                        Delete
                                     </button>
                                 )}
                             </div>
@@ -333,16 +342,16 @@ const SmartProfile = () => {
             {message && (
                 <div className={`profile-message ${messageType}`}>
                     <span className="message-icon">
-                        {messageType === 'success' && '✓'}
-                        {messageType === 'error' && '⚠'}
-                        {messageType === 'info' && 'ℹ'}
+                        {messageType === 'success' && <FiCheck />}
+                        {messageType === 'error' && <FiAlertTriangle />}
+                        {messageType === 'info' && <FiInfo />}
                     </span>
                     <span className="message-text">{message}</span>
                     <button 
                         className="message-close" 
                         onClick={() => {setMessage(''); setMessageType('');}}
                     >
-                        ✕
+                        
                     </button>
                 </div>
             )}

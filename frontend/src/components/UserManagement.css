@@ -84,7 +84,8 @@
 .message-content {
   display: flex;
   align-items: center;
-  padding: 15px 20px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
   gap: 12px;
 }
 
@@ -179,7 +180,8 @@
 }
 
 .filter-btn {
-  padding: 10px 20px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
   border: 2px solid #e9ecef;
   background: white;
   border-radius: 25px;
@@ -346,7 +348,7 @@
 }
 
 .user-avatar-placeholder {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
   color: white;
   font-weight: 600;
   font-size: 1.1rem;
@@ -637,7 +639,8 @@
 
 .btn-cancel,
 .btn-save {
-  padding: 10px 20px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -817,7 +820,8 @@
   background: white;
   border: 2px solid #3498db;
   border-radius: 10px;
-  padding: 15px 20px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
   margin-bottom: 20px;
   display: flex;
   justify-content: space-between;

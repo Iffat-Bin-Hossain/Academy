@@ -69,7 +69,7 @@ main() {
     print_status "Access points:"
     echo "  - Frontend: http://localhost:3000"
     echo "  - Backend API: http://localhost:8081"
-    echo "  - Database: localhost:5433"
+    echo "  - Database: localhost:5434"
     echo ""
     print_status "Default Admin Login:"
     echo "  - Email: admin@academy.com"

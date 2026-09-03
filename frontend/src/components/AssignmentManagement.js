@@ -1,6 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
+import { 
+  FiFileText, 
+  FiFile, 
+  FiPackage, 
+  FiImage, 
+  FiCode, 
+  FiPaperclip, 
+  FiSearch, 
+  FiPlus, 
+  FiBarChart2, 
+  FiCalendar, 
+  FiUser, 
+  FiLink, 
+  FiDownload, 
+  FiCheckCircle, 
+  FiClock, 
+  FiEdit3, 
+  FiTrash2, 
+  FiSave, 
+  FiX, 
+  FiAlertTriangle, 
+  FiAlertCircle,
+  FiLock
+} from 'react-icons/fi';
 
 const AssignmentManagement = ({ user, courses, onShowMessage }) => {
   const navigate = useNavigate();
@@ -238,17 +262,17 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
   const getFileIcon = (filename) => {
     const extension = filename.split('.').pop().toLowerCase();
     switch (extension) {
-      case 'pdf': return '📄';
+      case 'pdf': return '';
       case 'doc':
-      case 'docx': return '📝';
-      case 'txt': return '📃';
+      case 'docx': return '';
+      case 'txt': return '';
       case 'zip':
-      case 'rar': return '📦';
+      case 'rar': return '';
       case 'jpg':
       case 'jpeg':
       case 'png':
       case 'gif':
-      case 'bmp': return '🖼️';
+      case 'bmp': return '️';
       case 'java':
       case 'py':
       case 'js':
@@ -256,8 +280,8 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       case 'css':
       case 'cpp':
       case 'c':
-      case 'cs': return '💻';
-      default: return '📎';
+      case 'cs': return '';
+      default: return '';
     }
   };
 
@@ -650,7 +674,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       const deadlineType = assignment.lateSubmissionDeadline ? 'late submission deadline' : 'main deadline';
       
       onShowMessage(
-        `⚠️ Copy Checker Not Available Yet\n\nThe copy checker can only be run after the assignment ${deadlineType} has passed.\n\n📅 ${deadlineType.charAt(0).toUpperCase() + deadlineType.slice(1)}: ${formatDetailedDateTime(effectiveDeadline)}\n\nPlease wait until after this time to run plagiarism detection.`, 
+        `️ Copy Checker Not Available Yet\n\nThe copy checker can only be run after the assignment ${deadlineType} has passed.\n\n ${deadlineType.charAt(0).toUpperCase() + deadlineType.slice(1)}: ${formatDetailedDateTime(effectiveDeadline)}\n\nPlease wait until after this time to run plagiarism detection.`, 
         'warning'
       );
       return;
@@ -705,17 +729,17 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       {/* Assignment Stats */}
       <div className="stats-grid" style={{ marginBottom: '2rem' }}>
         <div className="stat-card">
-          <span className="stat-icon">📝</span>
+          <span className="stat-icon"><FiFileText /></span>
           <div className="stat-value">{stats.total}</div>
           <div className="stat-label">Total Assignments</div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon">⏰</span>
+          <span className="stat-icon"><FiClock /></span>
           <div className="stat-value">{stats.upcoming}</div>
           <div className="stat-label">Upcoming</div>
         </div>
         <div className="stat-card">
-          <span className="stat-icon">⚠️</span>
+          <span className="stat-icon"><FiAlertTriangle /></span>
           <div className="stat-value">{stats.overdue}</div>
           <div className="stat-label">Overdue</div>
         </div>
@@ -765,7 +789,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
               <input
                 type="text"
                 className="form-control"
-                placeholder="🔍 Search assignments..."
+                placeholder="Search assignments..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ fontSize: '0.875rem', minWidth: '250px' }}
@@ -775,7 +799,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={openCreateModal}
                 style={{ whiteSpace: 'nowrap' }}
               >
-                <span style={{ marginRight: '0.5rem' }}>➕</span>
+                <FiPlus style={{ marginRight: '0.5rem' }} />
                 Create Assignment
               </button>
             </div>
@@ -786,13 +810,13 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
               {assignments.length === 0 ? (
                 <>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+                  <FiFileText style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>No assignments yet</h4>
                   <p>Create your first assignment to get started.</p>
                 </>
               ) : (
                 <>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>🔍</span>
+                  <FiSearch style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>No assignments found</h4>
                   <p>No assignments match your search criteria.</p>
                 </>
@@ -852,16 +876,16 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           </p>
                           <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
                             <span>� Created by: {assignment.createdByName || 'Unknown'}</span>
-                            <span>�📊 Max Marks: {assignment.maxMarks}</span>
+                            <span>� Max Marks: {assignment.maxMarks}</span>
                             <span style={{ color: isOverdue ? '#dc2626' : '#64748b' }}>
-                              📅 Due: {formatDate(assignment.deadline)}
+                              Due: {formatDate(assignment.deadline)}
                             </span>
                             {assignment.lateSubmissionDeadline && (
                               <span style={{ color: isLateAllowed ? '#059669' : '#dc2626' }}>
                                 ⏰ Late Until: {formatDate(assignment.lateSubmissionDeadline)}
                               </span>
                             )}
-                            <span>📝 Created: {formatDate(assignment.createdAt)}</span>
+                            <span>Created: {formatDate(assignment.createdAt)}</span>
                           </div>
                           {assignment.instructions && (
                             <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -874,7 +898,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           {assignment.attachments && assignment.attachments.length > 0 && (
                             <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
                               <strong style={{ fontSize: '0.875rem', color: '#0c4a6e' }}>
-                                📎 Attachments ({assignment.attachments.length}):
+                                Attachments ({assignment.attachments.length}):
                               </strong>
                               <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                 {assignment.attachments.map(file => (
@@ -889,7 +913,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                                   }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                       <span style={{ fontSize: '1rem' }}>
-                                        {file.attachmentType === 'URL' ? '🔗' : getFileIcon(file.originalFilename || 'file')}
+                                        {file.attachmentType === 'URL' ? '' : getFileIcon(file.originalFilename || 'file')}
                                       </span>
                                       <div>
                                         <div style={{ fontSize: '0.875rem', color: '#0c4a6e', fontWeight: '500' }}>
@@ -933,7 +957,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                                           e.target.style.borderColor = '#3b82f6';
                                         }}
                                       >
-                                        🔗 Open Link
+                                        Open Link
                                       </button>
                                     ) : (
                                       <button
@@ -960,7 +984,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                                           e.target.style.borderColor = '#0ea5e9';
                                         }}
                                       >
-                                        ⬇️ Download
+                                        Download
                                       </button>
                                     )}
                                   </div>
@@ -979,26 +1003,26 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                               `Copy checker will be available after: ${formatDetailedDateTime(assignment.lateSubmissionDeadline || assignment.deadline)}`}
                             disabled={!isAssignmentDeadlinePassed(assignment)}
                           >
-                            {isAssignmentDeadlinePassed(assignment) ? '🔍 Smart Copy Check' : '� Copy Check (Locked)'}
+                            {isAssignmentDeadlinePassed(assignment) ? ' Smart Copy Check' : '� Copy Check (Locked)'}
                           </button>
                           <button 
                             className="btn btn-info btn-sm"
                             onClick={() => openSubmissionsModal(assignment)}
                             style={{ fontSize: '0.75rem' }}
                           >
-                            📋 View Submissions
+                            View Submissions
                           </button>
                           <button 
                             className="btn btn-secondary btn-sm"
                             onClick={() => openEditModal(assignment)}
                           >
-                            ✏️ Edit
+                            Edit
                           </button>
                           <button 
                             className="btn btn-danger btn-sm"
                             onClick={() => handleDeleteAssignment(assignment.id)}
                           >
-                            🗑️ Delete
+                            Delete
                           </button>
                         </div>
                       </div>
@@ -1022,7 +1046,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={closeCreateModal}
                 aria-label="Close modal"
               >
-                ✕
+                
               </button>
             </div>
             <form onSubmit={handleCreateAssignment}>
@@ -1353,7 +1377,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     </>
                   ) : (
                     <>
-                      <span style={{ marginRight: '0.5rem' }}>➕</span>
+                      <FiPlus style={{ marginRight: '0.5rem' }} />
                       Create Assignment
                     </>
                   )}
@@ -1375,7 +1399,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={closeEditModal}
                 aria-label="Close modal"
               >
-                ✕
+                
               </button>
             </div>
             <form onSubmit={handleEditAssignment}>
@@ -1516,7 +1540,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span style={{ fontSize: '1rem' }}>
-                              {file.attachmentType === 'URL' ? '🔗' : getFileIcon(file.originalFilename || 'file')}
+                              {file.attachmentType === 'URL' ? '' : getFileIcon(file.originalFilename || 'file')}
                             </span>
                             <div>
                               <div style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
@@ -1779,7 +1803,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     </>
                   ) : (
                     <>
-                      <span style={{ marginRight: '0.5rem' }}>💾</span>
+                      <FiSave style={{ marginRight: '0.5rem' }} />
                       Update Assignment
                     </>
                   )}
@@ -1803,7 +1827,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={closeSubmissionsModal}
                 aria-label="Close modal"
               >
-                ✕
+                
               </button>
             </div>
             <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
@@ -1814,7 +1838,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 </div>
               ) : submissions.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>📝</span>
+                  <FiFileText style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>No submissions yet</h4>
                   <p>No students have submitted this assignment yet.</p>
                 </div>
@@ -1834,9 +1858,9 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           Assignment Details
                         </h5>
                         <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                          <span style={{ marginRight: '2rem' }}>📅 Due: {formatDate(viewingAssignment.deadline)}</span>
-                          <span style={{ marginRight: '2rem' }}>📊 Max Marks: {viewingAssignment.maxMarks}</span>
-                          <span>👥 Total Submissions: {submissions.length}</span>
+                          <span style={{ marginRight: '2rem' }}>Due: {formatDate(viewingAssignment.deadline)}</span>
+                          <span style={{ marginRight: '2rem' }}> Max Marks: {viewingAssignment.maxMarks}</span>
+                          <span> Total Submissions: {submissions.length}</span>
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
@@ -1847,7 +1871,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           color: '#16a34a',
                           fontWeight: '600'
                         }}>
-                          ✅ On Time: {submissions.filter(s => !s.isLate).length}
+                           On Time: {submissions.filter(s => !s.isLate).length}
                         </span>
                         <span style={{
                           padding: '0.25rem 0.75rem',
@@ -1886,15 +1910,15 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                                 background: submission.isLate ? '#fee2e2' : '#dcfce7',
                                 color: submission.isLate ? '#dc2626' : '#16a34a'
                               }}>
-                                {submission.isLate ? '⏰ Late Submission' : '✅ On Time'}
+                                {submission.isLate ? 'Late Submission' : 'On Time'}
                               </span>
                             </div>
 
                             <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#64748b' }}>
                               <span style={{ marginRight: '2rem' }}>
-                                📅 Submitted: {formatDate(submission.submittedAt)}
+                                Submitted: {formatDate(submission.submittedAt)}
                               </span>
-                              <span>📋 Status: {submission.submissionStatus}</span>
+                              <span>Status: {submission.submissionStatus}</span>
                             </div>
 
                             {submission.submissionText && (
@@ -1917,7 +1941,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                             {submission.files && submission.files.length > 0 && (
                               <div style={{ marginBottom: '1rem' }}>
                                 <h6 style={{ margin: '0 0 0.75rem 0', color: '#374151', fontSize: '0.875rem', fontWeight: '600' }}>
-                                  📎 Submitted Files ({submission.files.length}):
+                                  Submitted Files ({submission.files.length}):
                                 </h6>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                   {submission.files.map(file => (
@@ -1931,7 +1955,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                                       border: '1px solid #0ea5e9'
                                     }}>
                                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                        <span style={{ fontSize: '1.5rem' }}>📦</span>
+                                        <FiPackage style={{ fontSize: '1.5rem' }} />
                                         <div>
                                           <div style={{ fontSize: '0.875rem', color: '#0c4a6e', fontWeight: '500' }}>
                                             {file.originalFilename}
@@ -1957,7 +1981,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                                           gap: '0.5rem'
                                         }}
                                       >
-                                        ⬇️ Download
+                                        Download
                                       </button>
                                     </div>
                                   ))}

@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../api/axiosInstance';
+import { 
+  FiTrendingUp, 
+  FiTarget, 
+  FiFileText, 
+  FiBarChart2, 
+  FiAlertTriangle, 
+  FiBookOpen, 
+  FiXCircle, 
+  FiClock, 
+  FiSearch, 
+  FiLock 
+} from 'react-icons/fi';
 
 const StudentGrades = ({ courseId, user, onShowMessage }) => {
   const [grades, setGrades] = useState(null);
@@ -81,25 +93,25 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
     if (!assignment.hasGrade) {
       // If explicitly marked as not submitted (backend sets this when no submission exists)
       if (assignment.notSubmitted) {
-        return { icon: '❌', text: 'Not Submitted', color: '#ef4444' };
+        return { icon: <FiXCircle />, text: 'Not Submitted', color: '#ef4444' };
       }
       // If marked as pending review (student submitted but teacher hasn't graded yet)
       if (assignment.gradesPending) {
-        return { icon: '⏳', text: 'Pending Review', color: '#f59e0b' };
+        return { icon: <FiClock />, text: 'Pending Review', color: '#f59e0b' };
       }
       // Default: under review (fallback case)
-      return { icon: '🔍', text: 'Under Review', color: '#3b82f6' };
+      return { icon: <FiSearch />, text: 'Under Review', color: '#3b82f6' };
     }
 
     // Assignment has a grade but might not be visible to students
     if (!assignment.gradesVisible) {
-      return { icon: '🔒', text: 'Grade Hidden', color: '#64748b' };
+      return { icon: <FiLock />, text: 'Grade Hidden', color: '#64748b' };
     }
 
     // Assignment is graded and visible - show performance status
     const percentage = (assignment.finalMark / assignment.maxMarks) * 100;
     const gradeInfo = getGradeInfo(percentage);
-    return { icon: '📊', text: gradeInfo.description, color: gradeInfo.color };
+    return { icon: <FiBarChart2 />, text: gradeInfo.description, color: gradeInfo.color };
   };
 
   const formatGrade = (assignment) => {
@@ -140,7 +152,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
         borderRadius: '8px',
         margin: '1rem 0'
       }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
+        <FiAlertTriangle style={{ fontSize: '2rem', color: '#dc2626', margin: '0 auto 1rem' }} />
         <h3 style={{ color: '#dc2626', marginBottom: '0.5rem' }}>Error Loading Grades</h3>
         <p style={{ color: '#7f1d1d', marginBottom: '1rem' }}>{error}</p>
         <button
@@ -170,7 +182,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
         borderRadius: '8px',
         margin: '1rem 0'
       }}>
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📚</div>
+        <FiBookOpen style={{ fontSize: '3rem', color: '#94a3b8', margin: '0 auto 1rem' }} />
         <h3 style={{ color: '#475569', marginBottom: '0.5rem' }}>No Grades Available</h3>
         <p style={{ color: '#64748b' }}>
           Grades for this course haven't been posted yet, or you haven't submitted any assignments.
@@ -191,7 +203,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
         border: '1px solid #e2e8f0'
       }}>
         <h2 style={{ margin: '0 0 1rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>📈</span>
+          <FiTrendingUp />
           Grade Summary
         </h2>
 
@@ -212,7 +224,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
           </div>
 
           <div style={{ padding: '1rem', backgroundColor: '#f0fdf4', borderRadius: '8px', border: '1px solid #22c55e' }}>
-            <h4 style={{ margin: '0 0 0.5rem 0', color: '#475569' }}>📈 Attendance</h4>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><FiTrendingUp /> Attendance</h4>
             <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: grades.attendance.attendancePercentage >= 75 ? '#059669' : grades.attendance.attendancePercentage >= 50 ? '#f59e0b' : '#ef4444' }}>
               {grades.attendance.attendancePercentage ? `${grades.attendance.attendancePercentage.toFixed(1)}%` : 'N/A'}
             </div>
@@ -253,7 +265,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
         border: '1px solid #e2e8f0'
       }}>
         <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>🎯</span>
+          <FiTarget />
           Grading Scale
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
@@ -293,7 +305,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
         border: '2px solid #22c55e'
       }}>
         <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span>📈</span>
+          <FiTrendingUp />
           Attendance Grading System
         </h3>
         <p style={{ margin: '0 0 1rem 0', color: '#374151' }}>
@@ -342,7 +354,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
       }}>
         <div style={{ padding: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
           <h3 style={{ margin: 0, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📝</span>
+            <FiFileText />
             Assignment Grades
           </h3>
         </div>
@@ -431,7 +443,7 @@ const StudentGrades = ({ courseId, user, onShowMessage }) => {
           border: '1px solid #e2e8f0'
         }}>
           <h3 style={{ margin: '0 0 1rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📊</span>
+            <FiBarChart2 />
             Grade Distribution
           </h3>
 

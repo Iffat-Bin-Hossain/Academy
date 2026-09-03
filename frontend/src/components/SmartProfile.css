@@ -3,7 +3,7 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
     min-height: 100vh;
 }
 
@@ -76,7 +76,7 @@
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -166,7 +166,7 @@
 }
 
 .role-badge.teacher {
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #1e40af, #2563eb);
     color: white;
 }
 
@@ -194,7 +194,8 @@
 }
 
 .btn {
-    padding: 10px 20px;
+    padding: 6px 14px;
+  font-size: 0.85rem;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -207,7 +208,7 @@
 }
 
 .btn-primary {
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #1e40af, #2563eb);
     color: white;
 }
 
@@ -226,7 +227,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 15px 20px;
+    padding: 8px 16px;
+  font-size: 0.875rem;
     border-radius: 8px;
     margin-bottom: 20px;
     font-weight: 500;
@@ -278,7 +280,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 20px;
+    padding: 6px 14px;
+  font-size: 0.85rem;
     border: none;
     background: transparent;
     color: rgba(255, 255, 255, 0.7);
