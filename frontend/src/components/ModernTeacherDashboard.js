@@ -5,6 +5,7 @@ import Layout from './Layout';
 import { useTabSync } from '../utils/useTabSync';
 import AssignmentManagement from './AssignmentManagement';
 import FacultyFeedbackTeacher from './feedback/FacultyFeedbackTeacher';
+import './ModernTeacherDashboard.css';
 import { 
   FiBarChart2, 
   FiBookOpen, 
@@ -207,6 +208,7 @@ const ModernTeacherDashboard = () => {
       pageTitle="Teacher Portal"
       pageSubtitle="Manage your courses and students"
     >
+      <div className="teacher-dashboard-page">
       {/* Message Alert */}
       {message && (
         <div className={`alert alert-${messageType}`}>
@@ -409,7 +411,7 @@ const ModernTeacherDashboard = () => {
                     <div className="card-body" style={{ padding: '1.5rem' }}>
                       <div style={{ marginBottom: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-                          <span style={{
+                          <span className="teacher-course-code" style={{
                             padding: '0.25rem 0.75rem',
                             borderRadius: '8px',
                             fontSize: '0.75rem',
@@ -421,7 +423,7 @@ const ModernTeacherDashboard = () => {
                             {course.courseCode}
                           </span>
                           {course.level && (
-                            <span style={{
+                            <span className="teacher-course-meta" style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: '6px',
                               fontSize: '0.75rem',
@@ -433,7 +435,7 @@ const ModernTeacherDashboard = () => {
                             </span>
                           )}
                           {course.term && (
-                            <span style={{
+                            <span className="teacher-course-meta" style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: '6px',
                               fontSize: '0.75rem',
@@ -475,7 +477,7 @@ const ModernTeacherDashboard = () => {
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                           {approvedCount > 0 && (
-                            <span style={{
+                            <span className="teacher-enrollment-count" style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: '6px',
                               fontSize: '0.75rem',
@@ -487,7 +489,7 @@ const ModernTeacherDashboard = () => {
                             </span>
                           )}
                           {pendingCount > 0 && (
-                            <span style={{
+                            <span className="teacher-pending-count" style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: '6px',
                               fontSize: '0.75rem',
@@ -499,7 +501,7 @@ const ModernTeacherDashboard = () => {
                             </span>
                           )}
                           {retakingCount > 0 && (
-                            <span style={{
+                            <span className="teacher-retaking-count" style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: '6px',
                               fontSize: '0.75rem',
@@ -538,6 +540,7 @@ const ModernTeacherDashboard = () => {
         />
       )}
 
+      </div>
     </Layout>
   );
 };

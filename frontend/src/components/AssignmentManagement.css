@@ -1,0 +1,151 @@
+.assignment-management-page {
+  color: #203b5c;
+}
+
+.assignment-management-page > .card,
+.assignment-management-page .stats-grid > .stat-card {
+  border: 1px solid #dfe7f1;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.assignment-management-page > .card:hover,
+.assignment-management-page .stats-grid > .stat-card:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.assignment-management-page .card-header {
+  background: #f7f9fc;
+}
+
+.assignment-management-page .stats-grid {
+  gap: 0.75rem;
+  margin-bottom: 1rem !important;
+}
+
+.assignment-management-page .stat-card {
+  padding: 1rem 1.1rem;
+}
+
+.assignment-management-page .stat-card::before {
+  height: 2px;
+  background: #3768a8;
+}
+
+.assignment-management-page .stat-icon {
+  color: #5278ad;
+  font-size: 1.35rem;
+}
+
+.assignment-management-page .stat-value {
+  color: #203b5c;
+  font-size: 1.7rem;
+}
+
+.assignment-management-page .stat-label {
+  color: #667991;
+  font-size: 0.72rem;
+}
+
+.assignment-management-page .form-control {
+  border-color: #cbd8e6;
+  border-radius: 6px;
+}
+
+.assignment-management-page .form-control:focus {
+  border-color: #5278ad;
+  box-shadow: 0 0 0 3px rgba(82, 120, 173, 0.12);
+}
+
+.assignment-management-page .modal-content {
+  max-width: 600px;
+  border: 1px solid #dfe7f1;
+  border-radius: 9px;
+  box-shadow: 0 18px 40px rgba(20, 42, 72, 0.18);
+}
+
+.assignment-management-page .modal-header {
+  padding: 1rem 1.25rem;
+  background: #f7f9fc;
+}
+
+.assignment-management-page .modal-title {
+  color: #203b5c;
+  font-size: 1.05rem;
+}
+
+.assignment-management-page .modal-body {
+  padding: 1.25rem;
+}
+
+.assignment-management-page .modal-actions {
+  gap: 0.5rem;
+  padding: 0.9rem 1.25rem;
+  background: #fbfcfe;
+  border-bottom-left-radius: 9px;
+  border-bottom-right-radius: 9px;
+}
+
+.assignment-management-page .card-body > div > .card {
+  border-color: #dfe7f1 !important;
+  border-radius: 7px !important;
+  background: #ffffff !important;
+}
+
+.assignment-management-page .card-body > div > .card:hover {
+  transform: none;
+}
+
+.assignment-management-page .card-body > div > .card span[style*="background"],
+.assignment-management-page .assignment-type-badge,
+.assignment-management-page .assignment-course-badge {
+  background: #e8eefb !important;
+  color: #244a91 !important;
+  border: 1px solid #cbd8f2;
+  border-radius: 5px !important;
+}
+
+.assignment-management-page .assignment-overdue {
+  border-color: #d7e0eb !important;
+  background: #f7f9fc !important;
+}
+
+.assignment-management-page .assignment-attachment-panel,
+.assignment-management-page .assignment-instructions-panel {
+  background: #f7f9fc !important;
+  border-color: #d7e0eb !important;
+}
+
+.assignment-management-page .btn-success,
+.assignment-management-page .btn-danger,
+.assignment-management-page .btn-warning,
+.assignment-management-page .btn-info {
+  background: #edf2f8;
+  color: #385a83;
+  border-color: #d7e0eb;
+  box-shadow: none;
+}
+
+.assignment-management-page .btn-success:hover,
+.assignment-management-page .btn-danger:hover,
+.assignment-management-page .btn-warning:hover,
+.assignment-management-page .btn-info:hover {
+  background: #e1e9f3;
+  color: #244a91;
+  box-shadow: none;
+}
+
+.assignment-management-page .alert-error,
+.assignment-management-page .alert-warning {
+  background: #eef3fb;
+  color: #496486;
+  border-color: #d5e0f0;
+}
+
+@media (max-width: 800px) {
+  .assignment-management-page .card-header > div,
+  .assignment-management-page .card-header > div > div {
+    flex-wrap: wrap;
+  }
+}

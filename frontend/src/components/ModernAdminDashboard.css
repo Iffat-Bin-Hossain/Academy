@@ -1,0 +1,117 @@
+.modern-admin-dashboard {
+  color: #203b5c;
+}
+
+.modern-admin-dashboard > .card {
+  border-color: #dfe7f1;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.modern-admin-dashboard > .card:hover,
+.modern-admin-dashboard .grid > .card:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.modern-admin-dashboard .card-header {
+  background: #f7f9fc;
+}
+
+.modern-admin-dashboard .grid > .card {
+  border-radius: 8px;
+  border-color: #e2e8f0;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.04);
+}
+
+.modern-admin-dashboard .grid > .card .card-body {
+  padding: 1.25rem;
+}
+
+.modern-admin-dashboard .course-code-badge,
+.modern-admin-dashboard .course-meta-badge {
+  background: #e8eefb !important;
+  color: #244a91 !important;
+  border: 1px solid #cbd8f2 !important;
+  border-radius: 5px !important;
+}
+
+.modern-admin-dashboard .course-code-badge {
+  padding: 0.3rem 0.55rem !important;
+  font-size: 0.75rem !important;
+}
+
+.modern-admin-dashboard .course-meta-badge {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.7rem !important;
+}
+
+.modern-admin-dashboard .btn-danger {
+  background: #f1f3f7;
+  color: #5f6d80;
+  border-color: #dce2ea;
+  box-shadow: none;
+}
+
+.modern-admin-dashboard .btn-danger:hover {
+  background: #e5e9f0;
+  color: #4f5e72;
+  box-shadow: none;
+}
+
+.modern-admin-dashboard .modal-content {
+  max-width: 500px;
+  border: 1px solid #dfe7f1;
+  border-radius: 9px;
+  box-shadow: 0 18px 40px rgba(20, 42, 72, 0.18);
+}
+
+.modern-admin-dashboard .modal-header {
+  padding: 1rem 1.25rem;
+  background: #f7f9fc;
+}
+
+.modern-admin-dashboard .modal-title {
+  color: #203b5c;
+  font-size: 1.05rem;
+}
+
+.modern-admin-dashboard .modal-body {
+  padding: 1.25rem;
+}
+
+.modern-admin-dashboard .modal-actions {
+  gap: 0.5rem;
+  padding: 0.9rem 1.25rem;
+  background: #fbfcfe;
+  border-bottom-left-radius: 9px;
+  border-bottom-right-radius: 9px;
+}
+
+.modern-admin-dashboard .form-group {
+  margin-bottom: 1rem;
+}
+
+.modern-admin-dashboard .form-control {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  border-color: #cbd8e6;
+  font-size: 0.82rem;
+}
+
+.modern-admin-dashboard .form-control:focus {
+  border-color: #5278ad;
+  box-shadow: 0 0 0 3px rgba(82, 120, 173, 0.12);
+}
+
+.modern-admin-dashboard .alert-error {
+  background: #f1f3f7 !important;
+  color: #5f6d80 !important;
+  border: 1px solid #dce2ea !important;
+  border-left: 3px solid #718096 !important;
+}
+
+.modern-admin-dashboard .modal-close:hover {
+  background: #edf2f8;
+  color: #385a83;
+}

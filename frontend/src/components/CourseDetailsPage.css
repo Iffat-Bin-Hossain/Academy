@@ -1,0 +1,75 @@
+.course-details-page {
+  color: #203b5c;
+}
+
+.course-details-page > .card,
+.course-details-page > .grid > .card {
+  border: 1px solid #dfe7f1;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.course-details-page > .card:hover,
+.course-details-page > .grid > .card:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.course-details-page .card-header {
+  background: #f7f9fc;
+}
+
+.course-details-page .course-details-stat-icon {
+  display: block;
+  margin: 0 auto 0.5rem;
+  color: #5278ad;
+  font-size: 1.5rem;
+}
+
+.course-details-page .course-details-empty-icon {
+  display: block;
+  margin: 0 auto 1rem;
+  color: #718096;
+  font-size: 2.5rem;
+}
+
+.course-details-page .course-details-tab-icon {
+  display: inline-flex;
+  margin-right: 0.45rem;
+  vertical-align: -0.15em;
+}
+
+.course-details-page h3 svg {
+  margin-right: 0.4rem;
+  vertical-align: -0.15em;
+}
+
+.course-details-page .card-body input:focus,
+.course-details-page .card-body select:focus {
+  border-color: #5278ad !important;
+  box-shadow: 0 0 0 3px rgba(82, 120, 173, 0.12);
+}
+
+.course-details-page .card-body .btn-success,
+.course-details-page .card-body .btn-danger,
+.course-details-page .card-body .btn-warning {
+  background: #edf2f8;
+  color: #385a83;
+  border-color: #d7e0eb;
+  box-shadow: none;
+}
+
+.course-details-page .card-body .btn-success:hover,
+.course-details-page .card-body .btn-danger:hover,
+.course-details-page .card-body .btn-warning:hover {
+  background: #e1e9f3;
+  color: #244a91;
+  box-shadow: none;
+}
+
+@media (max-width: 800px) {
+  .course-details-page .card-header > div,
+  .course-details-page .card-header > div > div {
+    flex-wrap: wrap;
+  }
+}

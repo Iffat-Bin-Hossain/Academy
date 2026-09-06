@@ -733,6 +733,48 @@
     }
 }
 
+/* Shared blue theme overrides for all profile roles. */
+.profile-container {
+    background: #f4f7fb;
+}
+
+.profile-header,
+.profile-section {
+    border: 1px solid #dfe7f1;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.profile-photo-placeholder {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.photo-btn.upload,
+.photo-btn.save {
+    background: #3768a8;
+    color: white;
+}
+
+.photo-btn.delete {
+    background: #edf2f8;
+    color: #385a83;
+    border: 1px solid #d7e0eb;
+}
+
+.role-badge.admin,
+.role-badge.teacher,
+.role-badge.student {
+    background: #e8eefb;
+    color: #244a91;
+    border: 1px solid #cbd8f2;
+}
+
+.profile-message.info {
+    background: #eef3fb;
+    border-color: #d5e0f0;
+    color: #496486;
+}
+
 @media (max-width: 480px) {
     .profile-name {
         font-size: 1.5rem;

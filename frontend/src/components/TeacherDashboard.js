@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Dashboard from './Dashboard';
 import axios from '../api/axiosInstance';
+import { FiBookOpen, FiCheckCircle, FiClock, FiFileText, FiEye, FiBarChart2, FiXCircle } from 'react-icons/fi';
 
 const TeacherDashboard = ({ user, onLogout }) => {
   const [stats, setStats] = useState({
@@ -75,7 +76,7 @@ const TeacherDashboard = ({ user, onLogout }) => {
       <div className="dashboard-cards">
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">📖</div>
+            <div className="card-icon"><FiBookOpen /></div>
             <h3 className="card-title">My Courses</h3>
           </div>
           <div className="card-content">
@@ -86,7 +87,7 @@ const TeacherDashboard = ({ user, onLogout }) => {
 
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">👨‍🎓</div>
+            <div className="card-icon"><FiBookOpen /></div>
             <h3 className="card-title">Students</h3>
           </div>
           <div className="card-content">
@@ -97,7 +98,7 @@ const TeacherDashboard = ({ user, onLogout }) => {
 
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">⏳</div>
+            <div className="card-icon"><FiClock /></div>
             <h3 className="card-title">Pending</h3>
           </div>
           <div className="card-content">
@@ -108,7 +109,7 @@ const TeacherDashboard = ({ user, onLogout }) => {
 
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">✅</div>
+            <div className="card-icon"><FiCheckCircle /></div>
             <h3 className="card-title">Approved</h3>
           </div>
           <div className="card-content">
@@ -122,7 +123,7 @@ const TeacherDashboard = ({ user, onLogout }) => {
       <div className="teacher-sections">
         {/* My Courses */}
         <div className="teacher-section">
-          <h2 className="section-title">📚 My Courses</h2>
+          <h2 className="section-title"><FiBookOpen /> My Courses</h2>
           <div className="section-content">
             {courses.length === 0 ? (
               <div className="empty-state">
@@ -155,8 +156,8 @@ const TeacherDashboard = ({ user, onLogout }) => {
                     </div>
                     <p className="course-description">{course.description}</p>
                     <div className="course-actions">
-                      <button className="action-btn">👁️ View Details</button>
-                      <button className="action-btn">📊 View Students</button>
+                      <button className="action-btn"><FiEye /> View Details</button>
+                      <button className="action-btn"><FiBarChart2 /> View Students</button>
                     </div>
                   </div>
                 ))}
@@ -168,7 +169,7 @@ const TeacherDashboard = ({ user, onLogout }) => {
         {/* Pending Enrollments */}
         {stats.pendingEnrollments > 0 && (
           <div className="teacher-section">
-            <h2 className="section-title">📝 Enrollment Requests</h2>
+            <h2 className="section-title"><FiFileText /> Enrollment Requests</h2>
             <div className="section-content">
               <div className="enrollment-list">
                 {pendingEnrollments.map(enrollment => (
@@ -193,13 +194,13 @@ const TeacherDashboard = ({ user, onLogout }) => {
                         className="approve-btn"
                         onClick={() => handleEnrollmentDecision(enrollment.id, true)}
                       >
-                        ✅ Approve
+                        <FiCheckCircle /> Approve
                       </button>
                       <button 
                         className="reject-btn"
                         onClick={() => handleEnrollmentDecision(enrollment.id, false)}
                       >
-                        ❌ Reject
+                        <FiXCircle /> Reject
                       </button>
                     </div>
                   </div>

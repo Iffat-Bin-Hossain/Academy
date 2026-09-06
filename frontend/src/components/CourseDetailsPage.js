@@ -8,6 +8,8 @@ import DiscussionThreads from './DiscussionThreads';
 import AttendanceManagement from './AttendanceManagement';
 import AssessmentGrid from './AssessmentGrid';
 import GradeVisibilityControl from './GradeVisibilityControl';
+import { FiArrowLeft, FiAward, FiBarChart2, FiBookOpen, FiCheckCircle, FiClipboard, FiClock, FiFileText, FiMessageCircle, FiRefreshCw, FiSearch, FiUsers, FiXCircle } from 'react-icons/fi';
+import './CourseDetailsPage.css';
 
 const CourseDetailsPage = () => {
   const { courseCode } = useParams();
@@ -297,7 +299,7 @@ const CourseDetailsPage = () => {
         <div className="card">
           <div className="card-body">
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>❌</span>
+              <FiXCircle className="course-details-empty-icon" />
               <h4>Course not found</h4>
               <p>The course with code "{courseCode}" was not found or you don't have access to it.</p>
               <button 
@@ -332,6 +334,7 @@ const CourseDetailsPage = () => {
         pageTitle={`Course: ${course.title}`}
         pageSubtitle={`Manage students and enrollments for ${course.courseCode}`}
       >
+      <div className="course-details-page">
       {/* Message Alert */}
       {message && (
         <div className={`alert alert-${messageType}`}>
@@ -346,7 +349,7 @@ const CourseDetailsPage = () => {
           onClick={() => navigate('/teacher')}
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          ← Back to Courses
+          <FiArrowLeft aria-hidden="true" /> Back to Courses
         </button>
       </div>
 
@@ -373,7 +376,7 @@ const CourseDetailsPage = () => {
                 {course.description}
               </p>
               <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                📅 Created: {formatDate(course.createdAt)}
+                <FiClock aria-hidden="true" /> Created: {formatDate(course.createdAt)}
               </div>
             </div>
           </div>
@@ -384,28 +387,28 @@ const CourseDetailsPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-4" style={{ gap: '1rem', marginBottom: '2rem' }}>
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '1.5rem' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>👥</div>
+            <FiUsers className="course-details-stat-icon" />
             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#1e293b' }}>{stats.total}</div>
             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Total Students</div>
           </div>
         </div>
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '1.5rem' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✅</div>
+            <FiCheckCircle className="course-details-stat-icon" />
             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#16a34a' }}>{stats.approved}</div>
             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Approved</div>
           </div>
         </div>
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '1.5rem' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+            <FiClock className="course-details-stat-icon" />
             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>{stats.pending}</div>
             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Pending</div>
           </div>
         </div>
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '1.5rem' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🔄</div>
+            <FiRefreshCw className="course-details-stat-icon" />
             <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ef4444' }}>{stats.retaking}</div>
             <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Retaking</div>
           </div>
@@ -417,13 +420,13 @@ const CourseDetailsPage = () => {
         <div className="card-header">
           <div style={{ display: 'flex', gap: '1rem', borderBottom: 'none' }}>
             {[
-              { id: 'students', label: 'Students', icon: '👥' },
-              { id: 'assignments', label: 'Assignments', icon: '📝' },
-              { id: 'assessment-grid', label: 'Assessment', icon: '📊' },
-              { id: 'grades', label: 'Grade Control', icon: '🏆' },
-              { id: 'resources', label: 'Resources', icon: '📚' },
-              { id: 'discussions', label: 'Discussions', icon: '💬' },
-              { id: 'attendance', label: 'Attendance', icon: '📋' }
+              { id: 'students', label: 'Students', icon: <FiUsers /> },
+              { id: 'assignments', label: 'Assignments', icon: <FiFileText /> },
+              { id: 'assessment-grid', label: 'Assessment', icon: <FiBarChart2 /> },
+              { id: 'grades', label: 'Grade Control', icon: <FiAward /> },
+              { id: 'resources', label: 'Resources', icon: <FiBookOpen /> },
+              { id: 'discussions', label: 'Discussions', icon: <FiMessageCircle /> },
+              { id: 'attendance', label: 'Attendance', icon: <FiClipboard /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -431,7 +434,7 @@ const CourseDetailsPage = () => {
                 className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'} btn-sm`}
                 style={{ textTransform: 'none', letterSpacing: 'normal' }}
               >
-                <span style={{ marginRight: '0.5rem' }}>{tab.icon}</span>
+                <span className="course-details-tab-icon">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
@@ -445,7 +448,7 @@ const CourseDetailsPage = () => {
         <div className="card-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div>
-              <h3 style={{ margin: 0 }}>📋 Enrolled Students</h3>
+              <h3 style={{ margin: 0 }}><FiUsers aria-hidden="true" /> Enrolled Students</h3>
               <p style={{ margin: '0.5rem 0 0 0', color: '#64748b' }}>
                 Manage student enrollments and requests
               </p>
@@ -458,7 +461,7 @@ const CourseDetailsPage = () => {
             <div style={{ flex: 1, minWidth: '250px' }}>
               <input
                 type="text"
-                placeholder="🔍 Search by student name or email..."
+                placeholder="Search by student name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -613,7 +616,7 @@ const CourseDetailsPage = () => {
                     </>
                   ) : (
                     <>
-                      ✅ Bulk Approve
+                      <FiCheckCircle aria-hidden="true" /> Bulk Approve
                     </>
                   )}
                 </button>
@@ -646,7 +649,7 @@ const CourseDetailsPage = () => {
                     }
                   }}
                 >
-                  ❌ Bulk Reject
+                  <FiXCircle aria-hidden="true" /> Bulk Reject
                 </button>
               </div>
             </div>
@@ -656,7 +659,7 @@ const CourseDetailsPage = () => {
           {getFilteredEnrollments().length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
               <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>
-                {enrollments.length === 0 ? '👥' : '🔍'}
+                {enrollments.length === 0 ? <FiUsers /> : <FiSearch />}
               </span>
               <h4>
                 {enrollments.length === 0 
@@ -769,13 +772,13 @@ const CourseDetailsPage = () => {
                           className="btn btn-success"
                           onClick={() => approveEnrollment(enrollment.id)}
                         >
-                          ✅ Approve
+                          <FiCheckCircle aria-hidden="true" /> Approve
                         </button>
                         <button 
                           className="btn btn-danger"
                           onClick={() => rejectEnrollment(enrollment.id)}
                         >
-                          ❌ Reject
+                          <FiXCircle aria-hidden="true" /> Reject
                         </button>
                       </>
                     )}
@@ -786,14 +789,14 @@ const CourseDetailsPage = () => {
                           onClick={() => approveEnrollment(enrollment.id)}
                           title="Approve retake request"
                         >
-                          ✅ Allow Retake
+                          <FiCheckCircle aria-hidden="true" /> Allow Retake
                         </button>
                         <button 
                           className="btn btn-danger"
                           onClick={() => rejectEnrollment(enrollment.id)}
                           title="Reject retake request"
                         >
-                          ❌ Deny Retake
+                          <FiXCircle aria-hidden="true" /> Deny Retake
                         </button>
                       </>
                     )}
@@ -871,6 +874,7 @@ const CourseDetailsPage = () => {
         />
       )}
 
+      </div>
     </Layout>
     </>
   );

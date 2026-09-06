@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../api/axiosInstance';
+import { FiBookOpen, FiCalendar, FiClipboard, FiFileText, FiSearch, FiStar, FiUser } from 'react-icons/fi';
 
 const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
   const [feedbackData, setFeedbackData] = useState([]);
@@ -333,7 +334,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                   fontWeight: '600',
                   fontSize: '0.875rem'
                 }}>
-                  📋 Showing {filteredFeedback.length} of {feedbackData.length} feedback{feedbackData.length !== 1 ? 's' : ''}
+                  <FiClipboard aria-hidden="true" /> Showing {filteredFeedback.length} of {feedbackData.length} feedback{feedbackData.length !== 1 ? 's' : ''}
                   {(searchTerm || selectedCourse !== 'all') && ' (filtered)'}
                 </div>
               </div>
@@ -349,7 +350,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '3rem' }}>
             <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>
-              {feedbackData.length === 0 ? '⭐' : searchTerm ? '🔍' : selectedCourse !== 'all' ? '📚' : '📝'}
+              {feedbackData.length === 0 ? <FiStar /> : searchTerm ? <FiSearch /> : selectedCourse !== 'all' ? <FiBookOpen /> : <FiFileText />}
             </span>
             <h4>
               {feedbackData.length === 0 
@@ -404,14 +405,14 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <h5 style={{ margin: 0, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          📚 {feedback.courseTitle}
+                          <FiBookOpen aria-hidden="true" /> {feedback.courseTitle}
                         </h5>
                         <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.875rem' }}>
                           {feedback.courseCode} • 
                           {feedback.isAnonymous ? (
                             <span style={{ color: '#6b7280', fontStyle: 'italic' }}> Anonymous Feedback</span>
                           ) : (
-                            <span style={{ color: '#374151', fontWeight: '500' }}> 👤 {feedback.studentName}</span>
+                            <span style={{ color: '#374151', fontWeight: '500' }}> <FiUser aria-hidden="true" /> {feedback.studentName}</span>
                           )}
                         </p>
                       </div>
@@ -421,7 +422,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                           color: '#6b7280',
                           marginBottom: '0.5rem' 
                         }}>
-                          📅 {new Date(feedback.submittedAt).toLocaleDateString('en-US', {
+                          <FiCalendar aria-hidden="true" /> {new Date(feedback.submittedAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
@@ -438,7 +439,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                           alignItems: 'center',
                           gap: '0.25rem'
                         }}>
-                          ⭐ {averageRating.toFixed(1)}
+                          <FiStar aria-hidden="true" /> {averageRating.toFixed(1)}
                         </div>
                       </div>
                     </div>

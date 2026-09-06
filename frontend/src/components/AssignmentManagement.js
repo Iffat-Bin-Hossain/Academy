@@ -25,6 +25,7 @@ import {
   FiAlertCircle,
   FiLock
 } from 'react-icons/fi';
+import './AssignmentManagement.css';
 
 const AssignmentManagement = ({ user, courses, onShowMessage }) => {
   const navigate = useNavigate();
@@ -262,17 +263,17 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
   const getFileIcon = (filename) => {
     const extension = filename.split('.').pop().toLowerCase();
     switch (extension) {
-      case 'pdf': return '';
+      case 'pdf': return <FiFileText />;
       case 'doc':
-      case 'docx': return '';
-      case 'txt': return '';
+      case 'docx': return <FiFile />;
+      case 'txt': return <FiFileText />;
       case 'zip':
-      case 'rar': return '';
+      case 'rar': return <FiPackage />;
       case 'jpg':
       case 'jpeg':
       case 'png':
       case 'gif':
-      case 'bmp': return '️';
+      case 'bmp': return <FiImage />;
       case 'java':
       case 'py':
       case 'js':
@@ -280,8 +281,8 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       case 'css':
       case 'cpp':
       case 'c':
-      case 'cs': return '';
-      default: return '';
+      case 'cs': return <FiCode />;
+      default: return <FiPaperclip />;
     }
   };
 
@@ -725,7 +726,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
   }
 
   return (
-    <>
+    <div className="assignment-management-page">
       {/* Assignment Stats */}
       <div className="stats-grid" style={{ marginBottom: '2rem' }}>
         <div className="stat-card">
@@ -833,7 +834,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 return (
                   <div 
                     key={assignment.id} 
-                    className="card" 
+                    className={`card ${isOverdue ? 'assignment-overdue' : ''}`}
                     style={{ 
                       border: isOverdue ? '1px solid #ef4444' : '1px solid #e2e8f0',
                       background: isOverdue ? '#fef2f2' : 'white'
@@ -846,7 +847,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                             <h4 style={{ margin: 0, color: '#1e293b' }}>
                               {assignment.title}
                             </h4>
-                            <span style={{
+                            <span className="assignment-type-badge" style={{
                               padding: '0.25rem 0.75rem',
                               borderRadius: '12px',
                               fontSize: '0.75rem',
@@ -859,7 +860,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                               {assignment.assignmentType}
                             </span>
                             {(assignment.courseName || assignment.courseCode) && (
-                              <span style={{
+                              <span className="assignment-course-badge" style={{
                                 padding: '0.25rem 0.5rem',
                                 borderRadius: '6px',
                                 fontSize: '0.75rem',
@@ -875,20 +876,20 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                             {assignment.content}
                           </p>
                           <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', flexWrap: 'wrap' }}>
-                            <span>� Created by: {assignment.createdByName || 'Unknown'}</span>
-                            <span>� Max Marks: {assignment.maxMarks}</span>
+                            <span><FiUser aria-hidden="true" /> Created by: {assignment.createdByName || 'Unknown'}</span>
+                            <span><FiBarChart2 aria-hidden="true" /> Max Marks: {assignment.maxMarks}</span>
                             <span style={{ color: isOverdue ? '#dc2626' : '#64748b' }}>
                               Due: {formatDate(assignment.deadline)}
                             </span>
                             {assignment.lateSubmissionDeadline && (
                               <span style={{ color: isLateAllowed ? '#059669' : '#dc2626' }}>
-                                ⏰ Late Until: {formatDate(assignment.lateSubmissionDeadline)}
+                                <FiClock aria-hidden="true" /> Late Until: {formatDate(assignment.lateSubmissionDeadline)}
                               </span>
                             )}
                             <span>Created: {formatDate(assignment.createdAt)}</span>
                           </div>
                           {assignment.instructions && (
-                            <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <div className="assignment-instructions-panel" style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                               <strong style={{ fontSize: '0.875rem', color: '#374151' }}>Instructions:</strong>
                               <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.875rem', color: '#64748b' }}>
                                 {assignment.instructions}
@@ -896,7 +897,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                             </div>
                           )}
                           {assignment.attachments && assignment.attachments.length > 0 && (
-                            <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
+                            <div className="assignment-attachment-panel" style={{ marginTop: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '8px', border: '1px solid #0ea5e9' }}>
                               <strong style={{ fontSize: '0.875rem', color: '#0c4a6e' }}>
                                 Attachments ({assignment.attachments.length}):
                               </strong>
@@ -1003,7 +1004,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                               `Copy checker will be available after: ${formatDetailedDateTime(assignment.lateSubmissionDeadline || assignment.deadline)}`}
                             disabled={!isAssignmentDeadlinePassed(assignment)}
                           >
-                            {isAssignmentDeadlinePassed(assignment) ? ' Smart Copy Check' : '� Copy Check (Locked)'}
+                            {isAssignmentDeadlinePassed(assignment) ? 'Smart Copy Check' : 'Copy Check (Locked)'}
                           </button>
                           <button 
                             className="btn btn-info btn-sm"
@@ -1372,7 +1373,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 >
                   {isSubmitting || isUploading ? (
                     <>
-                      <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                      <FiClock aria-hidden="true" />
                       {isUploading ? 'Uploading files...' : 'Creating...'}
                     </>
                   ) : (
@@ -1798,7 +1799,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 >
                   {isSubmitting ? (
                     <>
-                      <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                      <FiClock aria-hidden="true" />
                       Updating...
                     </>
                   ) : (
@@ -2008,7 +2009,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

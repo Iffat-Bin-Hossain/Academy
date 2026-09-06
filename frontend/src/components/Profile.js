@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import { auth } from '../utils/auth';
+import prepareProfileImage from '../utils/prepareProfileImage';
 import CommonProfileSection from './profile/CommonProfileSection';
 import TeacherProfileSection from './profile/TeacherProfileSection';
 import StudentProfileSection from './profile/StudentProfileSection';
@@ -114,18 +115,14 @@ const Profile = () => {
             return;
         }
 
-        // Validate file size (5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-            showMessage('File size too large. Maximum 5MB allowed', 'error');
-            return;
-        }
-
-        setSelectedFile(file);
-        
-        // Create preview
-        const reader = new FileReader();
-        reader.onload = (e) => setFilePreview(e.target.result);
-        reader.readAsDataURL(file);
+        prepareProfileImage(file)
+            .then((preparedFile) => {
+                setSelectedFile(preparedFile);
+                const reader = new FileReader();
+                reader.onload = (e) => setFilePreview(e.target.result);
+                reader.readAsDataURL(preparedFile);
+            })
+            .catch((error) => showMessage(error.message, 'error'));
     };
 
     if (loading) {

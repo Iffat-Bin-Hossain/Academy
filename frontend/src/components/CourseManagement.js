@@ -100,7 +100,9 @@ const CourseManagement = ({ courseId, onBack }) => {
   };
 
   const openTeacherModal = () => {
-    setSelectedTeacher(course?.assignedTeacher?.id?.toString() || '');
+    const assignedTeacher = course?.assignedTeacher;
+    setSelectedTeacher(assignedTeacher?.id?.toString() || '');
+    setTeacherSearchTerm(assignedTeacher ? `${assignedTeacher.name} (${assignedTeacher.email})` : '');
     setShowTeacherModal(true);
   };
 
@@ -176,12 +178,18 @@ const CourseManagement = ({ courseId, onBack }) => {
   };
 
   const getFilteredTeachers = () => {
-    if (!teacherSearchTerm) return teachers;
+    const searchTerm = teacherSearchTerm.trim().toLowerCase();
+    if (!searchTerm) return teachers;
     
     return teachers.filter(teacher => 
-      teacher.name.toLowerCase().includes(teacherSearchTerm.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(teacherSearchTerm.toLowerCase())
+      teacher.name.toLowerCase().includes(searchTerm) ||
+      teacher.email.toLowerCase().includes(searchTerm)
     );
+  };
+
+  const selectTeacher = (teacher) => {
+    setSelectedTeacher(teacher.id.toString());
+    setTeacherSearchTerm(`${teacher.name} (${teacher.email})`);
   };
 
   // Removed bulk selection functionality - Only teachers should manage enrollments
@@ -223,6 +231,7 @@ const CourseManagement = ({ courseId, onBack }) => {
       pageTitle="Course Management"
       pageSubtitle="Manage course details, teachers, and enrollments"
     >
+      <div className="course-management-page">
       {/* Message Alert */}
       {message && (
         <div className={`alert alert-${messageType}`}>
@@ -248,7 +257,7 @@ const CourseManagement = ({ courseId, onBack }) => {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                 <h2 style={{ margin: 0, color: '#1e293b' }}>{course.title}</h2>
-                <span style={{
+                <span className="course-code-badge" style={{
                   padding: '0.5rem 1rem',
                   borderRadius: '8px',
                   fontSize: '0.875rem',
@@ -259,7 +268,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                   {course.courseCode}
                 </span>
                 {course.level && (
-                  <span style={{
+                  <span className="course-meta-badge" style={{
                     padding: '0.25rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.75rem',
@@ -271,7 +280,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                   </span>
                 )}
                 {course.term && (
-                  <span style={{
+                  <span className="course-meta-badge" style={{
                     padding: '0.25rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.75rem',
@@ -341,7 +350,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                   <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
                     {course.assignedTeacher.email}
                   </p>
-                  <span style={{
+                  <span className="assignment-badge" style={{
                     display: 'inline-block',
                     marginTop: '0.5rem',
                     padding: '0.25rem 0.75rem',
@@ -551,33 +560,37 @@ const CourseManagement = ({ courseId, onBack }) => {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label htmlFor="teacherSearch">Search Teachers</label>
-                <input
-                  id="teacherSearch"
-                  type="text"
-                  className="form-control"
-                  placeholder="Search by name or email..."
-                  value={teacherSearchTerm}
-                  onChange={(e) => setTeacherSearchTerm(e.target.value)}
-                  style={{ marginBottom: '1rem' }}
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="teacherSelect">Select Teacher</label>
-                <select
-                  id="teacherSelect"
-                  className="form-control"
-                  value={selectedTeacher}
-                  onChange={(e) => setSelectedTeacher(e.target.value)}
-                >
-                  <option value="">-- Select a teacher --</option>
-                  {getFilteredTeachers().map(teacher => (
-                    <option key={teacher.id} value={teacher.id}>
-                      {teacher.name} ({teacher.email})
-                    </option>
-                  ))}
-                </select>
+                <label htmlFor="teacherSearch">Teacher</label>
+                <div className="teacher-combobox">
+                  <input
+                    id="teacherSearch"
+                    type="text"
+                    className="form-control"
+                    placeholder="Type a teacher name or email..."
+                    value={teacherSearchTerm}
+                    onChange={(e) => {
+                      setTeacherSearchTerm(e.target.value);
+                      setSelectedTeacher('');
+                    }}
+                    autoComplete="off"
+                    aria-controls="teacher-suggestions"
+                  />
+                  {teacherSearchTerm && !selectedTeacher && getFilteredTeachers().length > 0 && (
+                    <div id="teacher-suggestions" className="teacher-suggestions" role="listbox">
+                      {getFilteredTeachers().map(teacher => (
+                        <button
+                          key={teacher.id}
+                          type="button"
+                          className="teacher-suggestion"
+                          onClick={() => selectTeacher(teacher)}
+                        >
+                          <strong>{teacher.name}</strong>
+                          <span>{teacher.email}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
                   Showing {getFilteredTeachers().length} of {teachers.length} approved teachers
                 </small>
@@ -638,6 +651,7 @@ const CourseManagement = ({ courseId, onBack }) => {
           </div>
         </div>
       )}
+      </div>
     </Layout>
   );
 };

@@ -15,6 +15,7 @@
     min-height: 400px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 16px;
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     text-align: center;
 }
@@ -40,6 +41,7 @@
     align-items: flex-start;
     gap: 30px;
     background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 30px;
@@ -271,6 +273,7 @@
     gap: 8px;
     margin-bottom: 20px;
     background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: 12px;
     padding: 8px;
@@ -316,6 +319,7 @@
 /* Profile Content */
 .profile-content {
     background: rgba(255, 255, 255, 0.95);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border-radius: 16px;
     padding: 0;
@@ -480,4 +484,72 @@
     .profile-section {
         padding: 20px;
     }
+}
+
+/* Shared blue theme overrides for all profile roles. */
+.smart-profile-container {
+    background: #f4f7fb;
+}
+
+.profile-header,
+.profile-content,
+.profile-loading,
+.profile-error {
+    border: 1px solid #dfe7f1;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.profile-photo-placeholder {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.photo-btn.upload,
+.photo-btn.save {
+    background: #3768a8;
+    color: white;
+}
+
+.photo-btn.delete {
+    background: #edf2f8;
+    color: #385a83;
+    border: 1px solid #d7e0eb;
+}
+
+.role-badge.admin,
+.role-badge.teacher,
+.role-badge.student {
+    background: #e8eefb;
+    color: #244a91;
+    border: 1px solid #cbd8f2;
+}
+
+.profile-message.info {
+    background: #eef3fb;
+    border-color: #d5e0f0;
+    color: #496486;
+}
+
+.profile-tabs {
+    background: #edf2f8;
+    border: 1px solid #dfe7f1;
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.tab-btn {
+    color: #667991;
+    border-radius: 6px;
+}
+
+.tab-btn:hover {
+    background: #e1e9f3;
+    color: #385a83;
+}
+
+.tab-btn.active {
+    background: #3768a8;
+    color: white;
+    box-shadow: 0 2px 6px rgba(30, 64, 175, 0.16);
 }

@@ -3,6 +3,7 @@ import axios from '../api/axiosInstance';
 import Layout from './Layout';
 import CourseManagement from './CourseManagement';
 import UserManagement from './UserManagement';
+import './ModernAdminDashboard.css';
 import { useTabSync } from '../utils/useTabSync';
 import { 
   FiBarChart2, 
@@ -479,6 +480,7 @@ const ModernAdminDashboard = () => {
       pageTitle="Admin Dashboard"
       pageSubtitle="Manage users, courses, and system settings"
     >
+      <div className="modern-admin-dashboard">
       {/* Message Alert */}
       {message && (
         <div className={`alert alert-${messageType}`}>
@@ -638,7 +640,7 @@ const ModernAdminDashboard = () => {
                             <h4 style={{ margin: '0', color: '#1e293b' }}>
                               {course.title}
                             </h4>
-                            <span style={{
+                            <span className="course-code-badge" style={{
                               padding: '0.25rem 0.5rem',
                               borderRadius: '6px',
                               fontSize: '0.75rem',
@@ -650,7 +652,7 @@ const ModernAdminDashboard = () => {
                               {course.courseCode}
                             </span>
                             {course.level && (
-                              <span style={{
+                              <span className="course-meta-badge" style={{
                                 padding: '0.25rem 0.5rem',
                                 borderRadius: '6px',
                                 fontSize: '0.75rem',
@@ -662,7 +664,7 @@ const ModernAdminDashboard = () => {
                               </span>
                             )}
                             {course.term && (
-                              <span style={{
+                              <span className="course-meta-badge" style={{
                                 padding: '0.25rem 0.5rem',
                                 borderRadius: '6px',
                                 fontSize: '0.75rem',
@@ -1034,6 +1036,7 @@ const ModernAdminDashboard = () => {
           </div>
         </div>
       )}
+      </div>
     </Layout>
   );
 };

@@ -1,0 +1,93 @@
+.teacher-dashboard-page {
+  color: #203b5c;
+}
+
+.teacher-dashboard-page > .card,
+.teacher-dashboard-page .grid > .card {
+  border: 1px solid #dfe7f1;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.teacher-dashboard-page > .card:hover,
+.teacher-dashboard-page .grid > .card:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.teacher-dashboard-page .card-header {
+  background: #f7f9fc;
+}
+
+.teacher-dashboard-page .stat-card {
+  border-color: #dfe7f1;
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.teacher-dashboard-page .stat-card::before {
+  height: 2px;
+  background: #3768a8;
+}
+
+.teacher-dashboard-page .stat-card:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.teacher-dashboard-page .stat-icon {
+  color: #5278ad;
+  font-size: 1.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.teacher-dashboard-page .stat-value {
+  color: #203b5c;
+  font-size: 1.7rem;
+}
+
+.teacher-dashboard-page .stat-label {
+  color: #667991;
+  font-size: 0.72rem;
+}
+
+.teacher-dashboard-page .teacher-course-code,
+.teacher-dashboard-page .teacher-course-meta,
+.teacher-dashboard-page .teacher-enrollment-count,
+.teacher-dashboard-page .teacher-pending-count,
+.teacher-dashboard-page .teacher-retaking-count {
+  border-radius: 5px !important;
+  font-size: 0.7rem !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.teacher-dashboard-page .teacher-course-code {
+  background: #e8eefb !important;
+  color: #244a91 !important;
+  border: 1px solid #cbd8f2;
+}
+
+.teacher-dashboard-page .teacher-course-meta {
+  background: #edf2f8 !important;
+  color: #385a83 !important;
+  border: 1px solid #d7e0eb;
+}
+
+.teacher-dashboard-page .teacher-enrollment-count {
+  background: #e8f4f1 !important;
+  color: #28665a !important;
+  border: 1px solid #c9e4dd;
+}
+
+.teacher-dashboard-page .teacher-pending-count,
+.teacher-dashboard-page .teacher-retaking-count {
+  background: #eef3fb !important;
+  color: #496486 !important;
+  border: 1px solid #d5e0f0;
+}
+
+.teacher-dashboard-page input:focus {
+  border-color: #5278ad !important;
+  box-shadow: 0 0 0 3px rgba(82, 120, 173, 0.12);
+}
