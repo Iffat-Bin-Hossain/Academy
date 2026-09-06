@@ -10,6 +10,7 @@ import {
   FiInfo, 
   FiLayers 
 } from 'react-icons/fi';
+import './GradeVisibilityControl.css';
 
 const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
   const [assignments, setAssignments] = useState([]);
@@ -78,6 +79,7 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
   }
 
   return (
+    <div className="grade-visibility-page">
     <div className="card">
       <div className="card-header">
         <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -280,6 +282,7 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 };

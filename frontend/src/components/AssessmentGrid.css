@@ -1,0 +1,92 @@
+.assessment-grid-page {
+  color: #203b5c;
+}
+
+.assessment-grid-page > div > div {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05) !important;
+}
+
+.assessment-grid-page .assessment-empty-icon {
+  display: block;
+  margin: 0 auto 1rem;
+  color: #5278ad;
+  font-size: 2.5rem;
+}
+
+.assessment-grid-page h1 svg,
+.assessment-grid-page button svg {
+  vertical-align: -0.15em;
+}
+
+.assessment-grid-page .form-control:focus {
+  border-color: #5278ad !important;
+  box-shadow: 0 0 0 3px rgba(82, 120, 173, 0.12) !important;
+}
+
+.assessment-grid-page [style*="linear-gradient"] {
+  background: #3768a8 !important;
+}
+
+.assessment-grid-page [style*="rgba(255, 255, 255, 0.2)"] {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+.assessment-grid-page [style*="#dcfce7"],
+.assessment-grid-page [style*="#bbf7d0"],
+.assessment-grid-page [style*="#fef3c7"],
+.assessment-grid-page [style*="#fde68a"],
+.assessment-grid-page [style*="#fecaca"],
+.assessment-grid-page [style*="#fca5a5"] {
+  background: #eef3fb !important;
+  border-color: #d5e0f0 !important;
+  color: #496486 !important;
+}
+
+.assessment-grid-page small[style*="#22c55e"],
+.assessment-grid-page small[style*="#ef4444"] {
+  color: #5278ad !important;
+}
+
+.assessment-grid-page .modal-content {
+  border: 1px solid #dfe7f1 !important;
+  border-radius: 9px !important;
+  box-shadow: 0 18px 40px rgba(20, 42, 72, 0.18) !important;
+}
+
+.assessment-grid-page .copy-checker-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1055 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  padding: 1rem !important;
+  overflow-y: auto;
+}
+
+.assessment-grid-page .copy-checker-dialog {
+  width: min(600px, 100%) !important;
+  margin: auto !important;
+  flex: 0 1 600px;
+}
+
+.assessment-grid-page .copy-checker-content {
+  width: 100%;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.assessment-grid-page .modal-header,
+.assessment-grid-page .modal-footer {
+  background: #f7f9fc !important;
+  border-color: #dfe7f1 !important;
+}
+
+@media (max-width: 800px) {
+  .assessment-grid-page {
+    padding-top: 0 !important;
+  }
+}

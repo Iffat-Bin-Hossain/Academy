@@ -518,6 +518,68 @@
   }
 }
 
+/* Keep thread content neutral and reserve blue for active actions. */
+.thread-detail {
+  color: #203b5c;
+}
+
+.thread-info,
+.new-post-section,
+.posts-section {
+  border-radius: 8px;
+  border-color: #dfe7f1;
+  box-shadow: 0 2px 8px rgba(30, 64, 175, 0.05);
+}
+
+.author-avatar {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.author-role.teacher,
+.author-role.student {
+  background: #edf2f8;
+  color: #385a83;
+}
+
+.post,
+.post.reply {
+  border-radius: 8px;
+  border-color: #dfe7f1;
+  box-shadow: 0 1px 4px rgba(30, 64, 175, 0.04);
+}
+
+.post.reply {
+  background: #f7f9fc;
+}
+
+.reaction-btn.active {
+  background: #3768a8;
+  border-color: #3768a8;
+}
+
+.toggle-replies-btn {
+  color: #385a83;
+  border-color: #b9cbe2;
+}
+
+.toggle-replies-btn:hover {
+  background: #edf2f8;
+  color: #244a91;
+}
+
+.reply-form {
+  background: #f7f9fc;
+  border-color: #dfe7f1;
+  border-top-color: #5278ad;
+}
+
+.new-post-input:focus,
+.reply-input:focus {
+  border-color: #5278ad;
+  box-shadow: 0 0 0 3px rgba(82, 120, 173, 0.12);
+}
+
 /* User Tag Styling */
 .user-tag {
   background: linear-gradient(135deg, #3b82f6, #1e40af);

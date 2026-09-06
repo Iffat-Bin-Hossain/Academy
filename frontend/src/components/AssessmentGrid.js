@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from '../api/axiosInstance';
+import { FiBarChart2, FiCheckCircle, FiClock, FiFileText, FiRefreshCw, FiSave, FiTarget, FiUpload, FiXCircle } from 'react-icons/fi';
+import './AssessmentGrid.css';
 
 const AssessmentGrid = ({ courseId, userId, courseName }) => {
   const [assessmentData, setAssessmentData] = useState([]);
@@ -247,9 +250,9 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
         display: 'block',
         marginTop: '0.25rem'
       }}>
-        {status === 'saving' && '💾 Saving...'}
-        {status === 'saved' && '✅ Saved'}
-        {status === 'error' && '❌ Error saving'}
+        {status === 'saving' && <><FiSave /> Saving...</>}
+        {status === 'saved' && <><FiCheckCircle /> Saved</>}
+        {status === 'error' && <><FiXCircle /> Error saving</>}
       </small>
     );
   };
@@ -361,7 +364,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
           borderRadius: '16px',
           border: '2px dashed #cbd5e1'
         }}>
-          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '1rem' }}>📊</span>
+          <FiBarChart2 className="assessment-empty-icon" />
           <h3 style={{ color: '#475569', marginBottom: '0.5rem' }}>No Assignments Found</h3>
           <p style={{ color: '#64748b', fontSize: '1rem' }}>
             Create some assignments first, then return here to start grading!
@@ -620,7 +623,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                             {totalMarks.toFixed(1)} / {totalPossible}
                           </div>
                           <div style={{ fontSize: '0.8rem', opacity: '0.9' }}>
-                            📊 {percentage}%
+                            <FiBarChart2 aria-hidden="true" /> {percentage}%
                           </div>
                         </>
                       );
@@ -700,10 +703,10 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                 )
                               }}>
                                 {assessment.submissionStatus === 'ON_TIME' || assessment.submissionStatus === 'SUBMITTED' 
-                                  ? '✅ Submitted' 
+                                  ? 'Submitted'
                                   : assessment.submissionStatus === 'LATE' 
-                                  ? '⏰ Late Submission' 
-                                  : '❌ Not Submitted'
+                                  ? 'Late Submission'
+                                  : 'Not Submitted'
                                 }
                               </span>
                             </div>
@@ -753,7 +756,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                         e.target.style.boxShadow = 'none';
                                       }}
                                     >
-                                      📄 {(file.originalFilename || file.fileName).length > 25 ? 
+                                      <FiFileText aria-hidden="true" /> {(file.originalFilename || file.fileName).length > 25 ?
                                           `${(file.originalFilename || file.fileName).substring(0, 25)}...` : 
                                           (file.originalFilename || file.fileName)}
                                     </button>
@@ -771,7 +774,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                 display: 'block',
                                 fontWeight: '600'
                               }}>
-                                🎯 Grade (Max: {assignment.fullMark} pts)
+                                <FiTarget aria-hidden="true" /> Grade (Max: {assignment.fullMark} pts)
                               </label>
                               <input
                                 type="number"
@@ -851,7 +854,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                 display: 'block',
                                 fontWeight: '600'
                               }}>
-                                📝 Feedback & Notes
+                                <FiFileText aria-hidden="true" /> Feedback & Notes
                               </label>
                               <textarea
                                 className="form-control"
@@ -986,10 +989,10 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                       
                                       if (assessment.copyPenaltyApplied) {
                                         displayMark = -assignment.fullMark;
-                                        return `🚫 -${assignment.fullMark} / ${assignment.fullMark}`;
+                                        return `-${assignment.fullMark} / ${assignment.fullMark}`;
                                       } else if (assessment.isLateSubmission || assessment.submissionStatus === 'LATE') {
                                         displayMark = displayMark * 0.95;
-                                        return `⏰ ${displayMark.toFixed(1)} / ${assignment.fullMark}`;
+                                        return `${displayMark.toFixed(1)} / ${assignment.fullMark}`;
                                       } else {
                                         return `🏆 ${displayMark.toFixed(1)} / ${assignment.fullMark}`;
                                       }
@@ -1032,7 +1035,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                     color: '#7f1d1d',
                                     fontWeight: 'bold'
                                   }}>
-                                    🚫 COPY DETECTED: Full marks deducted
+                                    COPY DETECTED: Full marks deducted
                                   </div>
                                 )}
                                 {(assessment.isLateSubmission || assessment.submissionStatus === 'LATE') && !assessment.copyPenaltyApplied && (
@@ -1044,7 +1047,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                     borderRadius: '6px',
                                     color: '#92400e'
                                   }}>
-                                    ⏰ Late penalty applied: -5% of obtained mark
+                                    Late penalty applied: -5% of obtained mark
                                   </div>
                                 )}
                               </div>
@@ -1060,7 +1063,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                             borderRadius: '12px',
                             border: '2px dashed #d1d5db'
                           }}>
-                            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📭</div>
+                            <FiFileText className="assessment-empty-icon" />
                             <div style={{ fontWeight: '500' }}>No submission data available</div>
                           </div>
                         )}
@@ -1103,7 +1106,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
                 <h1 style={{ margin: 0, fontWeight: '600', fontSize: '1.8rem' }}>
-                  📊 Assessment Grid
+                  <FiBarChart2 aria-hidden="true" /> Assessment Grid
                 </h1>
                 <p style={{ margin: '0.5rem 0 0 0', opacity: '0.9', fontSize: '1rem' }}>
                   {courseName} • Modern grading interface with real-time updates
@@ -1138,7 +1141,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     e.target.style.transform = 'translateY(0)';
                   }}
                 >
-                  📤 Copy Checker
+                  <FiUpload aria-hidden="true" /> Copy Checker
                 </button>
                 <button 
                   className="btn btn-light"
@@ -1166,7 +1169,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     e.target.style.transform = 'translateY(0)';
                   }}
                 >
-                  ⏰ Update Penalties
+                  <FiClock aria-hidden="true" /> Update Penalties
                 </button>
                 <button 
                   className="btn btn-light"
@@ -1194,7 +1197,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     e.target.style.transform = 'translateY(0)';
                   }}
                 >
-                  🔄 Refresh
+                  <FiRefreshCw aria-hidden="true" /> Refresh
                 </button>
               </div>
             </div>
@@ -1256,20 +1259,12 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
       </div>
 
       {/* Copy Checker Upload Modal */}
-      {showCopyCheckerModal && (
+      {showCopyCheckerModal && createPortal((
         <div 
-          className="modal fade show d-flex align-items-center justify-content-center" 
+          className="copy-checker-overlay"
           style={{ 
-            display: 'flex !important',
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
             backgroundColor: 'rgba(0,0,0,0.7)',
-            zIndex: 1055,
-            alignItems: 'center',
-            justifyContent: 'center'
+            zIndex: 1055
           }} 
           tabIndex="-1"
           onClick={(e) => {
@@ -1279,14 +1274,12 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
           }}
         >
           <div 
-            className="modal-dialog modal-dialog-centered"
+            className="copy-checker-dialog"
             style={{
-              margin: 0,
-              maxWidth: '600px',
-              width: '90%'
+              maxWidth: '600px'
             }}
           >
-            <div className="modal-content" style={{ 
+            <div className="modal-content copy-checker-content" style={{
               boxShadow: '0 20px 60px rgba(0,0,0,0.3)', 
               border: 'none',
               borderRadius: '20px',
@@ -1305,7 +1298,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                   gap: '0.75rem',
                   fontSize: '1.3rem'
                 }}>
-                  📤 Upload Copy Checker File
+                  <FiUpload aria-hidden="true" /> Upload Copy Checker File
                 </h4>
                 <button 
                   type="button" 
@@ -1369,7 +1362,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     fontSize: '0.9rem', 
                     marginTop: '0.75rem' 
                   }}>
-                    📄 Upload a CSV file containing flagged student emails for plagiarism detection
+                    <FiFileText aria-hidden="true" /> Upload a CSV file containing flagged student emails for plagiarism detection
                   </div>
                 </div>
               </div>
@@ -1411,7 +1404,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
             </div>
           </div>
         </div>
-      )}
+      ), document.body)}
 
       {/* Add CSS for spinning animation and number input fixes */}
       <style jsx>{`
