@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import ResourceCard from './ResourceCard';
 import ResourceCreateModal from './ResourceCreateModal';
@@ -10,7 +10,6 @@ import {
   FiFile, 
   FiLink, 
   FiFileText, 
-  FiX, 
   FiGrid, 
   FiList 
 } from 'react-icons/fi';
@@ -33,13 +32,7 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'name', 'mostViewed'
 
-  useEffect(() => {
-    fetchResources();
-    fetchTopics();
-    fetchWeeks();
-  }, [courseId, selectedTopic, selectedWeek, selectedType]);
-
-  const fetchResources = async () => {
+  const fetchResources = useCallback(async () => {
     try {
       setLoading(true);
       let url = `/resources/course/${courseId}?userId=${user.id}`;
@@ -62,25 +55,31 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId, user.id, selectedTopic, selectedWeek, selectedType, onShowMessage]);
 
-  const fetchTopics = async () => {
+  const fetchTopics = useCallback(async () => {
     try {
       const response = await axios.get(`/resources/course/${courseId}/topics`);
       setTopics(response.data);
     } catch (error) {
       console.error('Error fetching topics:', error);
     }
-  };
+  }, [courseId]);
 
-  const fetchWeeks = async () => {
+  const fetchWeeks = useCallback(async () => {
     try {
       const response = await axios.get(`/resources/course/${courseId}/weeks`);
       setWeeks(response.data);
     } catch (error) {
       console.error('Error fetching weeks:', error);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    fetchResources();
+    fetchTopics();
+    fetchWeeks();
+  }, [fetchResources, fetchTopics, fetchWeeks]);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
@@ -261,21 +260,6 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
     }
   };
 
-  const handleResourceCreated = () => {
-    setShowCreateModal(false);
-    fetchResources();
-    fetchTopics();
-    fetchWeeks();
-    onShowMessage('Resource created successfully!', 'success');
-  };
-
-  const handleResourceDeleted = () => {
-    fetchResources();
-    fetchTopics();
-    fetchWeeks();
-    onShowMessage('Resource deleted successfully!', 'success');
-  };
-
   const clearFilters = () => {
     setSelectedTopic('');
     setSelectedWeek('');
@@ -332,8 +316,9 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
           <button 
             className="btn btn-primary"
             onClick={() => setShowCreateModal(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            Add Resource
+            <FiPlus /> Add Resource
           </button>
         )}
       </div>
@@ -409,14 +394,16 @@ const ResourceManagement = ({ courseId, user, onShowMessage }) => {
             <button
               className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             >
-              Grid
+              <FiGrid /> Grid
             </button>
             <button
               className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
             >
-              List
+              <FiList /> List
             </button>
           </div>
         </div>

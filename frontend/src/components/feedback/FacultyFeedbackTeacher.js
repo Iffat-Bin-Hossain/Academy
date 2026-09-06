@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../../api/axiosInstance';
-import { FiBookOpen, FiCalendar, FiClipboard, FiFileText, FiSearch, FiStar, FiUser } from 'react-icons/fi';
+import { FiBookOpen, FiCalendar, FiClipboard, FiFileText, FiSearch, FiStar, FiUser, FiX } from 'react-icons/fi';
+import { FaStar, FaRegStar } from 'react-icons/fa6';
 
 const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
   const [feedbackData, setFeedbackData] = useState([]);
@@ -11,13 +12,7 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest'); // newest, oldest, rating-high, rating-low
 
-  useEffect(() => {
-    fetchFeedbackData();
-    fetchTeacherCourses();
-    fetchTeacherStats();
-  }, [user.id]);
-
-  const fetchTeacherCourses = async () => {
+  const fetchTeacherCourses = useCallback(async () => {
     try {
       const response = await axios.get(`/courses/teacher/${user.id}`);
       setCourses(response.data);
@@ -25,9 +20,9 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
       console.error('Error fetching teacher courses:', error);
       onShowMessage('Failed to load courses', 'error');
     }
-  };
+  }, [user.id, onShowMessage]);
 
-  const fetchFeedbackData = async () => {
+  const fetchFeedbackData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`/faculty-feedback/teacher/${user.id}`);
@@ -41,9 +36,9 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id, onShowMessage]);
 
-  const fetchTeacherStats = async () => {
+  const fetchTeacherStats = useCallback(async () => {
     try {
       const response = await axios.get(`/faculty-feedback/teacher/${user.id}/stats`);
       setStats(response.data);
@@ -51,7 +46,13 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
       console.error('Error fetching teacher stats:', error);
       setStats(null);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    fetchFeedbackData();
+    fetchTeacherCourses();
+    fetchTeacherStats();
+  }, [fetchFeedbackData, fetchTeacherCourses, fetchTeacherStats]);
 
   const fetchCourseFeedback = async (courseId) => {
     try {
@@ -121,8 +122,10 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
       <div style={{ marginBottom: '0.5rem' }}>
         <strong style={{ fontSize: '0.875rem', color: '#374151' }}>{label}:</strong>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-          <div style={{ color: '#fbbf24', fontSize: '1rem' }}>
-            {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
+          <div style={{ color: '#fbbf24', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
+            {[1, 2, 3, 4, 5].map((s) => (
+              s <= rating ? <FaStar key={s} /> : <FaRegStar key={s} />
+            ))}
           </div>
           <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
             {rating}/5
@@ -256,8 +259,22 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                       padding: '0.25rem'
                     }}
                     title="Clear search"
+                    style={{
+                      position: 'absolute',
+                      right: '0.5rem',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      fontSize: '1rem',
+                      padding: '0.25rem',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
                   >
-                    ✕
+                    <FiX />
                   </button>
                 )}
               </div>

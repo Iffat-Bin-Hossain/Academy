@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { FiBarChart2, FiTarget, FiUsers } from 'react-icons/fi';
+import { FaGraduationCap } from 'react-icons/fa6';
 
 const AboutPage = () => {
   return (
@@ -133,9 +135,10 @@ const AboutPage = () => {
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '3rem',
+              color: 'white',
               boxShadow: '0 10px 30px rgba(30, 64, 175, 0.3)'
             }}>
-              🎓
+              <FaGraduationCap />
             </div>
           </div>
         </div>
@@ -168,7 +171,9 @@ const AboutPage = () => {
               border: '1px solid #e2e8f0',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>📊</div>
+              <div style={{ fontSize: '2.5rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#2563eb' }}>
+                <FiBarChart2 />
+              </div>
               <h4 style={{ color: '#1e40af', marginBottom: '1rem', margin: '0 0 1rem 0', fontWeight: '600' }}>Performance Analytics</h4>
               <p style={{ color: '#64748b', lineHeight: '1.6', margin: '0' }}>
                 Advanced analytics and insights help students track their progress and identify areas for improvement 
@@ -185,7 +190,9 @@ const AboutPage = () => {
               border: '1px solid #e2e8f0',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🎯</div>
+              <div style={{ fontSize: '2.5rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#2563eb' }}>
+                <FiTarget />
+              </div>
               <h4 style={{ color: '#1e40af', marginBottom: '1rem', margin: '0 0 1rem 0', fontWeight: '600' }}>Smart Assignment Management</h4>
               <p style={{ color: '#64748b', lineHeight: '1.6', margin: '0' }}>
                 Streamlined assignment creation, submission, and grading with automated plagiarism detection 
@@ -202,7 +209,9 @@ const AboutPage = () => {
               border: '1px solid #e2e8f0',
               transition: 'all 0.3s ease'
             }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>👥</div>
+              <div style={{ fontSize: '2.5rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#2563eb' }}>
+                <FiUsers />
+              </div>
               <h4 style={{ color: '#1e40af', marginBottom: '1rem', margin: '0 0 1rem 0', fontWeight: '600' }}>Collaborative Learning</h4>
               <p style={{ color: '#64748b', lineHeight: '1.6', margin: '0' }}>
                 Interactive discussion forums, real-time notifications, and seamless communication 

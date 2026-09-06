@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiFile, FiLink, FiFileText, FiPaperclip, FiAlertTriangle } from 'react-icons/fi';
+import { FiFile, FiLink, FiFileText, FiX, FiEdit2, FiPaperclip } from 'react-icons/fi';
 
 const ResourceEditModal = ({ 
   isOpen, 
@@ -183,8 +183,12 @@ const ResourceEditModal = ({
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content resource-edit-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{getResourceTypeIcon(resource.resourceType)} Edit Resource</h2>
-          <button className="close-btn" onClick={handleClose}>×</button>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FiEdit2 /> {getResourceTypeIcon(resource.resourceType)} Edit Resource
+          </h2>
+          <button className="close-btn" onClick={handleClose} aria-label="Close modal">
+            <FiX />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="resource-form">

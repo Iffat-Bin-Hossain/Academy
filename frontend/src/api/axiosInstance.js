@@ -1,4 +1,4 @@
-// ✅ FILE: src/api/axiosInstance.js
+// FILE: src/api/axiosInstance.js
 // Reusable axios instance with automatic JWT Authorization header attachment
 import axios from 'axios';
 

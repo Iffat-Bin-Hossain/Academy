@@ -1,4 +1,16 @@
 import React from 'react';
+import {
+  FiBarChart2,
+  FiUsers,
+  FiBookOpen,
+  FiSettings,
+  FiUser,
+  FiSearch,
+  FiClipboard,
+  FiFileText,
+  FiLogOut
+} from 'react-icons/fi';
+import { FaGraduationCap } from 'react-icons/fa6';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, children }) => {
@@ -19,24 +31,24 @@ const Dashboard = ({ user, onLogout, children }) => {
     switch (user?.role) {
       case 'ADMIN':
         return [
-          { label: 'Overview', path: '/admin/overview', icon: '📊' },
-          { label: 'Manage Users', path: '/admin/users', icon: '👥' },
-          { label: 'Manage Courses', path: '/admin/courses', icon: '📚' },
-          { label: 'System Settings', path: '/admin/settings', icon: '⚙️' }
+          { label: 'Overview', path: '/admin/overview', icon: <FiBarChart2 size={18} /> },
+          { label: 'Manage Users', path: '/admin/users', icon: <FiUsers size={18} /> },
+          { label: 'Manage Courses', path: '/admin/courses', icon: <FiBookOpen size={18} /> },
+          { label: 'System Settings', path: '/admin/settings', icon: <FiSettings size={18} /> }
         ];
       case 'TEACHER':
         return [
-          { label: 'My Courses', path: '/teacher/courses', icon: '📖' },
-          { label: 'Students', path: '/teacher/students', icon: '👨‍🎓' },
-          { label: 'Enrollments', path: '/teacher/enrollments', icon: '📝' },
-          { label: 'Profile', path: '/teacher/profile', icon: '👤' }
+          { label: 'My Courses', path: '/teacher/courses', icon: <FiBookOpen size={18} /> },
+          { label: 'Students', path: '/teacher/students', icon: <FaGraduationCap size={18} /> },
+          { label: 'Enrollments', path: '/teacher/enrollments', icon: <FiFileText size={18} /> },
+          { label: 'Profile', path: '/teacher/profile', icon: <FiUser size={18} /> }
         ];
       case 'STUDENT':
         return [
-          { label: 'My Courses', path: '/student/courses', icon: '📚' },
-          { label: 'Browse Courses', path: '/student/browse', icon: '🔍' },
-          { label: 'Enrollments', path: '/student/enrollments', icon: '📋' },
-          { label: 'Profile', path: '/student/profile', icon: '👤' }
+          { label: 'My Courses', path: '/student/courses', icon: <FiBookOpen size={18} /> },
+          { label: 'Browse Courses', path: '/student/browse', icon: <FiSearch size={18} /> },
+          { label: 'Enrollments', path: '/student/enrollments', icon: <FiClipboard size={18} /> },
+          { label: 'Profile', path: '/student/profile', icon: <FiUser size={18} /> }
         ];
       default:
         return [];
@@ -76,7 +88,7 @@ const Dashboard = ({ user, onLogout, children }) => {
           <div className="navbar-nav">
             {getNavItems().map((item, index) => (
               <a key={index} href={item.path} className="nav-item">
-                <span className="nav-icon">{item.icon}</span>
+                <span className="nav-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>{item.icon}</span>
                 <span className="nav-label">{item.label}</span>
               </a>
             ))}
@@ -93,9 +105,9 @@ const Dashboard = ({ user, onLogout, children }) => {
                 <div className="user-role">{user?.role}</div>
               </div>
             </div>
-            <button onClick={onLogout} className="logout-btn">
-              <span>🚪</span>
-              Logout
+            <button onClick={onLogout} className="logout-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <FiLogOut size={16} />
+              <span>Logout</span>
             </button>
           </div>
         </div>

@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   FiFileText, 
-  FiFolder, 
   FiLink, 
   FiFile, 
   FiTag, 
@@ -9,9 +8,7 @@ import {
   FiEdit3, 
   FiTrash2, 
   FiDownload, 
-  FiEye, 
-  FiUser, 
-  FiExternalLink 
+  FiEye 
 } from 'react-icons/fi';
 
 const ResourceCard = ({ 

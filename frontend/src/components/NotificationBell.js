@@ -1,10 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
+import {
+  FiBell,
+  FiUserPlus,
+  FiUserCheck,
+  FiFileText,
+  FiClipboard,
+  FiMessageSquare,
+  FiCheckCircle,
+  FiXCircle,
+  FiBookOpen,
+  FiTag,
+  FiAlertTriangle,
+  FiUser,
+  FiRefreshCw,
+  FiUsers
+} from 'react-icons/fi';
+import { FaGraduationCap } from 'react-icons/fa6';
 import './NotificationBell.css';
 
 const NotificationBell = ({ user }) => {
-  console.log('🔔 NotificationBell component rendering, user:', user);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -12,26 +28,29 @@ const NotificationBell = ({ user }) => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  console.log('🔔 NotificationBell state - unreadCount:', unreadCount, 'showDropdown:', showDropdown);
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      const response = await axios.get(`/notifications/unread/count?userId=${user.id}`);
+      setUnreadCount(response.data.count);
+    } catch (error) {
+      console.error('Error fetching unread count:', error);
+    }
+  }, [user]);
 
   useEffect(() => {
-    console.log('🔔 NotificationBell useEffect triggered, user:', user);
     if (user) {
-      console.log('🔔 Starting notification fetch for user:', user.id);
       fetchUnreadCount();
       // Poll for new notifications every 30 seconds
       const interval = setInterval(() => {
-        console.log('🔔 Polling for notifications...');
         fetchUnreadCount();
       }, 30000);
       return () => {
-        console.log('🔔 Cleaning up notification interval');
         clearInterval(interval);
       };
-    } else {
-      console.log('🔔 No user found, skipping notification fetch');
     }
-  }, [user]);
+  }, [user, fetchUnreadCount]);
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -45,38 +64,15 @@ const NotificationBell = ({ user }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchUnreadCount = async () => {
-    if (!user?.id) {
-      console.log('🔔 fetchUnreadCount skipped - user or user.id missing:', { user, userId: user?.id });
-      return;
-    }
-
-    try {
-      console.log('🔔 Fetching unread count for user:', user.id, 'user object:', user);
-      const response = await axios.get(`/notifications/unread/count?userId=${user.id}`);
-      console.log('🔔 Unread count response:', response.data);
-      setUnreadCount(response.data.count);
-    } catch (error) {
-      console.error('🔔 Error fetching unread count:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-        url: error.config?.url
-      });
-    }
-  };
-
   const fetchNotifications = async () => {
     if (!user?.id) return;
 
     try {
       setLoading(true);
-      console.log('Fetching notifications for user:', user.id);
       const response = await axios.get(`/notifications?userId=${user.id}`);
-      console.log('Notifications response:', response.data);
       setNotifications(response.data.slice(0, 10)); // Show only last 10 notifications
     } catch (error) {
-      console.error('Error fetching notifications:', error.response?.status, error.response?.data, error.message);
+      console.error('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }
@@ -91,9 +87,9 @@ const NotificationBell = ({ user }) => {
 
   const getNotificationRoute = (notification) => {
     const { type, relatedCourse } = notification;
-    const isTeacher = user.role === 'TEACHER';
-    const isStudent = user.role === 'STUDENT';
-    const isAdmin = user.role === 'ADMIN';
+    const isTeacher = user?.role === 'TEACHER';
+    const isStudent = user?.role === 'STUDENT';
+    const isAdmin = user?.role === 'ADMIN';
 
     if (isAdmin) {
       // For admins: signup requests go to user management
@@ -154,10 +150,8 @@ const NotificationBell = ({ user }) => {
     if (!user?.id) return;
 
     try {
-      console.log('Handling notification click:', notification);
       // Mark as read if not already read
       if (!notification.isRead) {
-        console.log('Marking notification as read:', notification.id);
         await axios.put(`/notifications/${notification.id}/read?userId=${user.id}`);
         setUnreadCount(prev => Math.max(0, prev - 1));
 
@@ -172,10 +166,9 @@ const NotificationBell = ({ user }) => {
 
       // Navigate to the appropriate route
       const route = getNotificationRoute(notification);
-      console.log('Navigating to route:', route);
       navigate(route);
     } catch (error) {
-      console.error('Error handling notification click:', error.response?.status, error.response?.data, error.message);
+      console.error('Error handling notification click:', error);
     }
   };
 
@@ -253,26 +246,26 @@ const NotificationBell = ({ user }) => {
 
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'NEW_SIGNUP_REQUEST': return '🔔';
-      case 'TEACHER_COURSE_ASSIGNMENT': return '👨‍🏫';
-      case 'STUDENT_ENROLLMENT_REQUEST': return '📝';
-      case 'ASSIGNMENT_SUBMISSION': return '📋';
-      case 'DISCUSSION_POST': return '💬';
-      case 'ENROLLMENT_APPROVED': return '✅';
-      case 'ENROLLMENT_REJECTED': return '❌';
-      case 'NEW_ASSIGNMENT': return '📝';
-      case 'NEW_RESOURCE': return '📚';
-      case 'NEW_DISCUSSION_THREAD': return '💬';
-      case 'NEW_COURSE_CREATED': return '📚';
-      case 'DISCUSSION_REPLY': return '💬';
-      case 'DISCUSSION_TAG': return '🏷️';
-      case 'ASSIGNMENT_GRADED': return '🎓';
-      case 'COURSE_ANNOUNCEMENT': return '📢';
-      case 'PLAGIARISM_DETECTED': return '⚠️';
-      case 'USER_PROFILE_UPDATED': return '👤';
-      case 'USER_STATUS_CHANGED': return '🔄';
-      case 'USER_ROLE_CHANGED': return '🎭';
-      default: return '🔔';
+      case 'NEW_SIGNUP_REQUEST': return <FiUserPlus className="text-blue-500" />;
+      case 'TEACHER_COURSE_ASSIGNMENT': return <FiUserCheck className="text-indigo-500" />;
+      case 'STUDENT_ENROLLMENT_REQUEST': return <FiFileText className="text-blue-500" />;
+      case 'ASSIGNMENT_SUBMISSION': return <FiClipboard className="text-emerald-500" />;
+      case 'DISCUSSION_POST': return <FiMessageSquare className="text-blue-500" />;
+      case 'ENROLLMENT_APPROVED': return <FiCheckCircle className="text-green-500" />;
+      case 'ENROLLMENT_REJECTED': return <FiXCircle className="text-red-500" />;
+      case 'NEW_ASSIGNMENT': return <FiFileText className="text-amber-500" />;
+      case 'NEW_RESOURCE': return <FiBookOpen className="text-blue-500" />;
+      case 'NEW_DISCUSSION_THREAD': return <FiMessageSquare className="text-cyan-500" />;
+      case 'NEW_COURSE_CREATED': return <FiBookOpen className="text-blue-600" />;
+      case 'DISCUSSION_REPLY': return <FiMessageSquare className="text-blue-500" />;
+      case 'DISCUSSION_TAG': return <FiTag className="text-violet-500" />;
+      case 'ASSIGNMENT_GRADED': return <FaGraduationCap className="text-emerald-600" />;
+      case 'COURSE_ANNOUNCEMENT': return <FiBell className="text-blue-500" />;
+      case 'PLAGIARISM_DETECTED': return <FiAlertTriangle className="text-rose-500" />;
+      case 'USER_PROFILE_UPDATED': return <FiUser className="text-blue-500" />;
+      case 'USER_STATUS_CHANGED': return <FiRefreshCw className="text-amber-500" />;
+      case 'USER_ROLE_CHANGED': return <FiUsers className="text-purple-500" />;
+      default: return <FiBell className="text-blue-500" />;
     }
   };
 
@@ -285,7 +278,7 @@ const NotificationBell = ({ user }) => {
         onClick={handleBellClick}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
-        <span className="bell-icon">🔔</span>
+        <span className="bell-icon"><FiBell size={20} /></span>
         {unreadCount > 0 && (
           <span className="unread-badge">
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -304,7 +297,7 @@ const NotificationBell = ({ user }) => {
                 title="Refresh notifications"
                 disabled={loading}
               >
-                🔄
+                <FiRefreshCw size={14} className={loading ? "spin" : ""} />
               </button>
               {unreadCount > 0 && (
                 <button className="mark-all-read" onClick={markAllAsRead}>
@@ -322,7 +315,7 @@ const NotificationBell = ({ user }) => {
               </div>
             ) : notifications.length === 0 ? (
               <div className="no-notifications">
-                <span className="no-notifications-icon">🔔</span>
+                <span className="no-notifications-icon"><FiBell size={32} /></span>
                 <p>No notifications yet</p>
               </div>
             ) : (
@@ -341,8 +334,8 @@ const NotificationBell = ({ user }) => {
                     <div className="notification-meta">
                       <div className="notification-time">{formatTimeAgo(notification.createdAt)}</div>
                       {notification.relatedCourse && (
-                        <div className="notification-course">
-                          📚 {notification.relatedCourse.courseCode}
+                        <div className="notification-course" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <FiBookOpen size={12} /> {notification.relatedCourse.courseCode}
                         </div>
                       )}
                     </div>
@@ -359,7 +352,6 @@ const NotificationBell = ({ user }) => {
                 className="view-all-notifications"
                 onClick={() => {
                   setShowDropdown(false);
-                  // Could navigate to a full notifications page
                 }}
               >
                 View all notifications

@@ -1,6 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import UserTagging from './UserTagging';
+import { 
+  FiArrowLeft, 
+  FiMessageSquare, 
+  FiMessageCircle, 
+  FiThumbsUp, 
+  FiHelpCircle, 
+  FiSmile, 
+  FiCornerDownRight, 
+  FiChevronDown, 
+  FiChevronRight, 
+  FiEdit2, 
+  FiUser, 
+  FiMapPin, 
+  FiClock, 
+  FiFileText, 
+  FiFolder,
+  FiSend
+} from 'react-icons/fi';
 import './DiscussionThreadDetail.css';
 
 const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
@@ -13,25 +31,39 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
   const [expandedReplies, setExpandedReplies] = useState(new Set());
   const [courseUsers, setCourseUsers] = useState([]); // Store course users for tag processing
 
-  useEffect(() => {
-    fetchThreadDetails();
-  }, [thread.id]);
-
-  useEffect(() => {
-    // Fetch course users for tag processing
-    if (threadData?.courseId) {
-      fetchCourseUsers();
+  const fetchThreadDetails = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/discussions/threads/${thread.id}?userId=${user.id}`);
+      setThreadData(response.data);
+      setPosts(response.data.posts || []);
+    } catch (error) {
+      console.error('Error fetching thread details:', error);
+      onShowMessage('Failed to load thread details', 'error');
+    } finally {
+      setLoading(false);
     }
-  }, [threadData]);
+  }, [thread.id, user.id, onShowMessage]);
 
-  const fetchCourseUsers = async () => {
+  const fetchCourseUsers = useCallback(async () => {
+    if (!threadData?.courseId) return;
     try {
       const response = await axios.get(`/discussions/course/${threadData.courseId}/students?userId=${user.id}`);
       setCourseUsers(response.data);
     } catch (error) {
       console.error('Error fetching course users:', error);
     }
-  };
+  }, [threadData?.courseId, user.id]);
+
+  useEffect(() => {
+    fetchThreadDetails();
+  }, [fetchThreadDetails]);
+
+  useEffect(() => {
+    if (threadData?.courseId) {
+      fetchCourseUsers();
+    }
+  }, [threadData?.courseId, fetchCourseUsers]);
 
   // Function to process tagged content and make tags bold and blue
   const processTaggedContent = (content) => {
@@ -51,19 +83,7 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
     return processedContent;
   };
 
-  const fetchThreadDetails = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`/discussions/threads/${thread.id}?userId=${user.id}`);
-      setThreadData(response.data);
-      setPosts(response.data.posts || []);
-    } catch (error) {
-      console.error('Error fetching thread details:', error);
-      onShowMessage('Failed to load thread details', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -184,13 +204,17 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
               <div className="author-details">
                 <span className="author-name">{post.authorName}</span>
                 <span className={`author-role ${post.authorRole.toLowerCase()}`}>
-                  {post.authorRole === 'TEACHER' ? '👨‍🏫 Teacher' : '👨‍🎓 Student'}
+                  {post.authorRole === 'TEACHER' ? 'Teacher' : 'Student'}
                 </span>
               </div>
             </div>
             <div className="post-meta">
               <span className="post-date">{formatDate(post.createdAt)}</span>
-              {post.isEdited && <span className="edited-badge">✏️ Edited</span>}
+              {post.isEdited && (
+                <span className="edited-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <FiEdit2 /> Edited
+                </span>
+              )}
             </div>
           </div>
 
@@ -205,20 +229,23 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
               <button 
                 className={`reaction-btn ${post.userReaction === 'LIKE' ? 'active' : ''}`}
                 onClick={() => handleReaction(post.id, 'LIKE')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                👍 {post.reactionCounts?.LIKE || 0}
+                <FiThumbsUp /> {post.reactionCounts?.LIKE || 0}
               </button>
               <button 
                 className={`reaction-btn ${post.userReaction === 'HELPFUL' ? 'active' : ''}`}
                 onClick={() => handleReaction(post.id, 'HELPFUL')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                💡 {post.reactionCounts?.HELPFUL || 0}
+                <FiSmile /> {post.reactionCounts?.HELPFUL || 0}
               </button>
               <button 
                 className={`reaction-btn ${post.userReaction === 'CONFUSED' ? 'active' : ''}`}
                 onClick={() => handleReaction(post.id, 'CONFUSED')}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                😕 {post.reactionCounts?.CONFUSED || 0}
+                <FiHelpCircle /> {post.reactionCounts?.CONFUSED || 0}
               </button>
             </div>
 
@@ -227,8 +254,9 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
                 <button 
                   className="reply-btn"
                   onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 >
-                  💬 Reply
+                  <FiCornerDownRight /> Reply
                 </button>
               )}
               
@@ -236,8 +264,9 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
                 <button 
                   className="toggle-replies-btn"
                   onClick={() => toggleReplies(post.id)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 >
-                  {areRepliesExpanded ? '🔽' : '▶️'} 
+                  {areRepliesExpanded ? <FiChevronDown /> : <FiChevronRight />} 
                   {post.replies.length} {post.replies.length === 1 ? 'Reply' : 'Replies'}
                 </button>
               )}
@@ -248,7 +277,9 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
           {replyingTo === post.id && (
             <div className="reply-form">
               <div className="reply-form-header">
-                <h5>💬 Reply to {post.authorName}</h5>
+                <h5 style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <FiCornerDownRight /> Reply to {post.authorName}
+                </h5>
               </div>
               <UserTagging
                 courseId={threadData.courseId}
@@ -272,8 +303,9 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
                 <button 
                   className="btn btn-primary btn-sm"
                   onClick={() => handleCreateReply(post.id)}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 >
-                  Post Reply
+                  <FiSend /> Post Reply
                 </button>
               </div>
             </div>
@@ -320,13 +352,13 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
     <div className="thread-detail">
       {/* Header */}
       <div className="thread-detail-header">
-        <button className="back-btn" onClick={onBack}>
-          ← Back to Threads
+        <button className="back-btn" onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <FiArrowLeft /> Back to Threads
         </button>
         
         <div className="thread-info">
           <div className="thread-title-section">
-            {threadData.isPinned && <span className="pin-icon">📌</span>}
+            {threadData.isPinned && <span className="pin-icon"><FiMapPin /></span>}
             <h2>{threadData.title}</h2>
           </div>
           
@@ -335,20 +367,20 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
           )}
           
           <div className="thread-meta">
-            <span className="created-by">
-              👨‍🏫 Created by {threadData.createdByName}
+            <span className="created-by" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <FiUser /> Created by {threadData.createdByName}
             </span>
-            <span className="created-date">
-              🕒 {formatDate(threadData.createdAt)}
+            <span className="created-date" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <FiClock /> {formatDate(threadData.createdAt)}
             </span>
             {threadData.assignmentTitle && (
-              <span className="assignment-link">
-                📝 Assignment: {threadData.assignmentTitle}
+              <span className="assignment-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                <FiFileText /> Assignment: {threadData.assignmentTitle}
               </span>
             )}
             {threadData.resourceName && (
-              <span className="resource-link">
-                📁 Resource: {threadData.resourceName}
+              <span className="resource-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                <FiFolder /> Resource: {threadData.resourceName}
               </span>
             )}
           </div>
@@ -357,7 +389,9 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
 
       {/* New Post Form */}
       <div className="new-post-section">
-        <h4>💬 Join the Discussion</h4>
+        <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FiMessageSquare /> Join the Discussion
+        </h4>
         <form onSubmit={handleCreatePost}>
           <UserTagging
             courseId={threadData.courseId}
@@ -369,8 +403,8 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
             onMention={(user) => console.log('Mentioned user:', user)}
           />
           <div className="new-post-actions">
-            <button type="submit" className="btn btn-primary">
-              Post Message
+            <button type="submit" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+              <FiSend /> Post Message
             </button>
           </div>
         </form>
@@ -378,11 +412,13 @@ const DiscussionThreadDetail = ({ thread, user, onBack, onShowMessage }) => {
 
       {/* Posts List */}
       <div className="posts-section">
-        <h4>📝 Discussion ({posts.length} post{posts.length !== 1 ? 's' : ''})</h4>
+        <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <FiMessageCircle /> Discussion ({posts.length} post{posts.length !== 1 ? 's' : ''})
+        </h4>
         
         {posts.length === 0 ? (
           <div className="no-posts">
-            <span className="no-posts-icon">💬</span>
+            <FiMessageSquare className="no-posts-icon" style={{ fontSize: '3rem', color: '#94a3b8' }} />
             <h5>No posts yet</h5>
             <p>Be the first to start the discussion!</p>
           </div>

@@ -8,7 +8,7 @@ import DiscussionThreads from './DiscussionThreads';
 import AttendanceManagement from './AttendanceManagement';
 import AssessmentGrid from './AssessmentGrid';
 import GradeVisibilityControl from './GradeVisibilityControl';
-import { FiArrowLeft, FiAward, FiBarChart2, FiBookOpen, FiCheckCircle, FiClipboard, FiClock, FiFileText, FiMessageCircle, FiRefreshCw, FiSearch, FiUsers, FiXCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiAward, FiBarChart2, FiBookOpen, FiCheckCircle, FiClipboard, FiClock, FiFileText, FiMessageCircle, FiRefreshCw, FiSearch, FiUsers, FiXCircle, FiX } from 'react-icons/fi';
 import './CourseDetailsPage.css';
 
 const CourseDetailsPage = () => {
@@ -517,6 +517,9 @@ const CourseDetailsPage = () => {
                   color: '#6b7280',
                   fontSize: '0.875rem',
                   cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
@@ -528,7 +531,7 @@ const CourseDetailsPage = () => {
                   e.target.style.borderColor = '#d1d5db';
                 }}
               >
-                ✕ Clear
+                <FiX /> Clear
               </button>
             )}
           </div>

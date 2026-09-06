@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Dashboard from './Dashboard';
 import UserManagement from './UserManagement';
 import axios from '../api/axiosInstance';
+import {
+  FiBarChart2,
+  FiUsers,
+  FiBookOpen,
+  FiClock,
+  FiTrendingUp,
+  FiPlus,
+  FiUser
+} from 'react-icons/fi';
 
 const AdminDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview'); // overview, users, courses
@@ -11,29 +20,23 @@ const AdminDashboard = ({ user, onLogout }) => {
     totalCourses: 0,
     activeEnrollments: 0
   });
-  const [users, setUsers] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
-
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     try {
       const [usersRes, coursesRes] = await Promise.all([
         axios.get('/admin/users'),
         axios.get('/courses')
       ]);
       
-      setUsers(usersRes.data);
       setCourses(coursesRes.data);
       
       setStats({
         totalUsers: usersRes.data.length,
         pendingApprovals: usersRes.data.filter(u => u.status === 'PENDING' || !u.approved).length,
         totalCourses: coursesRes.data.length,
-        activeEnrollments: 0 // TODO: Add enrollment count
+        activeEnrollments: 0
       });
       
       setLoading(false);
@@ -41,16 +44,11 @@ const AdminDashboard = ({ user, onLogout }) => {
       console.error('Error fetching admin data:', error);
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleApproveUser = async (userId) => {
-    try {
-      await axios.post(`/admin/approve/${userId}`);
-      fetchAdminData(); // Refresh data
-    } catch (error) {
-      console.error('Error approving user:', error);
-    }
-  };
+  useEffect(() => {
+    fetchAdminData();
+  }, [fetchAdminData]);
 
   if (loading) {
     return (
@@ -71,19 +69,19 @@ const AdminDashboard = ({ user, onLogout }) => {
           className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          📊 Overview
+          <FiBarChart2 style={{ marginRight: '6px' }} /> Overview
         </button>
         <button 
           className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
           onClick={() => setActiveTab('users')}
         >
-          👥 User Management
+          <FiUsers style={{ marginRight: '6px' }} /> User Management
         </button>
         <button 
           className={`tab-btn ${activeTab === 'courses' ? 'active' : ''}`}
           onClick={() => setActiveTab('courses')}
         >
-          📚 Course Management
+          <FiBookOpen style={{ marginRight: '6px' }} /> Course Management
         </button>
       </div>
 
@@ -94,7 +92,7 @@ const AdminDashboard = ({ user, onLogout }) => {
           <div className="dashboard-cards">
             <div className="dashboard-card" onClick={() => setActiveTab('users')}>
               <div className="card-header">
-                <div className="card-icon">👥</div>
+                <div className="card-icon"><FiUsers /></div>
                 <h3 className="card-title">Users</h3>
               </div>
               <div className="card-content">
@@ -103,55 +101,55 @@ const AdminDashboard = ({ user, onLogout }) => {
               </div>
             </div>
 
-        <div className="dashboard-card" onClick={() => setActiveTab('users')}>
-          <div className="card-header">
-            <div className="card-icon">⏳</div>
-            <h3 className="card-title">Pending</h3>
-          </div>
-          <div className="card-content">
-            <span className="stat-number">{stats.pendingApprovals}</span>
-            <span className="stat-label">Awaiting Approval</span>
-          </div>
-        </div>
+            <div className="dashboard-card" onClick={() => setActiveTab('users')}>
+              <div className="card-header">
+                <div className="card-icon"><FiClock /></div>
+                <h3 className="card-title">Pending</h3>
+              </div>
+              <div className="card-content">
+                <span className="stat-number">{stats.pendingApprovals}</span>
+                <span className="stat-label">Awaiting Approval</span>
+              </div>
+            </div>
 
-        <div className="dashboard-card" onClick={() => setActiveTab('courses')}>
-          <div className="card-header">
-            <div className="card-icon">📚</div>
-            <h3 className="card-title">Courses</h3>
-          </div>
-          <div className="card-content">
-            <span className="stat-number">{stats.totalCourses}</span>
-            <span className="stat-label">Available Courses</span>
-          </div>
-        </div>
+            <div className="dashboard-card" onClick={() => setActiveTab('courses')}>
+              <div className="card-header">
+                <div className="card-icon"><FiBookOpen /></div>
+                <h3 className="card-title">Courses</h3>
+              </div>
+              <div className="card-content">
+                <span className="stat-number">{stats.totalCourses}</span>
+                <span className="stat-label">Available Courses</span>
+              </div>
+            </div>
 
-        <div className="dashboard-card">
-          <div className="card-header">
-            <div className="card-icon">📈</div>
-            <h3 className="card-title">Enrollments</h3>
+            <div className="dashboard-card">
+              <div className="card-header">
+                <div className="card-icon"><FiTrendingUp /></div>
+                <h3 className="card-title">Enrollments</h3>
+              </div>
+              <div className="card-content">
+                <span className="stat-number">{stats.activeEnrollments}</span>
+                <span className="stat-label">Active Enrollments</span>
+              </div>
+            </div>
           </div>
-          <div className="card-content">
-            <span className="stat-number">{stats.activeEnrollments}</span>
-            <span className="stat-label">Active Enrollments</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <button 
-          className="quick-action-btn users"
-          onClick={() => setActiveTab('users')}
-        >
-          👥 Manage Users
-        </button>
-        <button 
-          className="quick-action-btn courses"
-          onClick={() => setActiveTab('courses')}
-        >
-          📚 Manage Courses
-        </button>
-      </div>
+          {/* Quick Actions */}
+          <div className="quick-actions">
+            <button 
+              className="quick-action-btn users"
+              onClick={() => setActiveTab('users')}
+            >
+              <FiUsers style={{ marginRight: '6px' }} /> Manage Users
+            </button>
+            <button 
+              className="quick-action-btn courses"
+              onClick={() => setActiveTab('courses')}
+            >
+              <FiBookOpen style={{ marginRight: '6px' }} /> Manage Courses
+            </button>
+          </div>
         </>
       )}
 
@@ -163,10 +161,10 @@ const AdminDashboard = ({ user, onLogout }) => {
       {/* Course Management Tab */}
       {activeTab === 'courses' && (
         <div className="course-management">
-          <h2>📚 Course Management</h2>
+          <h2><FiBookOpen style={{ marginRight: '8px' }} /> Course Management</h2>
           <div className="course-actions">
-            <button className="action-btn primary">➕ Create New Course</button>
-            <button className="action-btn">📊 View All Courses</button>
+            <button className="action-btn primary"><FiPlus style={{ marginRight: '6px' }} /> Create New Course</button>
+            <button className="action-btn"><FiBarChart2 style={{ marginRight: '6px' }} /> View All Courses</button>
           </div>
           
           <div className="recent-courses">
@@ -174,17 +172,14 @@ const AdminDashboard = ({ user, onLogout }) => {
             <div className="course-grid">
               {courses
                 .sort((a, b) => {
-                  // Sort by level first (1, 2, 3, 4)
                   const levelA = parseInt(a.level) || 0;
                   const levelB = parseInt(b.level) || 0;
                   if (levelA !== levelB) return levelA - levelB;
                   
-                  // Then by term (1, 2, 3, 4)
                   const termA = parseInt(a.term) || 0;
                   const termB = parseInt(b.term) || 0;
                   if (termA !== termB) return termA - termB;
                   
-                  // Finally by courseCode alphabetically
                   const codeA = a.courseCode || '';
                   const codeB = b.courseCode || '';
                   return codeA.localeCompare(codeB);
@@ -197,8 +192,8 @@ const AdminDashboard = ({ user, onLogout }) => {
                   </div>
                   <p className="course-description">{course.description}</p>
                   <div className="course-footer">
-                    <span className="teacher-info">
-                      👨‍🏫 {course.assignedTeacher?.name || 'No teacher assigned'}
+                    <span className="teacher-info" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <FiUser size={14} /> {course.assignedTeacher?.name || 'No teacher assigned'}
                     </span>
                   </div>
                 </div>

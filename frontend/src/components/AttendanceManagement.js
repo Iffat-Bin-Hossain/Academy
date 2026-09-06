@@ -10,7 +10,8 @@ import {
   FiClock, 
   FiTrash2, 
   FiEdit3, 
-  FiSave 
+  FiSave,
+  FiX 
 } from 'react-icons/fi';
 import './AttendanceManagement.css';
 
@@ -410,7 +411,9 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Create Attendance Session</h3>
-              <button className="modal-close" onClick={() => setShowCreateModal(false)}>×</button>
+              <button className="modal-close" onClick={() => setShowCreateModal(false)} aria-label="Close modal">
+                <FiX />
+              </button>
             </div>
             <form onSubmit={handleCreateSession}>
               <div className="form-group">
@@ -519,8 +522,9 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
                   className="btn btn-warning btn-sm"
                   onClick={() => toggleSessionLock(selectedSession.id, selectedSession.isLocked)}
                   title={selectedSession.isLocked ? 'Unlock session to enable editing' : 'Lock session to prevent editing'}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                 >
-                  {selectedSession.isLocked ? '🔓 Unlock' : '🔒 Lock'}
+                  {selectedSession.isLocked ? <><FiUnlock /> Unlock</> : <><FiLock /> Lock</>}
                 </button>
                 <button className="modal-close" onClick={() => {
                   // Auto-save if in edit mode before closing
@@ -530,7 +534,9 @@ const AttendanceManagement = ({ user, courseId, onShowMessage }) => {
                     setShowEditModal(false);
                     setSelectedSession(null);
                   }
-                }}>×</button>
+                }} aria-label="Close modal">
+                  <FiX />
+                </button>
               </div>
             </div>
 

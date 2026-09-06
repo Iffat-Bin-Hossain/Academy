@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FiX, FiPlusCircle, FiFile, FiLink, FiFileText, FiTag, FiCalendar, FiClock } from 'react-icons/fi';
 
 const ResourceCreateModal = ({ 
   isOpen, 
@@ -145,8 +146,12 @@ const ResourceCreateModal = ({
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content resource-create-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Create New Resource</h2>
-          <button className="close-btn" onClick={handleClose}>×</button>
+          <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FiPlusCircle /> Create New Resource
+          </h2>
+          <button className="close-btn" onClick={handleClose} aria-label="Close modal">
+            <FiX />
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="resource-form">

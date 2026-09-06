@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import './UserTagging.css';
 
@@ -19,18 +19,18 @@ const UserTagging = ({
   const textareaRef = useRef(null);
 
   // Fetch enrolled students when component mounts
-  useEffect(() => {
-    fetchEnrolledStudents();
-  }, [courseId]);
-
-  const fetchEnrolledStudents = async () => {
+  const fetchEnrolledStudents = useCallback(async () => {
     try {
       const response = await axios.get(`/discussions/course/${courseId}/students?userId=${userId}`);
       setSuggestions(response.data);
     } catch (error) {
       console.error('Error fetching enrolled students:', error);
     }
-  };
+  }, [courseId, userId]);
+
+  useEffect(() => {
+    fetchEnrolledStudents();
+  }, [fetchEnrolledStudents]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -93,6 +93,8 @@ const UserTagging = ({
         case 'Escape':
           setShowSuggestions(false);
           setSelectedIndex(-1);
+          break;
+        default:
           break;
       }
     }

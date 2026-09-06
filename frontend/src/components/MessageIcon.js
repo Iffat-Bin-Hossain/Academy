@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from '../api/axiosInstance';
 import Linkify from 'react-linkify';
+import { FiPaperclip, FiSmile, FiCornerUpLeft, FiCornerUpRight, FiCheck, FiTrash2, FiX, FiFolder } from 'react-icons/fi';
 import './MessageIcon.css';
 
 // Available reaction emojis
@@ -1077,7 +1078,7 @@ const MessageIcon = ({ userId }) => {
                             </div>
                         ) : (
                             <div className="attachment-file">
-                                <div className="file-icon">🔗</div>
+                                <div className="file-icon"><FiPaperclip /></div>
                                 <div className="file-details">
                                     <div className="file-name">{message.attachmentFilename}</div>
                                     <div className="file-size">{formatFileSize(message.attachmentSize)}</div>
@@ -1126,21 +1127,21 @@ const MessageIcon = ({ userId }) => {
                             onClick={() => setShowEmojiPicker(showEmojiPicker === messageIndex ? null : messageIndex)}
                             title="Add reaction"
                         >
-                            😊
+                            <FiSmile size={14} />
                         </button>
                         <button
                             className="action-btn reply-btn"
                             onClick={() => startReply(messageIndex)}
                             title="Reply"
                         >
-                            ↩️
+                            <FiCornerUpLeft size={14} />
                         </button>
                         <button
                             className="action-btn select-btn"
                             onClick={() => enterSelectionMode(messageIndex)}
                             title="Select"
                         >
-                            ✓
+                            <FiCheck size={14} />
                         </button>
                     </div>
                 )}
@@ -1577,21 +1578,21 @@ const MessageIcon = ({ userId }) => {
                                                 onClick={forwardMessages}
                                                 title="Forward"
                                             >
-                                                📤 Forward
+                                                <FiCornerUpRight style={{ marginRight: '6px' }} /> Forward
                                             </button>
                                             <button
                                                 className="toolbar-btn delete-btn"
                                                 onClick={deleteSelectedMessages}
                                                 title="Delete"
                                             >
-                                                🗑️ Delete
+                                                <FiTrash2 style={{ marginRight: '6px' }} /> Delete
                                             </button>
                                             <button
                                                 className="toolbar-btn cancel-btn"
                                                 onClick={exitSelectionMode}
                                                 title="Cancel"
                                             >
-                                                ✕ Cancel
+                                                <FiX style={{ marginRight: '6px' }} /> Cancel
                                             </button>
                                         </div>
                                     </div>
@@ -1605,7 +1606,7 @@ const MessageIcon = ({ userId }) => {
                                                 {filePreview ? (
                                                     <img src={filePreview} alt="Preview" />
                                                 ) : (
-                                                    <div className="file-icon">📁</div>
+                                                    <div className="file-icon"><FiFolder /></div>
                                                 )}
                                                 <div className="file-info">
                                                     <div className="file-name">{selectedFile.name}</div>
@@ -1617,7 +1618,7 @@ const MessageIcon = ({ userId }) => {
                                                 className="remove-file-btn"
                                                 title="Remove file"
                                             >
-                                                ×
+                                                <FiX />
                                             </button>
                                         </div>
                                     )}
@@ -1634,7 +1635,7 @@ const MessageIcon = ({ userId }) => {
                                                 onClick={cancelReply}
                                                 title="Cancel reply"
                                             >
-                                                ✕
+                                                <FiX />
                                             </button>
                                         </div>
                                     )}
@@ -1753,7 +1754,7 @@ const MessageIcon = ({ userId }) => {
                                                     className="chip-remove"
                                                     onClick={() => toggleRecipientSelection(userId)}
                                                 >
-                                                    ×
+                                                    <FiX size={12} />
                                                 </button>
                                             </div>
                                         );
@@ -1803,7 +1804,7 @@ const MessageIcon = ({ userId }) => {
                                                     >
                                                         <div className="recipient-checkbox">
                                                             <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
-                                                                {isSelected && <span className="checkmark">✓</span>}
+                                                                {isSelected && <span className="checkmark"><FiCheck size={12} /></span>}
                                                             </div>
                                                         </div>
                                                         <div className="modern-recipient-avatar">
@@ -1855,7 +1856,7 @@ const MessageIcon = ({ userId }) => {
                                                     >
                                                         <div className="recipient-checkbox">
                                                             <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
-                                                                {isSelected && <span className="checkmark">✓</span>}
+                                                                {isSelected && <span className="checkmark"><FiCheck size={12} /></span>}
                                                             </div>
                                                         </div>
                                                         <div className="modern-recipient-avatar">
@@ -1910,7 +1911,7 @@ const MessageIcon = ({ userId }) => {
             {showImageModal && selectedImage && (
                 <div className="image-modal-overlay" onClick={closeImageModal}>
                     <div className="image-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-image-modal" onClick={closeImageModal}>×</button>
+                        <button className="close-image-modal" onClick={closeImageModal}><FiX /></button>
                         <img src={selectedImage} alt="Full size" className="modal-image" />
                     </div>
                 </div>

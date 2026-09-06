@@ -1,7 +1,22 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import axios from '../api/axiosInstance';
-import { FiBarChart2, FiCheckCircle, FiClock, FiFileText, FiRefreshCw, FiSave, FiTarget, FiUpload, FiXCircle } from 'react-icons/fi';
+import { 
+  FiBarChart2, 
+  FiCheckCircle, 
+  FiClock, 
+  FiFileText, 
+  FiRefreshCw, 
+  FiSave, 
+  FiTarget, 
+  FiUpload, 
+  FiXCircle,
+  FiBookOpen,
+  FiSearch,
+  FiX,
+  FiMail,
+  FiPaperclip
+} from 'react-icons/fi';
 import './AssessmentGrid.css';
 
 const AssessmentGrid = ({ courseId, userId, courseName }) => {
@@ -393,8 +408,8 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
             marginBottom: '1rem'
           }}>
             <div>
-              <h4 style={{ margin: 0, color: 'white', fontWeight: '600', fontSize: '1.1rem' }}>
-                📚 {assignments.length} Assignment{assignments.length !== 1 ? 's' : ''} Available
+              <h4 style={{ margin: 0, color: 'white', fontWeight: '600', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FiBookOpen /> {assignments.length} Assignment{assignments.length !== 1 ? 's' : ''} Available
               </h4>
               <p style={{ margin: '0.25rem 0 0 0', opacity: '0.9', fontSize: '0.9rem' }}>
                 Grade students and track their progress across all assignments
@@ -445,7 +460,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
             <input
               type="text"
               className="search-input"
-              placeholder="🔍 Search students, assignments, or status..."
+              placeholder="Search students, assignments, or status..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
@@ -475,13 +490,16 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
               top: '50%',
               transform: 'translateY(-50%)',
               fontSize: '1rem',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              display: 'flex',
+              alignItems: 'center'
             }}>
-              🔍
+              <FiSearch />
             </div>
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
+                aria-label="Clear search"
                 style={{
                   position: 'absolute',
                   right: '0.85rem',
@@ -500,7 +518,7 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                   justifyContent: 'center'
                 }}
               >
-                ✕
+                <FiX />
               </button>
             )}
           </div>
@@ -570,9 +588,12 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     <p style={{ 
                       margin: '0.2rem 0 0 0', 
                       opacity: '0.9',
-                      fontSize: '0.85rem' 
+                      fontSize: '0.85rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem'
                     }}>
-                      📧 {studentData.studentEmail}
+                      <FiMail /> {studentData.studentEmail}
                     </p>
                   </div>
                   
@@ -722,10 +743,12 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                   fontSize: '0.9rem', 
                                   color: '#374151', 
                                   marginBottom: '0.6rem', 
-                                  display: 'block',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.35rem',
                                   fontWeight: '600'
                                 }}>
-                                  📎 Submitted Files
+                                  <FiPaperclip /> Submitted Files
                                 </label>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                                   {assessment.submissionFiles.map((file, idx) => (
@@ -994,11 +1017,11 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                                         displayMark = displayMark * 0.95;
                                         return `${displayMark.toFixed(1)} / ${assignment.fullMark}`;
                                       } else {
-                                        return `🏆 ${displayMark.toFixed(1)} / ${assignment.fullMark}`;
+                                        return `${displayMark.toFixed(1)} / ${assignment.fullMark}`;
                                       }
                                     } else {
                                       displayMark = parseFloat(assessment.finalMark);
-                                      return `🏆 ${displayMark.toFixed(1)} / ${assignment.fullMark}`;
+                                      return `${displayMark.toFixed(1)} / ${assignment.fullMark}`;
                                     }
                                   })()}
                                 </div>

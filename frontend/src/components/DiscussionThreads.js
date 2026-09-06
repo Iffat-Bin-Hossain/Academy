@@ -1,6 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import DiscussionThreadDetail from './DiscussionThreadDetail';
+import { 
+  FiMessageSquare, 
+  FiPlus, 
+  FiSearch, 
+  FiMapPin, 
+  FiUser, 
+  FiFileText, 
+  FiFolder, 
+  FiClock, 
+  FiX 
+} from 'react-icons/fi';
 import './DiscussionThreads.css';
 
 const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
@@ -20,12 +31,7 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
     isPinned: false
   });
 
-  useEffect(() => {
-    fetchThreads();
-    fetchAssignments(); // Both teachers and students need to see assignment names
-  }, [courseId]);
-
-  const fetchThreads = async () => {
+  const fetchThreads = useCallback(async () => {
     try {
       setLoading(true);
       const response = await axios.get(`/discussions/course/${courseId}/threads?userId=${user.id}`);
@@ -36,16 +42,21 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId, user.id, onShowMessage]);
 
-  const fetchAssignments = async () => {
+  const fetchAssignments = useCallback(async () => {
     try {
       const response = await axios.get(`/assignments/course/${courseId}`);
       setAssignments(response.data);
     } catch (error) {
       console.error('Error fetching assignments:', error);
     }
-  };
+  }, [courseId]);
+
+  useEffect(() => {
+    fetchThreads();
+    fetchAssignments(); // Both teachers and students need to see assignment names
+  }, [fetchThreads, fetchAssignments]);
 
   const handleCreateThread = async (e) => {
     e.preventDefault();
@@ -117,7 +128,6 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
   const getAssignmentTitle = (assignmentId) => {
     if (!assignmentId) return null;
     const assignment = assignments.find(a => a.id === assignmentId);
-    console.log('Looking for assignment:', assignmentId, 'in assignments:', assignments);
     return assignment ? assignment.title : 'Unknown Assignment';
   };
 
@@ -146,7 +156,9 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
       {/* Header */}
       <div className="discussion-header">
         <div className="header-content">
-          <h3>💬 Discussion Threads</h3>
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FiMessageSquare /> Discussion Threads
+          </h3>
           <p style={{ color: 'white' }}>Engage in course discussions and Q&A</p>
         </div>
         
@@ -154,8 +166,9 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
           <button 
             className="btn btn-primary"
             onClick={() => setShowCreateModal(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            ➕ New Thread
+            <FiPlus /> New Thread
           </button>
         )}
       </div>
@@ -171,8 +184,8 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
             className="search-input"
           />
-          <button onClick={handleSearch} className="search-btn">
-            🔍
+          <button onClick={handleSearch} className="search-btn" aria-label="Search">
+            <FiSearch />
           </button>
         </div>
       </div>
@@ -181,7 +194,7 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
       <div className="threads-container">
         {threads.length === 0 ? (
           <div className="empty-state">
-            <span className="empty-icon">💬</span>
+            <FiMessageSquare className="empty-icon" style={{ fontSize: '3rem', color: '#94a3b8' }} />
             <h4>No discussions yet</h4>
             <p>
               {user.role === 'TEACHER' 
@@ -200,12 +213,12 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
               >
                 <div className="thread-header">
                   <div className="thread-title">
-                    {thread.isPinned && <span className="pin-icon">📌</span>}
+                    {thread.isPinned && <span className="pin-icon"><FiMapPin /></span>}
                     <h4>{thread.title}</h4>
                   </div>
                   <div className="thread-meta">
-                    <span className="author">
-                      👨‍🏫 {thread.createdByName}
+                    <span className="author" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <FiUser /> {thread.createdByName}
                     </span>
                     <span className="date">
                       {formatDate(thread.createdAt)}
@@ -219,23 +232,23 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
 
                 <div className="thread-tags">
                   {thread.assignmentId && (
-                    <span className="tag assignment-tag">
-                      📝 {getAssignmentTitle(thread.assignmentId)}
+                    <span className="tag assignment-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <FiFileText /> {getAssignmentTitle(thread.assignmentId)}
                     </span>
                   )}
                   {thread.resourceName && (
-                    <span className="tag resource-tag">
-                      📁 {thread.resourceName}
+                    <span className="tag resource-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <FiFolder /> {thread.resourceName}
                     </span>
                   )}
                 </div>
 
                 <div className="thread-stats">
-                  <span className="post-count">
-                    💬 {thread.postCount} post{thread.postCount !== 1 ? 's' : ''}
+                  <span className="post-count" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <FiMessageSquare /> {thread.postCount} post{thread.postCount !== 1 ? 's' : ''}
                   </span>
-                  <span className="last-activity">
-                    🕒 Last activity: {formatDate(thread.lastActivityAt)}
+                  <span className="last-activity" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                    <FiClock /> Last activity: {formatDate(thread.lastActivityAt)}
                   </span>
                 </div>
               </div>
@@ -249,12 +262,15 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
         <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Create New Discussion Thread</h3>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FiPlus /> Create New Discussion Thread
+              </h3>
               <button 
                 className="modal-close"
                 onClick={() => setShowCreateModal(false)}
+                aria-label="Close modal"
               >
-                ✕
+                <FiX />
               </button>
             </div>
             
@@ -316,13 +332,13 @@ const DiscussionThreads = ({ courseId, user, onShowMessage }) => {
               </div>
 
               <div className="form-group">
-                <label className="checkbox-label">
+                <label className="checkbox-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
                   <input
                     type="checkbox"
                     checked={newThread.isPinned}
                     onChange={(e) => setNewThread({...newThread, isPinned: e.target.checked})}
                   />
-                  📌 Pin this thread (appears at top)
+                  <FiMapPin /> Pin this thread (appears at top)
                 </label>
               </div>
 

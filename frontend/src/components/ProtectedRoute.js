@@ -1,4 +1,4 @@
-// ✅ FILE: src/components/ProtectedRoute.js
+// FILE: src/components/ProtectedRoute.js
 // A wrapper for route protection using decoded JWT with expiration validation
 import React from 'react';
 import { Navigate } from 'react-router-dom';

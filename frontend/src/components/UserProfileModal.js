@@ -5,6 +5,7 @@ import CommonProfileSection from './profile/CommonProfileSection';
 import TeacherProfileSection from './profile/TeacherProfileSection';
 import StudentProfileSection from './profile/StudentProfileSection';
 import AdminProfileSection from './profile/AdminProfileSection';
+import { FiX, FiInfo, FiAlertTriangle, FiCheckCircle, FiUpload, FiSave, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import './UserProfileModal.css';
 
 const UserProfileModal = ({ userId, isOpen, onClose }) => {
@@ -174,8 +175,8 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
             <div className="modal user-profile-modal">
                 <div className="modal-header">
                     <h2>User Profile</h2>
-                    <button className="modal-close" onClick={handleClose}>
-                        ×
+                    <button className="modal-close" onClick={handleClose} aria-label="Close modal">
+                        <FiX />
                     </button>
                 </div>
 
@@ -215,17 +216,17 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
                                                     onChange={handleFileSelect}
                                                     style={{ display: 'none' }}
                                                 />
-                                                <label htmlFor="photo-upload" className="photo-btn upload">
-                                                    Change Photo
+                                                <label htmlFor="photo-upload" className="photo-btn upload" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
+                                                    <FiUpload /> Change Photo
                                                 </label>
                                                 {selectedFile && (
-                                                    <button onClick={handlePhotoUpload} className="photo-btn save">
-                                                        Save Photo
+                                                    <button onClick={handlePhotoUpload} className="photo-btn save" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
+                                                        <FiSave /> Save Photo
                                                     </button>
                                                 )}
                                                 {profile.profilePhotoUrl && (
-                                                    <button onClick={handlePhotoDelete} className="photo-btn delete">
-                                                        Delete Photo
+                                                    <button onClick={handlePhotoDelete} className="photo-btn delete" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', justifyContent: 'center' }}>
+                                                        <FiTrash2 /> Delete Photo
                                                     </button>
                                                 )}
                                             </div>
@@ -251,8 +252,9 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
                                         <button
                                             className={`btn ${editing ? 'btn-cancel' : 'btn-primary'}`}
                                             onClick={() => setEditing(!editing)}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                                         >
-                                            {editing ? 'Cancel' : 'Edit Profile'}
+                                            {editing ? <><FiX /> Cancel</> : <><FiEdit2 /> Edit Profile</>}
                                         </button>
                                     )}
                                 </div>
@@ -260,10 +262,10 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
 
                             {message && (
                                 <div className={`profile-message ${messageType}`}>
-                                    <span className="message-icon">
-                                        
-                                        
-                                        {messageType === 'info' && 'ℹ'}
+                                    <span className="message-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                        {messageType === 'success' && <FiCheckCircle />}
+                                        {messageType === 'error' && <FiAlertTriangle />}
+                                        {messageType === 'info' && <FiInfo />}
                                     </span>
                                     <span className="message-text">{message}</span>
                                 </div>
@@ -271,7 +273,9 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
 
                             {editing && !isAdmin && !isOwnProfile && (
                                 <div className="profile-message info">
-                                    <span className="message-icon">⚠</span>
+                                    <span className="message-icon" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                        <FiAlertTriangle />
+                                    </span>
                                     <span className="message-text">
                                         You can only view this profile. Only admins can edit other users' information.
                                     </span>

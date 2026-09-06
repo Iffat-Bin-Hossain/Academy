@@ -1,7 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from '../api/axiosInstance';
 import Layout from './Layout';
+import { 
+  FiArrowLeft, 
+  FiSearch, 
+  FiCalendar, 
+  FiAward, 
+  FiFileText, 
+  FiSliders, 
+  FiRefreshCw, 
+  FiBarChart2, 
+  FiDownload, 
+  FiFolder, 
+  FiCpu, 
+  FiEye, 
+  FiCheckCircle, 
+  FiAlertTriangle, 
+  FiX, 
+  FiClock 
+} from 'react-icons/fi';
 
 const PlagiarismChecker = () => {
   const { assignmentId } = useParams();
@@ -34,58 +52,50 @@ const PlagiarismChecker = () => {
   const [selectedPair, setSelectedPair] = useState(null);
   const [showDiffModal, setShowDiffModal] = useState(false);
 
-  useEffect(() => {
-    fetchUserInfo();
-  }, []);
-
-  useEffect(() => {
-    if (user && assignmentId) {
-      fetchAssignmentData();
-    }
-  }, [user, assignmentId]);
-
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = useCallback(async () => {
     try {
-      const response = await axios.get('/user/me');
+      const response = await axios.get('/auth/me');
       setUser(response.data);
     } catch (error) {
       console.error('Error fetching user info:', error);
-      showMessage('Failed to load user information', 'error');
+      navigate('/login');
     }
-  };
+  }, [navigate]);
 
-  const fetchAssignmentData = async () => {
+  const fetchAssignmentData = useCallback(async () => {
     try {
-      console.log('📥 Fetching assignment data for ID:', assignmentId);
-      console.log('👤 User ID:', user.id);
       setLoading(true);
-      
+      const userResponse = await axios.get('/auth/me');
+      const user = userResponse.data;
+      setUser(user);
+
       // Fetch assignment details
-      console.log('🎯 Fetching assignment details...');
-      const assignmentResponse = await axios.get(`/assignments/${assignmentId}`);
-      console.log('✅ Assignment response:', assignmentResponse.data);
+      const assignmentResponse = await axios.get(`/assignments/${assignmentId}?userId=${user.id}`);
       setAssignment(assignmentResponse.data);
-      
-      // Fetch submissions for this assignment
-      console.log('📄 Fetching submissions...');
-      const submissionsUrl = `/submissions/assignment/${assignmentId}?teacherId=${user.id}`;
-      console.log('🌐 Submissions URL:', submissionsUrl);
+
+      // Fetch all submissions for this assignment
+      const submissionsUrl = `/assignments/${assignmentId}/submissions/all?teacherId=${user.id}`;
       const submissionsResponse = await axios.get(submissionsUrl);
-      console.log('✅ Submissions response:', submissionsResponse.data);
       const submissionsData = submissionsResponse.data || [];
-      console.log('📊 Total submissions found:', submissionsData.length);
       setSubmissions(submissionsData);
-      
     } catch (error) {
-      console.error('❌ Error fetching assignment data:', error);
-      console.error('📤 Error response:', error.response);
-      console.error('📦 Error data:', error.response?.data);
-      console.error('🔢 Error status:', error.response?.status);
-      showMessage('Failed to load assignment data', 'error');
+      console.error('Error fetching assignment data:', error);
+      setMessage('Failed to load assignment data');
+      setMessageType('error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [assignmentId]);
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, [fetchUserInfo]);
+
+  useEffect(() => {
+    if (assignmentId) {
+      fetchAssignmentData();
+    }
+  }, [assignmentId, fetchAssignmentData]);
 
   const showMessage = (text, type = 'info') => {
     setMessage(text);
@@ -304,7 +314,9 @@ const PlagiarismChecker = () => {
         <div className="card">
           <div className="card-body">
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-              <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>⚠️</span>
+              <div style={{ fontSize: '3rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#eab308' }}>
+                <FiAlertTriangle />
+              </div>
               <h4>Assignment Not Found</h4>
               <p>The assignment you're looking for doesn't exist or you don't have permission to view it.</p>
               <button className="btn btn-primary" onClick={() => navigate('/teacher')}>
@@ -357,9 +369,9 @@ const PlagiarismChecker = () => {
         <button 
           className="btn btn-secondary"
           onClick={() => navigate('/teacher')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
         >
-          ← Back to Assignments
+          <FiArrowLeft /> Back to Assignments
         </button>
       </div>
 
@@ -368,22 +380,22 @@ const PlagiarismChecker = () => {
         <div className="card-body">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <h2 style={{ margin: '0 0 0.5rem 0', color: '#1e293b' }}>
-                🔍 Smart Copy Checker
+              <h2 style={{ margin: '0 0 0.5rem 0', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FiSearch /> Smart Copy Checker
               </h2>
               <h3 style={{ margin: '0 0 1rem 0', color: '#374151' }}>
                 {assignment.title}
               </h3>
-              <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem' }}>
-                <span>📅 Due: {formatDate(assignment.deadline)}</span>
-                <span>📊 Max Marks: {assignment.maxMarks}</span>
-                <span>📝 Submissions: {submissions.length}</span>
+              <div style={{ display: 'flex', gap: '2rem', fontSize: '0.875rem', color: '#64748b', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><FiCalendar /> Due: {formatDate(assignment.deadline)}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><FiAward /> Max Marks: {assignment.maxMarks}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}><FiFileText /> Submissions: {submissions.length}</span>
               </div>
               <p style={{ margin: 0, color: '#64748b' }}>{assignment.content}</p>
             </div>
             <div style={{
               padding: '1rem 1.5rem',
-              background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
+              background: 'linear-gradient(135deg, #1e40af, #2563eb)',
               borderRadius: '12px',
               color: 'white',
               textAlign: 'center'
@@ -399,7 +411,9 @@ const PlagiarismChecker = () => {
       {/* Settings Panel */}
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div className="card-header">
-          <h3 className="card-title">⚙️ Analysis Settings</h3>
+          <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FiSliders /> Analysis Settings
+          </h3>
           <p className="card-subtitle">Configure plagiarism detection parameters</p>
         </div>
         <div className="card-body">
@@ -445,7 +459,7 @@ const PlagiarismChecker = () => {
                       />
                       <span style={{
                         padding: '0.25rem 0.5rem',
-                        background: settings.fileFilters.includes(ext) ? '#3b82f6' : '#e5e7eb',
+                        background: settings.fileFilters.includes(ext) ? '#2563eb' : '#e5e7eb',
                         color: settings.fileFilters.includes(ext) ? 'white' : '#374151',
                         borderRadius: '4px',
                         fontSize: '0.75rem',
@@ -470,22 +484,19 @@ const PlagiarismChecker = () => {
               className="btn btn-primary btn-lg"
               onClick={startPlagiarismCheck}
               disabled={analyzing || submissions.length < 2}
-              style={{ minWidth: '200px' }}
+              style={{ minWidth: '200px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
               {analyzing ? (
                 <>
-                  <span style={{ marginRight: '0.5rem' }}>⏳</span>
-                  Analyzing...
+                  <FiClock /> Analyzing...
                 </>
               ) : analysisResults ? (
                 <>
-                  <span style={{ marginRight: '0.5rem' }}>🔄</span>
-                  Re-run Analysis
+                  <FiRefreshCw /> Re-run Analysis
                 </>
               ) : (
                 <>
-                  <span style={{ marginRight: '0.5rem' }}>🔍</span>
-                  Start Copy Check
+                  <FiSearch /> Start Copy Check
                 </>
               )}
             </button>
@@ -498,7 +509,9 @@ const PlagiarismChecker = () => {
         <div className="card" style={{ marginBottom: '2rem' }}>
           <div className="card-body">
             <div style={{ textAlign: 'center', padding: '2rem' }}>
-              <h4 style={{ margin: '0 0 1rem 0', color: '#374151' }}>🔍 Analysis in Progress</h4>
+              <h4 style={{ margin: '0 0 1rem 0', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <FiSearch /> Analysis in Progress
+              </h4>
               <div style={{
                 width: '100%',
                 height: '20px',
@@ -544,7 +557,9 @@ const PlagiarismChecker = () => {
           <div className="card-header">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 className="card-title">📊 Analysis Results</h3>
+                <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FiBarChart2 /> Analysis Results
+                </h3>
                 <p className="card-subtitle">
                   Found {analysisResults.similarities?.length || 0} similar pairs above {settings.threshold}% threshold
                 </p>
@@ -553,8 +568,8 @@ const PlagiarismChecker = () => {
                 <button className="btn btn-secondary" onClick={() => setAnalysisResults(null)}>
                   Clear Results
                 </button>
-                <button className="btn btn-primary" onClick={exportResults}>
-                  📥 Export CSV
+                <button className="btn btn-primary" onClick={exportResults} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <FiDownload /> Export CSV
                 </button>
               </div>
             </div>
@@ -588,11 +603,11 @@ const PlagiarismChecker = () => {
                             </span>
                           </div>
                           <div style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                            <span style={{ marginRight: '2rem' }}>
-                              📁 Files: {pair.filesCompared || 'Multiple'}
+                            <span style={{ marginRight: '2rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <FiFolder /> Files: {pair.filesCompared || 'Multiple'}
                             </span>
-                            <span style={{ marginRight: '2rem' }}>
-                              🔍 Method: {pair.detectionMethod || 'Local Similarity'}
+                            <span style={{ marginRight: '2rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <FiCpu /> Method: {pair.detectionMethod || 'Local Similarity'}
                             </span>
                           </div>
                         </div>
@@ -600,8 +615,9 @@ const PlagiarismChecker = () => {
                           <button
                             className="btn btn-primary btn-sm"
                             onClick={() => openDiffModal(pair)}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                           >
-                            👁️ View Diff
+                            <FiEye /> View Diff
                           </button>
                         </div>
                       </div>
@@ -611,7 +627,9 @@ const PlagiarismChecker = () => {
               </div>
             ) : (
               <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>✅</span>
+                <div style={{ fontSize: '3rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#10b981' }}>
+                  <FiCheckCircle />
+                </div>
                 <h4>No Significant Similarities Found</h4>
                 <p>All submissions appear to be original work based on the current threshold settings.</p>
               </div>
@@ -655,17 +673,20 @@ const PlagiarismChecker = () => {
               </h3>
               <button
                 onClick={() => setShowDiffModal(false)}
+                aria-label="Close diff modal"
                 style={{
                   background: 'none',
                   border: 'none',
-                  fontSize: '1.5rem',
+                  fontSize: '1.25rem',
                   color: '#64748b',
                   cursor: 'pointer',
                   padding: '0.25rem',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center'
                 }}
               >
-                ✕
+                <FiX />
               </button>
             </div>
             <div style={{

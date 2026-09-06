@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from '../../api/axiosInstance';
+import { FiBookOpen, FiUser, FiSearch, FiBarChart2, FiEdit3, FiFileText, FiX, FiStar, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import { FaStar, FaRegStar } from 'react-icons/fa6';
 
 const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
   const [feedbackData, setFeedbackData] = useState([]);
@@ -9,11 +11,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState('all'); // all, submitted, pending
 
-  useEffect(() => {
-    fetchExistingFeedback();
-  }, [enrolledCourses]);
-
-  const fetchExistingFeedback = async () => {
+  const fetchExistingFeedback = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -55,7 +53,11 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [enrolledCourses, user.id, onShowMessage]);
+
+  useEffect(() => {
+    fetchExistingFeedback();
+  }, [fetchExistingFeedback]);
 
   const initializeFeedbackForm = (courseId) => {
     if (!feedbackForm[courseId]) {
@@ -162,7 +164,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
         }}>
           {label}
         </label>
-        <div style={{ display: 'flex', gap: '0.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           {[1, 2, 3, 4, 5].map(star => (
             <button
               key={star}
@@ -171,22 +173,27 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
               style={{
                 background: 'none',
                 border: 'none',
-                fontSize: '1.5rem',
-                color: star <= currentValue ? '#fbbf24' : '#d1d5db',
+                fontSize: '1.4rem',
+                color: star <= currentValue ? '#fbbf24' : '#cbd5e1',
                 cursor: 'pointer',
                 padding: '0.25rem',
-                transition: 'color 0.2s ease'
+                display: 'inline-flex',
+                alignItems: 'center',
+                transition: 'transform 0.15s ease, color 0.15s ease'
               }}
               onMouseEnter={(e) => {
                 if (star > currentValue) {
-                  e.target.style.color = '#fde68a';
+                  e.currentTarget.style.color = '#fde68a';
+                  e.currentTarget.style.transform = 'scale(1.15)';
                 }
               }}
               onMouseLeave={(e) => {
-                e.target.style.color = star <= currentValue ? '#fbbf24' : '#d1d5db';
+                e.currentTarget.style.color = star <= currentValue ? '#fbbf24' : '#cbd5e1';
+                e.currentTarget.style.transform = 'scale(1)';
               }}
+              aria-label={`Rate ${star} star`}
             >
-              ★
+              {star <= currentValue ? <FaStar /> : <FaRegStar />}
             </button>
           ))}
           <span style={{
@@ -239,7 +246,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '2rem' }}>
-        <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⭐</div>
+        <div style={{ fontSize: '2rem', marginBottom: '1rem', color: '#2563eb' }}><FiRefreshCw className="spin" size={32} /></div>
         <h3>Loading feedback data...</h3>
         <div className="spinner" style={{ margin: '1rem auto' }}></div>
       </div>
@@ -249,7 +256,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
   if (feedbackData.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-        <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>⭐</span>
+        <span style={{ fontSize: '3rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#f59e0b' }}><FaStar size={48} /></span>
         <h3>No Courses with Teachers</h3>
         <p>You need to be enrolled in courses with assigned teachers to provide feedback.</p>
       </div>
@@ -373,12 +380,14 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                       border: 'none',
                       color: '#6b7280',
                       cursor: 'pointer',
-                      fontSize: '1.125rem',
-                      padding: '0.25rem'
+                      fontSize: '1rem',
+                      padding: '0.25rem',
+                      display: 'flex',
+                      alignItems: 'center'
                     }}
                     title="Clear search"
                   >
-                    ✕
+                    <FiX />
                   </button>
                 )}
               </div>
@@ -410,22 +419,27 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                   padding: '0.75rem 1rem',
                   borderRadius: '8px',
                   fontWeight: '600',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem'
                 }}>
-                  📋 Showing {getFilteredFeedbackData().length} of {feedbackData.length} course{feedbackData.length !== 1 ? 's' : ''}
+                  <FiFileText /> Showing {getFilteredFeedbackData().length} of {feedbackData.length} course{feedbackData.length !== 1 ? 's' : ''}
                   {(searchTerm || filterBy !== 'all') && ' (filtered)'}
                 </div>
                 {(searchTerm || filterBy !== 'all') && (
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    style={{ marginTop: '0.5rem' }}
-                    onClick={() => {
-                      setSearchTerm('');
-                      setFilterBy('all');
-                    }}
-                  >
-                    Clear Filters
-                  </button>
+                  <div>
+                    <button
+                      className="btn btn-outline-secondary btn-sm"
+                      style={{ marginTop: '0.5rem' }}
+                      onClick={() => {
+                        setSearchTerm('');
+                        setFilterBy('all');
+                      }}
+                    >
+                      Clear Filters
+                    </button>
+                  </div>
                 )}
               </div>
             )}
@@ -437,9 +451,9 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
       {getFilteredFeedbackData().length === 0 ? (
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: '3rem' }}>
-            <span style={{ fontSize: '3rem', display: 'block', marginBottom: '1rem' }}>
-              {feedbackData.length === 0 ? '⭐' : searchTerm ? '🔍' : filterBy !== 'all' ? '📊' : '📝'}
-            </span>
+            <div style={{ fontSize: '3rem', display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#94a3b8' }}>
+              {feedbackData.length === 0 ? <FiStar /> : searchTerm ? <FiSearch /> : filterBy !== 'all' ? <FiBarChart2 /> : <FiEdit3 />}
+            </div>
             <h4>
               {feedbackData.length === 0
                 ? 'No Courses Available'
@@ -498,10 +512,10 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <h4 style={{ margin: 0, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        📚 {item.course.title}
+                        <FiBookOpen /> {item.course.title}
                       </h4>
-                      <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.875rem' }}>
-                        👨‍🏫 Instructor: <strong>{item.course.assignedTeacher?.name}</strong> • {item.course.courseCode}
+                      <p style={{ margin: '0.25rem 0 0 0', color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <FiUser /> Instructor: <strong>{item.course.assignedTeacher?.name}</strong> • {item.course.courseCode}
                       </p>
                     </div>
                     {existingFeedback && (
@@ -516,7 +530,7 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                         alignItems: 'center',
                         gap: '0.5rem'
                       }}>
-                        FEEDBACK SUBMITTED
+                        <FiCheckCircle /> FEEDBACK SUBMITTED
                       </div>
                     )}
                   </div>
@@ -541,8 +555,12 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                               Teaching Quality
                             </div>
-                            <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {'★'.repeat(existingFeedback.teachingQuality)}{'☆'.repeat(5 - existingFeedback.teachingQuality)}
+                            <div style={{ color: '#fbbf24', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', gap: '2px' }}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  s <= existingFeedback.teachingQuality ? <FaStar key={s} /> : <FaRegStar key={s} />
+                                ))}
+                              </div>
                               <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '700' }}>
                                 {existingFeedback.teachingQuality}/5
                               </span>
@@ -552,8 +570,12 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                               Course Content
                             </div>
-                            <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {'★'.repeat(existingFeedback.courseContent)}{'☆'.repeat(5 - existingFeedback.courseContent)}
+                            <div style={{ color: '#fbbf24', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', gap: '2px' }}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  s <= existingFeedback.courseContent ? <FaStar key={s} /> : <FaRegStar key={s} />
+                                ))}
+                              </div>
                               <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '700' }}>
                                 {existingFeedback.courseContent}/5
                               </span>
@@ -563,8 +585,12 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                               Responsiveness
                             </div>
-                            <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {'★'.repeat(existingFeedback.responsiveness)}{'☆'.repeat(5 - existingFeedback.responsiveness)}
+                            <div style={{ color: '#fbbf24', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', gap: '2px' }}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  s <= existingFeedback.responsiveness ? <FaStar key={s} /> : <FaRegStar key={s} />
+                                ))}
+                              </div>
                               <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '700' }}>
                                 {existingFeedback.responsiveness}/5
                               </span>
@@ -574,8 +600,12 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                             <div style={{ fontWeight: '600', color: '#374151', marginBottom: '0.5rem', fontSize: '0.875rem' }}>
                               Overall Satisfaction
                             </div>
-                            <div style={{ color: '#fbbf24', fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              {'★'.repeat(existingFeedback.overallSatisfaction)}{'☆'.repeat(5 - existingFeedback.overallSatisfaction)}
+                            <div style={{ color: '#fbbf24', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <div style={{ display: 'flex', gap: '2px' }}>
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  s <= existingFeedback.overallSatisfaction ? <FaStar key={s} /> : <FaRegStar key={s} />
+                                ))}
+                              </div>
                               <span style={{ fontSize: '0.875rem', color: '#059669', fontWeight: '700' }}>
                                 {existingFeedback.overallSatisfaction}/5
                               </span>
@@ -768,12 +798,12 @@ const FacultyFeedbackStudent = ({ user, enrolledCourses, onShowMessage }) => {
                         >
                           {submittingFeedback[courseId] ? (
                             <>
-                              <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                              <span style={{ marginRight: '0.5rem', display: 'inline-flex', verticalAlign: 'middle' }}><FiRefreshCw className="spin" /></span>
                               Submitting...
                             </>
                           ) : (
                             <>
-                              <span style={{ marginRight: '0.5rem' }}>⭐</span>
+                              <span style={{ marginRight: '0.5rem', display: 'inline-flex', verticalAlign: 'middle' }}><FaStar /></span>
                               Submit Feedback
                             </>
                           )}
