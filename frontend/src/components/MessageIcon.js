@@ -1,11 +1,68 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from '../api/axiosInstance';
 import Linkify from 'react-linkify';
-import { FiPaperclip, FiSmile, FiCornerUpLeft, FiCornerUpRight, FiCheck, FiTrash2, FiX, FiFolder } from 'react-icons/fi';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { 
+    FiPaperclip, 
+    FiSmile, 
+    FiCornerUpLeft, 
+    FiCornerUpRight, 
+    FiCheck, 
+    FiTrash2, 
+    FiX, 
+    FiFolder,
+    FiHeart,
+    FiThumbsUp,
+    FiThumbsDown,
+    FiZap,
+    FiStar,
+    FiMessageSquare,
+    FiSend,
+    FiPlus,
+    FiArrowLeft
+} from 'react-icons/fi';
 import './MessageIcon.css';
 
-// Available reaction emojis
-const REACTION_EMOJIS = ['❤️', '😂', '😮', '😢', '😠', '👍', '👎', '🔥', '❤️‍🔥', '✨'];
+// Available smart reactions with icons
+const SMART_REACTIONS = [
+    { id: 'like', label: 'Like', icon: FiThumbsUp, color: '#2563eb' },
+    { id: 'heart', label: 'Love', icon: FiHeart, color: '#ef4444' },
+    { id: 'smile', label: 'Laugh', icon: FiSmile, color: '#f59e0b' },
+    { id: 'zap', label: 'Fire', icon: FiZap, color: '#f97316' },
+    { id: 'star', label: 'Star', icon: FiStar, color: '#eab308' },
+    { id: 'check', label: 'Check', icon: FiCheck, color: '#10b981' },
+];
+
+const renderReactionBadge = (reactionKey) => {
+    switch (reactionKey) {
+        case 'like':
+        case '\uD83D\uDC4D':
+            return <FiThumbsUp style={{ color: '#2563eb', verticalAlign: 'middle' }} />;
+        case 'heart':
+        case '\u2764\uFE0F':
+        case '\u2764':
+            return <FiHeart style={{ color: '#ef4444', verticalAlign: 'middle' }} />;
+        case 'smile':
+        case '\uD83D\uDE02':
+        case '\uD83D\uDE2E':
+            return <FiSmile style={{ color: '#f59e0b', verticalAlign: 'middle' }} />;
+        case 'zap':
+        case 'fire':
+        case '\uD83D\uDD25':
+            return <FiZap style={{ color: '#f97316', verticalAlign: 'middle' }} />;
+        case 'star':
+        case '\u2728':
+            return <FiStar style={{ color: '#eab308', verticalAlign: 'middle' }} />;
+        case 'dislike':
+        case '\uD83D\uDC4E':
+            return <FiThumbsDown style={{ color: '#64748b', verticalAlign: 'middle' }} />;
+        case 'check':
+            return <FiCheck style={{ color: '#10b981', verticalAlign: 'middle' }} />;
+        default:
+            return <FiSmile style={{ color: '#2563eb', verticalAlign: 'middle' }} />;
+    }
+};
 
 const MessageIcon = ({ userId }) => {
     const [showModal, setShowModal] = useState(false);
@@ -16,18 +73,18 @@ const MessageIcon = ({ userId }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
-    const [forwardSearchTerm, setForwardSearchTerm] = useState(''); // Separate search for forward modal
+    const [forwardSearchTerm, setForwardSearchTerm] = useState('');
     const [availableUsers, setAvailableUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [filteredConversations, setFilteredConversations] = useState([]);
-    const [currentView, setCurrentView] = useState('conversations'); // 'conversations', 'newChat', 'chat'
+    const [currentView, setCurrentView] = useState('conversations');
     const [selectedFile, setSelectedFile] = useState(null);
     const [filePreview, setFilePreview] = useState(null);
     const [showImageModal, setShowImageModal] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
-    const [currentUserName, setCurrentUserName] = useState(''); // Add current user name state
+    const [currentUserName, setCurrentUserName] = useState('');
 
-    // New states for message interactions
+    // Message interaction states
     const [selectedMessages, setSelectedMessages] = useState(new Set());
     const [selectionMode, setSelectionMode] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null);
@@ -37,99 +94,165 @@ const MessageIcon = ({ userId }) => {
     const [showForwardModal, setShowForwardModal] = useState(false);
     const [selectedForwardRecipients, setSelectedForwardRecipients] = useState(new Set());
     const [messageReactions, setMessageReactions] = useState({});
+    // WebSocket connection status indicator
+    const [wsConnected, setWsConnected] = useState(false);
 
     const modalRef = useRef(null);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
-    const pollingIntervalRef = useRef(null);
     const hoverTimeoutRef = useRef(null);
+    // WebSocket STOMP client ref — replaces all polling interval refs
+    const stompClientRef = useRef(null);
+    const selectedConversationRef = useRef(null);
 
+    // Keep selectedConversationRef in sync with state for use inside WS callbacks
+    useEffect(() => {
+        selectedConversationRef.current = selectedConversation;
+    }, [selectedConversation]);
+
+    // ─── WebSocket lifecycle ──────────────────────────────────────────────────
+    const connectWebSocket = useCallback(() => {
+        if (stompClientRef.current?.connected) return;
+
+        const token = localStorage.getItem('token');
+        const backendBase = window.location.hostname === 'localhost'
+            ? 'http://localhost:8081'
+            : window.location.origin;
+
+        const client = new Client({
+            webSocketFactory: () => new SockJS(`${backendBase}/ws`),
+            connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+            reconnectDelay: 3000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+            onConnect: () => {
+                setWsConnected(true);
+
+                // Subscribe: incoming messages for this user's conversations
+                client.subscribe(`/topic/messages/${userId}-*`, () => {}); // wildcard not supported — use dynamic subscriptions below
+
+                // Subscribe: unread count updates
+                client.subscribe(`/topic/unread/${userId}`, (frame) => {
+                    try {
+                        const count = JSON.parse(frame.body);
+                        setUnreadCount(count);
+                    } catch (e) { /* ignore */ }
+                });
+            },
+            onDisconnect: () => {
+                setWsConnected(false);
+            },
+            onStompError: (frame) => {
+                console.warn('STOMP error:', frame.headers?.message);
+                setWsConnected(false);
+            },
+        });
+
+        client.activate();
+        stompClientRef.current = client;
+    }, [userId]);
+
+    const disconnectWebSocket = useCallback(() => {
+        if (stompClientRef.current) {
+            stompClientRef.current.deactivate();
+            stompClientRef.current = null;
+            setWsConnected(false);
+        }
+    }, []);
+
+    // Subscribe to a specific conversation's message and reaction topics
+    const subscribeToConversation = useCallback((otherUserId) => {
+        const client = stompClientRef.current;
+        if (!client?.connected) return;
+
+        // Messages: both directions
+        client.subscribe(`/topic/messages/${userId}-${otherUserId}`, (frame) => {
+            try {
+                const newMsg = JSON.parse(frame.body);
+                setMessages(prev => {
+                    // Deduplicate: don't add if already present by id
+                    if (prev.some(m => m.id === newMsg.id)) return prev;
+                    return [...prev, newMsg];
+                });
+                // Refresh conversation list to update last message preview
+                fetchConversationsQuietly();
+            } catch (e) { /* ignore */ }
+        });
+
+        client.subscribe(`/topic/messages/${otherUserId}-${userId}`, (frame) => {
+            try {
+                const newMsg = JSON.parse(frame.body);
+                setMessages(prev => {
+                    if (prev.some(m => m.id === newMsg.id)) return prev;
+                    return [...prev, newMsg];
+                });
+                fetchConversationsQuietly();
+            } catch (e) { /* ignore */ }
+        });
+
+        // Reactions: both directions
+        client.subscribe(`/topic/reactions/${userId}-${otherUserId}`, (frame) => {
+            try {
+                const update = JSON.parse(frame.body);
+                if (update.messageId && update.reactions) {
+                    const reactionsArray = Object.entries(update.reactions).map(([emoji, data]) => ({
+                        emoji,
+                        count: data.count,
+                        users: data.users,
+                        userName: data.users?.join(', ')
+                    }));
+                    setMessageReactions(prev => ({ ...prev, [update.messageId]: reactionsArray }));
+                }
+            } catch (e) { /* ignore */ }
+        });
+
+        client.subscribe(`/topic/reactions/${otherUserId}-${userId}`, (frame) => {
+            try {
+                const update = JSON.parse(frame.body);
+                if (update.messageId && update.reactions) {
+                    const reactionsArray = Object.entries(update.reactions).map(([emoji, data]) => ({
+                        emoji,
+                        count: data.count,
+                        users: data.users,
+                        userName: data.users?.join(', ')
+                    }));
+                    setMessageReactions(prev => ({ ...prev, [update.messageId]: reactionsArray }));
+                }
+            } catch (e) { /* ignore */ }
+        });
+    }, [userId]);
+
+    // Connect WebSocket when component mounts with a valid userId
     useEffect(() => {
         if (userId) {
             fetchUnreadCount();
+            connectWebSocket();
         }
+        return () => disconnectWebSocket();
     }, [userId]);
 
+    // When modal opens: load data; when it closes: nothing to stop (WS stays open)
     useEffect(() => {
         if (showModal && userId) {
             fetchConversations();
             fetchAvailableUsers();
-            // Update unread count when modal is opened (user is viewing messages)
             fetchUnreadCount();
-
-            // Start polling for real-time updates
-            startRealtimePolling();
-        } else {
-            // Stop polling when modal is closed
-            stopRealtimePolling();
+            // Ensure WS is connected when modal is open
+            if (!stompClientRef.current?.connected) {
+                connectWebSocket();
+            }
         }
-
-        return () => {
-            stopRealtimePolling();
-        };
     }, [showModal, userId]);
 
+    // When conversation changes: subscribe to its topics and load messages
     useEffect(() => {
         if (selectedConversation && showModal) {
-            // Start polling for this conversation
-            startConversationPolling();
-        } else {
-            stopConversationPolling();
+            subscribeToConversation(selectedConversation.userId);
         }
-
-        return () => {
-            stopConversationPolling();
-        };
     }, [selectedConversation, showModal]);
 
-    const startRealtimePolling = () => {
-        // Poll for unread count only every 10 seconds to avoid refreshing
-        pollingIntervalRef.current = setInterval(() => {
-            if (userId && showModal) {
-                fetchUnreadCount();
-                // Only fetch conversations if we're on the conversations view
-                if (currentView === 'conversations') {
-                    fetchConversationsQuietly();
-                }
-            }
-        }, 10000);
-    };
-
-    const stopRealtimePolling = () => {
-        if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-        }
-    };
-
-    const conversationPollingRef = useRef(null);
-    const reactionPollingRef = useRef(null);
     const lastReactionFetchRef = useRef(0);
 
-    const startConversationPolling = () => {
-        if (selectedConversation) {
-            // Poll for new messages every 3 seconds for balance between responsiveness and performance
-            conversationPollingRef.current = setInterval(() => {
-                fetchConversationQuietly(selectedConversation.userId);
-            }, 3000);
-
-            // Reduce reaction polling frequency to every 5 seconds for better real-time updates
-            reactionPollingRef.current = setInterval(() => {
-                syncReactionsOnly();
-            }, 5000);
-        }
-    };
-
-    const stopConversationPolling = () => {
-        if (conversationPollingRef.current) {
-            clearInterval(conversationPollingRef.current);
-            conversationPollingRef.current = null;
-        }
-        if (reactionPollingRef.current) {
-            clearInterval(reactionPollingRef.current);
-            reactionPollingRef.current = null;
-        }
-    };
 
     useEffect(() => {
         scrollToBottom();
@@ -1109,7 +1232,7 @@ const MessageIcon = ({ userId }) => {
                                     title={`${reactionGroup.users.join(', ')}`}
                                     onClick={() => handleReaction(messageIndex, reactionGroup.emoji)}
                                 >
-                                    {reactionGroup.emoji}
+                                    {renderReactionBadge(reactionGroup.emoji)}
                                     {reactionGroup.count > 1 && (
                                         <span className="reaction-count">{reactionGroup.count}</span>
                                     )}
@@ -1146,18 +1269,35 @@ const MessageIcon = ({ userId }) => {
                     </div>
                 )}
 
-                {/* Emoji picker */}
+                {/* Reaction picker */}
                 {showEmojiPicker === messageIndex && (
-                    <div className="emoji-picker">
-                        {REACTION_EMOJIS.map((emoji, index) => (
-                            <button
-                                key={index}
-                                className="emoji-btn"
-                                onClick={() => handleReaction(messageIndex, emoji)}
-                            >
-                                {emoji}
-                            </button>
-                        ))}
+                    <div className="emoji-picker" style={{ display: 'flex', gap: '4px', padding: '6px', background: '#fff', borderRadius: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', border: '1px solid #e2e8f0' }}>
+                        {SMART_REACTIONS.map((r) => {
+                            const IconComponent = r.icon;
+                            return (
+                                <button
+                                    key={r.id}
+                                    className="emoji-btn"
+                                    onClick={() => handleReaction(messageIndex, r.id)}
+                                    title={r.label}
+                                    style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        padding: '6px',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        borderRadius: '50%',
+                                        transition: 'transform 0.15s ease'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
+                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                >
+                                    <IconComponent size={18} style={{ color: r.color }} />
+                                </button>
+                            );
+                        })}
                     </div>
                 )}
             </div>
@@ -1264,17 +1404,9 @@ const MessageIcon = ({ userId }) => {
                     setShowModal(!showModal);
                 }}
                 aria-label="Messages"
+                title="Messages"
             >
-                <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
+                <FiMessageSquare size={20} />
                 {unreadCount > 0 && (
                     <span className="message-badge">
                         {unreadCount > 99 ? '99+' : unreadCount}
@@ -1297,81 +1429,91 @@ const MessageIcon = ({ userId }) => {
                 >
                     {/* Header with back button for chat view */}
                     {currentView === 'chat' ? (
-                        <div className="message-dropdown-header">
-                            <button
-                                className="back-btn"
-                                onClick={() => {
-                                    setCurrentView('conversations');
-                                    setSelectedConversation(null);
-                                }}
-                                title="Back to conversations"
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M19 12H6m6-6l-6 6 6 6" />
-                                </svg>
-                            </button>
-                            {selectedConversation && (
-                                <div className="chat-header-info">
-                                    <div className="chat-user-avatar">
-                                        {selectedConversation.profilePhotoUrl ? (
-                                            <img
-                                                src={selectedConversation.profilePhotoUrl}
-                                                alt={selectedConversation.userName}
-                                                className="chat-avatar-image"
-                                                onError={(e) => {
-                                                    e.target.style.display = 'none';
-                                                    e.target.nextSibling.style.display = 'flex';
-                                                }}
-                                            />
-                                        ) : null}
-                                        <div
-                                            className="chat-avatar-initials"
-                                            style={{ display: selectedConversation.profilePhotoUrl ? 'none' : 'flex' }}
-                                        >
-                                            {selectedConversation.userName?.charAt(0).toUpperCase() || 'U'}
+                        <div className="message-dropdown-header messenger-chat-header">
+                            <div className="header-left">
+                                <button
+                                    className="back-btn"
+                                    onClick={() => {
+                                        setCurrentView('conversations');
+                                        setSelectedConversation(null);
+                                    }}
+                                    title="Back to chats"
+                                >
+                                    <FiArrowLeft size={18} />
+                                </button>
+                                {selectedConversation && (
+                                    <div className="chat-header-info">
+                                        <div className="chat-user-avatar">
+                                            {selectedConversation.profilePhotoUrl ? (
+                                                <img
+                                                    src={selectedConversation.profilePhotoUrl}
+                                                    alt={selectedConversation.userName}
+                                                    className="chat-avatar-image"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div
+                                                className="chat-avatar-initials"
+                                                style={{ display: selectedConversation.profilePhotoUrl ? 'none' : 'flex' }}
+                                            >
+                                                {selectedConversation.userName?.charAt(0).toUpperCase() || 'U'}
+                                            </div>
+                                            <span className="messenger-online-dot"></span>
+                                        </div>
+                                        <div className="chat-header-text">
+                                            <div className="chat-user-name">{selectedConversation.userName}</div>
+                                            <div className="chat-user-role">{selectedConversation.userRole}</div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <div className="chat-user-name">{selectedConversation.userName}</div>
-                                        <div className="chat-user-role">{selectedConversation.userRole}</div>
-                                    </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
+                            <div className="header-actions">
+                                <button
+                                    className="header-action-btn close-btn"
+                                    onClick={() => setShowModal(false)}
+                                    title="Close"
+                                >
+                                    <FiX size={18} />
+                                </button>
+                            </div>
                         </div>
                     ) : (
-                        <div className="message-dropdown-header">
-                            <button
-                                className="back-btn"
-                                onClick={() => {
-                                    if (currentView === 'newChat') {
-                                        setCurrentView('conversations');
-                                    }
-                                }}
-                                style={{ visibility: currentView === 'newChat' ? 'visible' : 'hidden' }}
-                                title="Back to conversations"
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M19 12H6m6-6l-6 6 6 6" />
-                                </svg>
-                            </button>
-                            <h4>{currentView === 'newChat' ? 'Start New Chat' : 'Messages'}</h4>
-                            {currentView === 'conversations' && (
-                                <div className="message-header-actions">
+                        <div className="message-dropdown-header messenger-inbox-header">
+                            <div className="header-left">
+                                {currentView === 'newChat' && (
+                                    <button
+                                        className="back-btn"
+                                        onClick={() => setCurrentView('conversations')}
+                                        title="Back to chats"
+                                    >
+                                        <FiArrowLeft size={18} />
+                                    </button>
+                                )}
+                                <h4>{currentView === 'newChat' ? 'New Message' : 'Chats'}</h4>
+                            </div>
+                            <div className="message-header-actions">
+                                {currentView === 'conversations' && (
                                     <button
                                         className="new-chat-btn"
                                         onClick={() => {
-                                            console.log('+ button clicked. Current currentView:', currentView);
-                                            console.log('Current userId:', userId);
                                             setCurrentView('newChat');
                                         }}
                                         title="Start new conversation"
                                     >
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M12 5v14m7-7H5" />
-                                        </svg>
+                                        <FiPlus size={18} />
                                     </button>
-                                </div>
-                            )}
+                                )}
+                                <button
+                                    className="header-action-btn close-btn"
+                                    onClick={() => setShowModal(false)}
+                                    title="Close"
+                                >
+                                    <FiX size={18} />
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -1440,6 +1582,7 @@ const MessageIcon = ({ userId }) => {
                                                     >
                                                         {conversation.userName?.charAt(0).toUpperCase() || 'U'}
                                                     </div>
+                                                    <span className="messenger-online-dot"></span>
                                                 </div>
                                                 <div className="conversation-info">
                                                     <div className="conversation-header">
@@ -1652,25 +1795,26 @@ const MessageIcon = ({ userId }) => {
                                             onClick={() => fileInputRef.current?.click()}
                                             className="file-input-btn"
                                             title="Attach file"
+                                            type="button"
                                         >
-                                            +
+                                            <FiPaperclip size={18} />
                                         </button>
                                         <input
                                             type="text"
                                             value={newMessage}
                                             onChange={(e) => setNewMessage(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                                            placeholder="Type a message..."
+                                            placeholder="Aa"
                                             className="message-input"
                                         />
                                         <button
                                             onClick={sendMessage}
                                             disabled={!newMessage.trim() && !selectedFile}
                                             className="send-btn"
+                                            title="Send message"
+                                            type="button"
                                         >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-                                            </svg>
+                                            <FiSend size={16} />
                                         </button>
                                     </div>
                                 </div>

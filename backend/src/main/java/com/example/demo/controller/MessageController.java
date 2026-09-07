@@ -7,6 +7,7 @@ import com.example.demo.model.User;
 import com.example.demo.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,11 +21,16 @@ public class MessageController {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @PostMapping("/send")
     public ResponseEntity<MessageResponse> sendMessage(@RequestBody MessageCreateRequest request,
                                                      @RequestParam Long senderId) {
         try {
             MessageResponse message = messageService.sendMessage(request, senderId);
+            // Broadcast via WebSocket so recipient sees message in real-time
+            broadcastNewMessage(senderId, request.getRecipientId(), message);
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
@@ -54,9 +60,28 @@ public class MessageController {
             request.setIsForwarded(isForwarded);
             
             MessageResponse message = messageService.sendMessage(request, senderId);
+            // Broadcast via WebSocket so recipient sees message in real-time
+            broadcastNewMessage(senderId, recipientId, message);
             return ResponseEntity.ok(message);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    /**
+     * Broadcast a new message to both conversation participants via WebSocket.
+     */
+    private void broadcastNewMessage(Long senderId, Long recipientId, MessageResponse message) {
+        try {
+            String topicSent = "/topic/messages/" + senderId + "-" + recipientId;
+            String topicReceived = "/topic/messages/" + recipientId + "-" + senderId;
+            messagingTemplate.convertAndSend(topicSent, message);
+            messagingTemplate.convertAndSend(topicReceived, message);
+            // Update unread count for recipient
+            long unreadCount = messageService.getUnreadCount(recipientId);
+            messagingTemplate.convertAndSend("/topic/unread/" + recipientId, unreadCount);
+        } catch (Exception e) {
+            System.err.println("WebSocket broadcast error: " + e.getMessage());
         }
     }
 

@@ -301,6 +301,35 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
       return;
     }
 
+    // Client-side file type validation
+    const fileName = copyCheckerFile.name.toLowerCase();
+    const validExtensions = ['.csv'];
+    const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+    const hasValidMimeType = copyCheckerFile.type === 'text/csv' || 
+                             copyCheckerFile.type === 'application/vnd.ms-excel' ||
+                             copyCheckerFile.type === 'text/plain' ||
+                             copyCheckerFile.type === '';
+
+    if (!hasValidExtension) {
+      setMessage('Invalid file type. Please upload a CSV file (.csv). The file should contain student emails or IDs in the first column.');
+      setMessageType('error');
+      return;
+    }
+
+    // Validate file is not empty
+    if (copyCheckerFile.size === 0) {
+      setMessage('The selected CSV file is empty. Please upload a file with student data.');
+      setMessageType('error');
+      return;
+    }
+
+    // Validate file is not too large (max 5MB)
+    if (copyCheckerFile.size > 5 * 1024 * 1024) {
+      setMessage('File is too large. Maximum size is 5MB for copy checker CSV files.');
+      setMessageType('error');
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append('file', copyCheckerFile);
@@ -552,9 +581,9 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
               <div style={{ 
                 background: `linear-gradient(135deg, ${
                   studentIndex % 4 === 0 ? '#1e40af, #2563eb' :
-                  studentIndex % 4 === 1 ? '#0284c7, #0369a1' :
-                  studentIndex % 4 === 2 ? '#4facfe, #00f2fe' :
-                  '#43e97b, #38f9d7'
+                  studentIndex % 4 === 1 ? '#0369a1, #0284c7' :
+                  studentIndex % 4 === 2 ? '#1d4ed8, #3b82f6' :
+                  '#1e3a8a, #1d4ed8'
                 })`,
                 padding: '1rem 1.25rem',
                 color: 'white'
@@ -1366,26 +1395,76 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                     marginBottom: '0.75rem',
                     fontSize: '1rem'
                   }}>
-                    CSV File
+                    CSV File <span style={{ color: '#ef4444', fontSize: '0.85rem' }}>*</span>
                   </label>
                   <input 
                     type="file" 
                     className="form-control"
-                    accept=".csv"
-                    onChange={(e) => setCopyCheckerFile(e.target.files[0])}
+                    accept=".csv,text/csv"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const isCSV = file.name.toLowerCase().endsWith('.csv');
+                        if (!isCSV) {
+                          setMessage('Please select a .csv file only');
+                          setMessageType('error');
+                          e.target.value = '';
+                          setCopyCheckerFile(null);
+                          return;
+                        }
+                      }
+                      setCopyCheckerFile(file || null);
+                    }}
                     style={{
-                      borderColor: '#d1d5db',
+                      borderColor: copyCheckerFile ? '#22c55e' : '#d1d5db',
                       borderRadius: '12px',
                       padding: '1rem',
-                      fontSize: '1rem'
+                      fontSize: '1rem',
+                      transition: 'border-color 0.2s ease'
                     }}
                   />
-                  <div className="form-text" style={{ 
-                    color: '#6b7280', 
-                    fontSize: '0.9rem', 
-                    marginTop: '0.75rem' 
+                  {copyCheckerFile && (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      marginTop: '0.5rem',
+                      padding: '0.5rem 0.75rem',
+                      background: '#f0fdf4',
+                      borderRadius: '8px',
+                      border: '1px solid #bbf7d0',
+                      fontSize: '0.875rem',
+                      color: '#15803d'
+                    }}>
+                      <FiCheckCircle size={14} />
+                      <span>{copyCheckerFile.name}</span>
+                      <span style={{ color: '#64748b', marginLeft: 'auto' }}>
+                        {(copyCheckerFile.size / 1024).toFixed(1)} KB
+                      </span>
+                    </div>
+                  )}
+                  {/* CSV Format Guide */}
+                  <div style={{
+                    marginTop: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    background: '#eff6ff',
+                    borderRadius: '8px',
+                    border: '1px solid #bfdbfe',
+                    fontSize: '0.85rem'
                   }}>
-                    <FiFileText aria-hidden="true" /> Upload a CSV file containing flagged student emails for plagiarism detection
+                    <div style={{ fontWeight: '600', color: '#1d4ed8', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <FiFileText size={13} /> Expected CSV Format
+                    </div>
+                    <div style={{ color: '#1e40af', fontFamily: 'monospace', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
+                      studentEmail (or studentId),isFlagged
+                    </div>
+                    <div style={{ color: '#3b82f6', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                      student@university.edu,true<br />
+                      another@university.edu,false
+                    </div>
+                    <div style={{ color: '#64748b', marginTop: '0.4rem', fontSize: '0.78rem' }}>
+                      Only rows with <strong>true</strong> in the second column will have penalties applied.
+                    </div>
                   </div>
                 </div>
               </div>

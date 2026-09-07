@@ -68,7 +68,7 @@ public class AnnouncementService {
             User teacher = userRepository.findById(teacherId)
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
-            String title = "📝 New Assignment Posted: " + assignmentTitle;
+            String title = "New Assignment Posted: " + assignmentTitle;
             String content = "A new assignment \"" + assignmentTitle + "\" has been posted. Please check the assignments section for details and submission requirements.";
 
             Announcement announcement = Announcement.builder()
@@ -101,8 +101,7 @@ public class AnnouncementService {
             User teacher = userRepository.findById(teacherId)
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
-            String emoji = getResourceEmoji(resourceType);
-            String title = emoji + " New Resource Added: " + resourceTitle;
+            String title = "New Resource Added: " + resourceTitle;
             String content = "A new " + resourceType.toLowerCase() + " resource \"" + resourceTitle + "\" has been added to the course. Check the resources section to access it.";
 
             Announcement announcement = Announcement.builder()
@@ -135,7 +134,7 @@ public class AnnouncementService {
             User teacher = userRepository.findById(teacherId)
                     .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
-            String title = "💬 New Discussion Thread: " + threadTitle;
+            String title = "New Discussion Thread: " + threadTitle;
             String content = "A new discussion thread \"" + threadTitle + "\" has been started. Join the conversation in the discussions section.";
 
             Announcement announcement = Announcement.builder()
@@ -157,16 +156,7 @@ public class AnnouncementService {
     }
 
     private String getResourceEmoji(String resourceType) {
-        switch (resourceType.toUpperCase()) {
-            case "FILE":
-                return "📁";
-            case "LINK":
-                return "🔗";
-            case "NOTE":
-                return "📝";
-            default:
-                return "📘";
-        }
+        return "";
     }
 
     private AnnouncementResponse mapToResponse(Announcement announcement) {

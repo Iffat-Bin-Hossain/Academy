@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "@tailwindcss/postcss7-compat": "^2.2.17",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.4",
@@ -18,6 +19,7 @@
     "react-linkify": "^1.0.0-alpha",
     "react-router-dom": "^6.30.1",
     "react-scripts": "^5.0.1",
+    "sockjs-client": "^1.6.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

@@ -593,12 +593,7 @@ public class NotificationService {
     }
 
     private String getResourceTypeEmoji(Resource.ResourceType type) {
-        switch (type) {
-            case FILE: return "📎";
-            case LINK: return "🔗";
-            case NOTE: return "📝";
-            default: return "📚";
-        }
+        return "";
     }
 
     // Updated assignment notification for students
@@ -618,7 +613,7 @@ public class NotificationService {
             Notification notification = Notification.builder()
                     .recipient(student)
                     .type(Notification.NotificationType.ASSIGNMENT_UPDATED)
-                    .title("📝 Assignment Updated")
+                    .title("Assignment Updated")
                     .message(String.format("Assignment '%s' has been updated in %s by %s", 
                         assignment.getTitle(), course.getTitle(), teacher.getName()))
                     .redirectUrl(redirectUrl)
@@ -708,7 +703,7 @@ public class NotificationService {
             Notification notification = Notification.builder()
                     .recipient(student)
                     .type(Notification.NotificationType.NEW_DISCUSSION_THREAD)
-                    .title("💬 New Discussion Thread Created")
+                    .title("New Discussion Thread Created")
                     .message(String.format("New discussion thread '%s' has been created in %s by %s", 
                         thread.getTitle(), course.getTitle(), teacher.getName()))
                     .redirectUrl(redirectUrl)
@@ -859,7 +854,7 @@ public class NotificationService {
                 Notification notification = Notification.builder()
                         .recipient(admin)
                         .type(Notification.NotificationType.NEW_SIGNUP_REQUEST)
-                        .title("🔔 New Signup Request")
+                        .title("New Signup Request")
                         .message(String.format("New user %s (%s) has signed up and is waiting for approval. Role: %s", 
                             newUser.getName(), newUser.getEmail(), newUser.getRole().toString()))
                         .redirectUrl("/admin/users") // Redirect to user management page
@@ -892,7 +887,7 @@ public class NotificationService {
                 Notification notification = Notification.builder()
                         .recipient(student)
                         .type(Notification.NotificationType.NEW_COURSE_CREATED)
-                        .title("📚 New Course Available")
+                        .title("New Course Available")
                         .message(message)
                         .redirectUrl("/student") // Redirect to student dashboard
                         .relatedCourse(course)
@@ -1087,7 +1082,7 @@ public class NotificationService {
             Notification notification = Notification.builder()
                     .recipient(student)
                     .type(Notification.NotificationType.PLAGIARISM_DETECTED)
-                    .title("⚠️ Plagiarism Detected")
+                    .title("Plagiarism Detected")
                     .message(message)
                     .redirectUrl(redirectUrl)
                     .relatedCourse(assignment.getCourse())

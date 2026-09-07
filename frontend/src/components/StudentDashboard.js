@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Dashboard from './Dashboard';
 import axios from '../api/axiosInstance';
+import { FiBookOpen, FiClock, FiAward, FiSearch, FiCheck, FiUser, FiSend, FiBarChart2 } from 'react-icons/fi';
 
 const StudentDashboard = ({ user, onLogout }) => {
   const [stats, setStats] = useState({
@@ -23,18 +24,21 @@ const StudentDashboard = ({ user, onLogout }) => {
         axios.get(`/courses/student/${user.id}`),
         axios.get('/courses')
       ]);
+
+      const enrolled = enrolledRes.data || [];
+      const allCourses = allCoursesRes.data || [];
       
-      setEnrolledCourses(enrolledRes.data);
-      setAvailableCourses(allCoursesRes.data);
+      setEnrolledCourses(enrolled);
+      setAvailableCourses(allCourses);
       
-      const approvedEnrollments = enrolledRes.data.filter(e => e.status === 'APPROVED');
-      const pendingEnrollments = enrolledRes.data.filter(e => e.status === 'PENDING');
+      const approved = enrolled.filter(e => e.status === 'APPROVED').length;
+      const pending = enrolled.filter(e => e.status === 'PENDING').length;
       
       setStats({
-        enrolledCourses: approvedEnrollments.length,
-        pendingRequests: pendingEnrollments.length,
-        completedCourses: 0, // TODO: Add completed courses logic
-        availableCourses: allCoursesRes.data.length
+        enrolledCourses: approved,
+        pendingRequests: pending,
+        completedCourses: 0,
+        availableCourses: allCourses.length
       });
       
       setLoading(false);
@@ -46,35 +50,38 @@ const StudentDashboard = ({ user, onLogout }) => {
 
   const handleEnrollRequest = async (courseId) => {
     try {
-      await axios.post(`/courses/enroll?courseId=${courseId}&studentId=${user.id}`);
-      fetchStudentData(); // Refresh data
+      await axios.post('/courses/enroll', null, {
+        params: {
+          studentId: user.id,
+          courseId: courseId
+        }
+      });
+      alert('Enrollment request submitted successfully!');
+      fetchStudentData();
     } catch (error) {
       console.error('Error requesting enrollment:', error);
+      alert(error.response?.data?.error || 'Failed to submit enrollment request');
     }
   };
 
   const isEnrolledInCourse = (courseId) => {
-    return enrolledCourses.some(enrollment => enrollment.course.id === courseId);
+    return enrolledCourses.some(e => e.course.id === courseId);
   };
 
   if (loading) {
     return (
       <Dashboard user={user} onLogout={onLogout}>
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p>Loading student dashboard...</p>
-        </div>
+        <div className="loading">Loading student dashboard...</div>
       </Dashboard>
     );
   }
 
   return (
     <Dashboard user={user} onLogout={onLogout}>
-      {/* Stats Cards */}
       <div className="dashboard-cards">
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">📚</div>
+            <div className="card-icon"><FiBookOpen /></div>
             <h3 className="card-title">Enrolled</h3>
           </div>
           <div className="card-content">
@@ -85,7 +92,7 @@ const StudentDashboard = ({ user, onLogout }) => {
 
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">⏳</div>
+            <div className="card-icon"><FiClock /></div>
             <h3 className="card-title">Pending</h3>
           </div>
           <div className="card-content">
@@ -96,7 +103,7 @@ const StudentDashboard = ({ user, onLogout }) => {
 
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">🎓</div>
+            <div className="card-icon"><FiAward /></div>
             <h3 className="card-title">Completed</h3>
           </div>
           <div className="card-content">
@@ -107,7 +114,7 @@ const StudentDashboard = ({ user, onLogout }) => {
 
         <div className="dashboard-card">
           <div className="card-header">
-            <div className="card-icon">🔍</div>
+            <div className="card-icon"><FiSearch /></div>
             <h3 className="card-title">Available</h3>
           </div>
           <div className="card-content">
@@ -117,11 +124,9 @@ const StudentDashboard = ({ user, onLogout }) => {
         </div>
       </div>
 
-      {/* Student Sections */}
       <div className="student-sections">
-        {/* My Courses */}
         <div className="student-section">
-          <h2 className="section-title">📖 My Courses</h2>
+          <h2 className="section-title"><FiBookOpen style={{ marginRight: '0.5rem' }} /> My Courses</h2>
           <div className="section-content">
             {stats.enrolledCourses === 0 ? (
               <div className="empty-state">
@@ -140,13 +145,13 @@ const StudentDashboard = ({ user, onLogout }) => {
                       <p className="course-description">{enrollment.course.description}</p>
                       <div className="course-footer">
                         <span className="teacher-info">
-                          👨‍🏫 {enrollment.course.assignedTeacher?.name || 'No teacher assigned'}
+                          <FiUser style={{ marginRight: '0.35rem' }} /> {enrollment.course.assignedTeacher?.name || 'No teacher assigned'}
                         </span>
-                        <div className="enrollment-status approved">✅ Enrolled</div>
+                        <div className="enrollment-status approved"><FiCheck style={{ marginRight: '0.25rem' }} /> Enrolled</div>
                       </div>
                       <div className="course-actions">
-                        <button className="action-btn primary">📖 Enter Course</button>
-                        <button className="action-btn">📊 View Progress</button>
+                        <button className="action-btn primary"><FiBookOpen style={{ marginRight: '0.35rem' }} /> Enter Course</button>
+                        <button className="action-btn"><FiBarChart2 style={{ marginRight: '0.35rem' }} /> View Progress</button>
                       </div>
                     </div>
                   ))}
@@ -155,10 +160,9 @@ const StudentDashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Pending Requests */}
         {stats.pendingRequests > 0 && (
           <div className="student-section">
-            <h2 className="section-title">⏳ Pending Enrollment Requests</h2>
+            <h2 className="section-title"><FiClock style={{ marginRight: '0.5rem' }} /> Pending Enrollment Requests</h2>
             <div className="section-content">
               <div className="course-grid">
                 {enrolledCourses
@@ -172,9 +176,9 @@ const StudentDashboard = ({ user, onLogout }) => {
                       <p className="course-description">{enrollment.course.description}</p>
                       <div className="course-footer">
                         <span className="teacher-info">
-                          👨‍🏫 {enrollment.course.assignedTeacher?.name || 'No teacher assigned'}
+                          <FiUser style={{ marginRight: '0.35rem' }} /> {enrollment.course.assignedTeacher?.name || 'No teacher assigned'}
                         </span>
-                        <div className="enrollment-status pending">⏳ Awaiting Approval</div>
+                        <div className="enrollment-status pending"><FiClock style={{ marginRight: '0.25rem' }} /> Awaiting Approval</div>
                       </div>
                     </div>
                   ))}
@@ -183,24 +187,18 @@ const StudentDashboard = ({ user, onLogout }) => {
           </div>
         )}
 
-        {/* Browse Courses */}
         <div className="student-section">
-          <h2 className="section-title">🔍 Browse Available Courses</h2>
+          <h2 className="section-title"><FiSearch style={{ marginRight: '0.5rem' }} /> Browse Available Courses</h2>
           <div className="section-content">
             <div className="course-grid">
               {availableCourses
                 .sort((a, b) => {
-                  // Sort by level first (1, 2, 3, 4)
                   const levelA = parseInt(a.level) || 0;
                   const levelB = parseInt(b.level) || 0;
                   if (levelA !== levelB) return levelA - levelB;
-                  
-                  // Then by term (1, 2, 3, 4)
                   const termA = parseInt(a.term) || 0;
                   const termB = parseInt(b.term) || 0;
                   if (termA !== termB) return termA - termB;
-                  
-                  // Finally by courseCode alphabetically
                   const codeA = a.courseCode || '';
                   const codeB = b.courseCode || '';
                   return codeA.localeCompare(codeB);
@@ -216,7 +214,7 @@ const StudentDashboard = ({ user, onLogout }) => {
                     <p className="course-description">{course.description}</p>
                     <div className="course-footer">
                       <span className="teacher-info">
-                        👨‍🏫 {course.assignedTeacher?.name || 'No teacher assigned'}
+                        <FiUser style={{ marginRight: '0.35rem' }} /> {course.assignedTeacher?.name || 'No teacher assigned'}
                       </span>
                     </div>
                     <div className="course-actions">
@@ -229,7 +227,7 @@ const StudentDashboard = ({ user, onLogout }) => {
                           className="action-btn primary"
                           onClick={() => handleEnrollRequest(course.id)}
                         >
-                          📝 Request Enrollment
+                          <FiSend style={{ marginRight: '0.35rem' }} /> Request Enrollment
                         </button>
                       )}
                     </div>

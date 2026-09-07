@@ -163,7 +163,7 @@
 }
 
 .role-badge.admin {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    background: linear-gradient(45deg, #1e3a8a, #1e40af);
     color: white;
 }
 
@@ -173,7 +173,7 @@
 }
 
 .role-badge.student {
-    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    background: linear-gradient(45deg, #0284c7, #38bdf8);
     color: white;
 }
 

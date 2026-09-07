@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.model.*;
 import com.example.demo.service.AssignmentService;
+import com.example.demo.service.AssignmentFileService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,12 @@ public class AssignmentControllerTest {
 
     @MockBean
     private AssignmentService assignmentService;
+
+    @MockBean
+    private AssignmentFileService assignmentFileService;
+
+    @MockBean
+    private com.example.demo.config.JwtUtil jwtUtil;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -70,6 +77,7 @@ public class AssignmentControllerTest {
 
         // Act & Assert
         mockMvc.perform(post("/api/assignments")
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf())
                         .param("teacherId", "1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

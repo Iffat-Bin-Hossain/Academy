@@ -132,7 +132,7 @@ public class AssignmentService {
             throw new RuntimeException("Maximum marks must be greater than 0");
         }
 
-        if (request.getDeadline() != null && request.getDeadline().isBefore(LocalDateTime.now())) {
+        if (request.getDeadline() != null && request.getDeadline().isBefore(LocalDateTime.now().minusMinutes(5))) {
             throw new RuntimeException("Deadline cannot be in the past");
         }
 
@@ -377,7 +377,7 @@ public class AssignmentService {
             throw new RuntimeException("Assignment deadline is required");
         }
 
-        if (request.getDeadline().isBefore(LocalDateTime.now())) {
+        if (request.getDeadline().isBefore(LocalDateTime.now().minusMinutes(5))) {
             throw new RuntimeException("Deadline cannot be in the past");
         }
 

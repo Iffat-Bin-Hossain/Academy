@@ -117,10 +117,25 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     setShowCreateModal(true);
   };
 
-  // Helper function to format date for datetime-local input (no timezone conversion)
+  // Helper function to format date for datetime-local input (preserves exact local date/time)
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
-    // Simply format the date without any timezone adjustments
+    if (typeof dateString === 'string') {
+      // If it contains Z or +, parse it with Date to local time
+      if (dateString.includes('Z') || dateString.includes('+')) {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+      // If it's already "YYYY-MM-DDTHH:mm:ss" from backend, take the first 16 chars
+      if (dateString.length >= 16 && dateString.includes('T')) {
+        return dateString.substring(0, 16);
+      }
+    }
     const date = new Date(dateString);
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -130,22 +145,36 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  // Helper function to convert datetime-local input to ISO string (no timezone conversion)
+  // Helper function to convert datetime-local input to local ISO format without UTC shift
   const convertInputDateToISO = (inputDateString) => {
     if (!inputDateString) return null;
-    // Keep the exact datetime as entered
-    return new Date(inputDateString).toISOString();
+    // inputDateString is "YYYY-MM-DDTHH:mm" from input type="datetime-local"
+    // Send as "YYYY-MM-DDTHH:mm:00" directly to backend LocalDateTime without UTC conversion
+    if (typeof inputDateString === 'string') {
+      if (inputDateString.length === 16) {
+        return `${inputDateString}:00`;
+      }
+      return inputDateString;
+    }
+    const d = new Date(inputDateString);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
   };
 
-  // Date validation functions
+  // Date validation functions with 5-minute grace tolerance
   const validateDeadlineDate = (deadlineValue, lateDeadlineValue = assignmentForm.lateSubmissionDeadline) => {
     const errors = { ...dateErrors };
     
     if (deadlineValue) {
       const deadlineDate = new Date(deadlineValue);
-      const now = new Date();
+      const nowWithBuffer = new Date(Date.now() - 5 * 60 * 1000); // 5-minute grace tolerance
       
-      if (deadlineDate <= now) {
+      if (deadlineDate <= nowWithBuffer) {
         errors.deadline = 'Deadline must be in the future';
       } else {
         errors.deadline = '';
@@ -373,7 +402,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
         deadline: convertInputDateToISO(assignmentForm.deadline),
         lateSubmissionDeadline: assignmentForm.lateSubmissionDeadline ? 
           convertInputDateToISO(assignmentForm.lateSubmissionDeadline) : 
-          lateDeadline.toISOString(),
+          convertInputDateToISO(lateDeadline),
         instructions: assignmentForm.instructions || '',
         assignmentType: assignmentForm.assignmentType
       };
@@ -464,7 +493,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
         deadline: convertInputDateToISO(assignmentForm.deadline),
         lateSubmissionDeadline: assignmentForm.lateSubmissionDeadline ? 
           convertInputDateToISO(assignmentForm.lateSubmissionDeadline) : 
-          lateDeadline.toISOString(),
+          convertInputDateToISO(lateDeadline),
         instructions: assignmentForm.instructions || '',
         assignmentType: assignmentForm.assignmentType
       };
@@ -1039,7 +1068,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       {/* Create Assignment Modal */}
       {showCreateModal && (
         <div className="modal-overlay" onClick={closeCreateModal}>
-          <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Create New Assignment</h3>
               <button 
@@ -1047,7 +1076,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={closeCreateModal}
                 aria-label="Close modal"
               >
-                
+                <FiX size={18} />
               </button>
             </div>
             <form onSubmit={handleCreateAssignment}>
@@ -1392,7 +1421,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       {/* Edit Assignment Modal */}
       {showEditModal && editingAssignment && (
         <div className="modal-overlay" onClick={closeEditModal}>
-          <div className="modal-content" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Edit Assignment</h3>
               <button 
@@ -1400,7 +1429,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={closeEditModal}
                 aria-label="Close modal"
               >
-                
+                <FiX size={18} />
               </button>
             </div>
             <form onSubmit={handleEditAssignment}>
@@ -1828,7 +1857,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 onClick={closeSubmissionsModal}
                 aria-label="Close modal"
               >
-                
+                <FiX size={18} />
               </button>
             </div>
             <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
@@ -1881,7 +1910,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                           color: '#dc2626',
                           fontWeight: '600'
                         }}>
-                          ⏰ Late: {submissions.filter(s => s.isLate).length}
+                          <FiClock style={{ marginRight: '0.35rem', verticalAlign: 'middle' }} /> Late: {submissions.filter(s => s.isLate).length}
                         </span>
                       </div>
                     </div>

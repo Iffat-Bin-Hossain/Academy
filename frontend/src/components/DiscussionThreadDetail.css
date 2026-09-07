@@ -149,14 +149,15 @@
 
 .no-posts {
   text-align: center;
-  padding: 3rem;
+  padding: 2rem 1.5rem;
   color: #64748b;
 }
 
 .no-posts-icon {
-  font-size: 3rem;
+  font-size: 2.2rem;
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  color: #94a3b8;
 }
 
 .no-posts h5 {
@@ -422,7 +423,7 @@
 
 .replies-line {
   height: 2px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   border-radius: 1px;
   flex: 1;
 }

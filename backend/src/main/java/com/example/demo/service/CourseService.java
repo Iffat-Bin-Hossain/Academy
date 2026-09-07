@@ -216,10 +216,10 @@ public class CourseService {
             courseRepo.delete(course);
             courseRepo.flush(); // Force immediate deletion
             
-            return "✅ Course deleted successfully with all related data (notifications, messages, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, faculty feedback, assessment grids, assignment files, student submissions, submission files, assignments, and teacher assignments)";
+            return "Course deleted successfully with all related data (notifications, messages, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, faculty feedback, assessment grids, assignment files, student submissions, submission files, assignments, and teacher assignments)";
             
         } catch (Exception e) {
-            throw new RuntimeException("Failed to delete course: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to delete course: "+ e.getMessage(), e);
         }
     }
 
@@ -237,7 +237,7 @@ public class CourseService {
         long currentEnrollmentCount = allCurrentEnrollments.stream()
                 .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED)
                 .count();
-        System.out.println("📊 BEFORE teacher assignment - Course '" + course.getTitle() + "' has " + currentEnrollmentCount + " approved enrolled students");
+        System.out.println("BEFORE teacher assignment - Course '"+ course.getTitle() + "' has "+ currentEnrollmentCount + "approved enrolled students");
 
         // Check if there's already a teacher assigned (for replacement notification)
         User previousTeacher = course.getAssignedTeacher();
@@ -250,13 +250,13 @@ public class CourseService {
             wasStudent = true;
             
             // Log the transition for audit purposes
-            System.out.println("🔄 User role transition: " + teacher.getName() + " (" + teacher.getEmail() + ") is being promoted from STUDENT to TEACHER for course: " + course.getTitle());
-            System.out.println("📋 Previous enrollment status: " + enrollment.getStatus() + ", enrolled since: " + enrollment.getEnrolledAt());
+            System.out.println("User role transition: "+ teacher.getName() + "("+ teacher.getEmail() + ") is being promoted from STUDENT to TEACHER for course: "+ course.getTitle());
+            System.out.println("Previous enrollment status: "+ enrollment.getStatus() + ", enrolled since: "+ enrollment.getEnrolledAt());
             
             // Remove the teacher from student enrollment since they are now a teacher
             enrollmentRepo.delete(enrollment);
-            System.out.println("✅ Removed user " + teacher.getName() + " from student enrollment in course " + course.getTitle());
-            System.out.println("📊 Course enrollment count will be automatically updated (decreased by 1)");
+            System.out.println("Removed user "+ teacher.getName() + "from student enrollment in course "+ course.getTitle());
+            System.out.println("Course enrollment count will be automatically updated (decreased by 1)");
             
             // Note: We preserve historical data like attendance records and submissions
             // as they represent the user's past performance as a student
@@ -271,7 +271,7 @@ public class CourseService {
         long finalEnrollmentCount = allFinalEnrollments.stream()
                 .filter(e -> e.getStatus() == EnrollmentStatus.APPROVED)
                 .count();
-        System.out.println("📊 AFTER teacher assignment - Course '" + course.getTitle() + "' now has " + finalEnrollmentCount + " approved enrolled students");
+        System.out.println("AFTER teacher assignment - Course '"+ course.getTitle() + "' now has "+ finalEnrollmentCount + "approved enrolled students");
         
         // Also ensure there's an active CourseTeacher entry
         // First, deactivate any existing CourseTeacher entries for this course
@@ -317,14 +317,14 @@ public class CourseService {
             }
         } catch (Exception e) {
             // Log error but don't fail the assignment
-            System.err.println("Failed to send teacher assignment notification: " + e.getMessage());
+            System.err.println("Failed to send teacher assignment notification: "+ e.getMessage());
         }
         
         // Return appropriate message based on whether student enrollment was removed
         if (wasStudent) {
-            return "✅ Teacher assigned to course (and removed from student enrollment)";
+            return "Teacher assigned to course (and removed from student enrollment)";
         } else {
-            return "✅ Teacher assigned to course";
+            return "Teacher assigned to course";
         }
     }
 
@@ -354,11 +354,11 @@ public class CourseService {
                     currentTeacher.getId(), course, null);
             } catch (Exception e) {
                 // Log error but don't fail the removal
-                System.err.println("Failed to send teacher removal notification: " + e.getMessage());
+                System.err.println("Failed to send teacher removal notification: "+ e.getMessage());
             }
         }
         
-        return "✅ Teacher removed from course";
+        return "Teacher removed from course";
     }
 
     // STUDENT requests to enroll
@@ -369,7 +369,7 @@ public class CourseService {
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         if (enrollmentRepo.findByStudentAndCourse(student, course).isPresent()) {
-            return "⚠️ Already requested or enrolled";
+            return "Already requested or enrolled";
         }
 
         CourseEnrollment enrollment = CourseEnrollment.builder()
@@ -384,7 +384,7 @@ public class CourseService {
         // Notify teacher about new enrollment request
         notificationService.createEnrollmentRequestNotification(course.getAssignedTeacher(), course, student);
         
-        return "✅ Enrollment request sent";
+        return "Enrollment request sent";
     }
 
     // TEACHER views pending requests
@@ -405,11 +405,11 @@ public class CourseService {
 
         // Enhanced security: Verify teacher role and assignment
         if (teacher.getRole() != Role.TEACHER) {
-            return "❌ Only teachers can approve/reject enrollments";
+            return "Only teachers can approve/reject enrollments";
         }
 
         if (!enrollment.getCourse().getAssignedTeacher().getId().equals(teacherId)) {
-            return "❌ You are not the assigned teacher for this course";
+            return "You are not the assigned teacher for this course";
         }
 
         enrollment.setStatus(approve ? EnrollmentStatus.APPROVED : EnrollmentStatus.REJECTED);
@@ -420,7 +420,7 @@ public class CourseService {
         // Notify student about enrollment decision
         notificationService.createEnrollmentDecisionNotification(enrollment.getStudent(), enrollment.getCourse(), approve);
 
-        return approve ? "✅ Enrollment approved" : "❌ Enrollment rejected";
+        return approve ? "Enrollment approved": "Enrollment rejected";
     }
 
     // TEACHER bulk approves/rejects students
@@ -430,19 +430,19 @@ public class CourseService {
 
         // Enhanced security: Verify teacher role
         if (teacher.getRole() != Role.TEACHER) {
-            return "❌ Only teachers can approve/reject enrollments";
+            return "Only teachers can approve/reject enrollments";
         }
 
         List<CourseEnrollment> enrollments = enrollmentRepo.findAllById(enrollmentIds);
         
         if (enrollments.size() != enrollmentIds.size()) {
-            return "❌ Some enrollment requests not found";
+            return "Some enrollment requests not found";
         }
 
         // Verify teacher is assigned to all courses
         for (CourseEnrollment enrollment : enrollments) {
             if (!enrollment.getCourse().getAssignedTeacher().getId().equals(teacherId)) {
-                return "❌ You are not the assigned teacher for all selected courses";
+                return "You are not the assigned teacher for all selected courses";
             }
         }
 
@@ -465,16 +465,16 @@ public class CourseService {
                         enrollment.getStudent(), enrollment.getCourse(), approve);
                 } catch (Exception e) {
                     // Log error but don't fail the bulk operation
-                    System.err.println("Failed to send notification for enrollment " + 
-                                     enrollment.getId() + ": " + e.getMessage());
+                    System.err.println("Failed to send notification for enrollment "+ 
+                                     enrollment.getId() + ": "+ e.getMessage());
                 }
 
                 processedCount++;
             }
         }
 
-        String action = approve ? "approved" : "rejected";
-        return "✅ " + processedCount + " enrollment" + (processedCount != 1 ? "s" : "") + " " + action;
+        String action = approve ? "approved": "rejected";
+        return ""+ processedCount + "enrollment"+ (processedCount != 1 ? "s": "") + ""+ action;
     }
 
     // STUDENT: view all enrollments (approved, pending, retaking)
@@ -600,13 +600,13 @@ public class CourseService {
         // 10. Finally, delete all courses
         courseRepo.deleteAll(allCourses);
         
-        return "✅ All courses and related data cleared successfully. Total courses removed: " + allCourses.size() + 
-               " (including notifications, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, assignment files, student submissions, submission files, assignments, and teacher assignments)";
+        return "All courses and related data cleared successfully. Total courses removed: "+ allCourses.size() + 
+               "(including notifications, discussion post reactions, discussion posts, discussion threads, resources, announcements, attendance records, attendance sessions, enrollments, assignment files, student submissions, submission files, assignments, and teacher assignments)";
     }
 
     // ADMIN: One-time cleanup to fix existing teacher-student enrollment conflicts
     public String cleanupExistingTeacherEnrollments() {
-        System.out.println("🧹 Starting cleanup of existing teacher-student enrollment conflicts...");
+        System.out.println("Starting cleanup of existing teacher-student enrollment conflicts...");
         
         // Get all courses that have assigned teachers
         List<Course> coursesWithTeachers = courseRepo.findAll().stream()
@@ -626,18 +626,18 @@ public class CourseService {
                 CourseEnrollment enrollment = conflictingEnrollment.get();
                 totalConflictsFound++;
                 
-                System.out.println("🔧 CONFLICT FOUND: " + assignedTeacher.getName() + " (" + assignedTeacher.getEmail() + ") is both TEACHER and STUDENT in course: " + course.getTitle());
-                System.out.println("📋 Student enrollment status: " + enrollment.getStatus() + ", enrolled since: " + enrollment.getEnrolledAt());
+                System.out.println("CONFLICT FOUND: "+ assignedTeacher.getName() + "("+ assignedTeacher.getEmail() + ") is both TEACHER and STUDENT in course: "+ course.getTitle());
+                System.out.println("Student enrollment status: "+ enrollment.getStatus() + ", enrolled since: "+ enrollment.getEnrolledAt());
                 
                 // Remove the conflicting student enrollment
                 enrollmentRepo.delete(enrollment);
                 totalConflictsResolved++;
                 
-                System.out.println("✅ RESOLVED: Removed " + assignedTeacher.getName() + " from student enrollment in course: " + course.getTitle());
+                System.out.println("RESOLVED: Removed "+ assignedTeacher.getName() + "from student enrollment in course: "+ course.getTitle());
             }
         }
         
-        String result = "🧹 Cleanup completed! Found " + totalConflictsFound + " teacher-student enrollment conflicts, resolved " + totalConflictsResolved + " conflicts.";
+        String result = "Cleanup completed! Found "+ totalConflictsFound + "teacher-student enrollment conflicts, resolved "+ totalConflictsResolved + "conflicts.";
         System.out.println(result);
         
         return result;

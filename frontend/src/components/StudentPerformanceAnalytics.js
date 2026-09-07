@@ -6,12 +6,31 @@ import {
   FiRefreshCw, 
   FiAlertTriangle, 
   FiFileText, 
-  FiBookOpen
+  FiBookOpen,
+  FiTarget,
+  FiStar,
+  FiZap,
+  FiThumbsUp,
+  FiCheckCircle,
+  FiActivity,
+  FiXCircle
 } from 'react-icons/fi';
 import { FaGraduationCap, FaLightbulb } from 'react-icons/fa';
 
+// Map grade icon names to actual react-icon components
+const GRADE_ICONS = {
+  FiTarget: <FiTarget />,
+  FiStar: <FiStar />,
+  FiZap: <FiZap />,
+  FiThumbsUp: <FiThumbsUp />,
+  FiCheckCircle: <FiCheckCircle />,
+  FiBookOpen: <FiBookOpen />,
+  FiActivity: <FiActivity />,
+  FiAlertTriangle: <FiAlertTriangle />,
+  FiXCircle: <FiXCircle />,
+};
+
 const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
-  console.log('🔧 StudentPerformanceAnalytics component mounted!');
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +42,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     if (user && user.id) {
       fetchAnalytics();
     } else {
-      console.log('No valid user found, skipping analytics fetch');
       setLoading(false);
     }
   }, [user]);
@@ -33,7 +51,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
     if (!user || !user.id) return;
 
     const interval = setInterval(() => {
-      console.log('<FiRefreshCw /> Auto-refreshing analytics for grade updates...');
       fetchAnalytics();
     }, 30000); // Refresh every 30 seconds
 
@@ -44,8 +61,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && user?.id) {
-        console.log('<FiRefreshCw /> Page became visible - refreshing analytics for potential teacher updates...');
-        setTimeout(() => fetchAnalytics(), 1000); // Small delay to ensure backend is ready
+        setTimeout(() => fetchAnalytics(), 1000);
       }
     };
 
@@ -54,112 +70,62 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   }, [user]);
 
   const fetchAnalytics = async () => {
-    console.log('🔍 === PERFORMANCE ANALYTICS CALCULATION PROCESS ===');
-    console.log('📊 Step 1: Fetching analytics for user ID:', user?.id);
-    console.log('📊 User Email/Username: iffat@gmail.com/iffat123 (if this is the current user)');
-
     setLoading(true);
     setError(null);
     try {
-      // Enhanced cache-busting with multiple parameters to ensure fresh data
       const timestamp = new Date().getTime();
-      const randomId = Math.random().toString(36).substr(2, 9);
-      console.log('📊 Step 2: Making API request with cache-busting parameters');
-      console.log('   - Timestamp:', timestamp);
-      console.log('   - Random ID:', randomId);
-      console.log('   - API Endpoint:', `/grades/student/${user.id}/performance?_t=${timestamp}&_r=${randomId}&_v=2`);
-
-      const response = await axios.get(`/grades/student/${user.id}/performance?_t=${timestamp}&_r=${randomId}&_v=2`);
-      console.log('📊 Step 3: Analytics response received successfully at:', new Date().toISOString());
-      console.log('📊 Step 4: Raw response data structure:', response.data);
+      const response = await axios.get(`/grades/student/${user.id}/performance?_t=${timestamp}`);
       const data = response.data;
 
-      // Validate data structure to prevent React DOM errors
       if (data && typeof data === 'object') {
-        console.log('📊 Step 5: Processing and extracting analytics data...');
-        // Extract the analytics data correctly - backend returns analytics nested under 'analytics' key
         const analyticsData = data.analytics || {};
-        // Add the overall summary from the root response to the analytics data
         const fullAnalyticsData = {
           ...analyticsData,
           overallSummary: data.overallSummary || { overallGPA: 0, coursesEnrolled: 0, coursesWithGrades: 0 }
         };
-
-        console.log('📊 Step 6: Extracted and processed analytics data:', fullAnalyticsData);
-        console.log('📊 Step 7: Breaking down the data components:');
-        console.log('   🎯 Overall Summary:', fullAnalyticsData.overallSummary);
-        console.log('   📈 Performance Trends:', fullAnalyticsData.performanceTrends);
-        console.log('   📝 Assignment Type Performance:', fullAnalyticsData.assignmentTypePerformance);
-        console.log('   📊 Grade Distribution:', fullAnalyticsData.gradeDistribution);
-        console.log('   💡 Insights:', fullAnalyticsData.insights);
-
         setAnalytics(fullAnalyticsData);
-        setLastUpdated(new Date()); // Update timestamp
-        console.log('📊 Step 8: Analytics data successfully stored in component state');
+        setLastUpdated(new Date());
       } else {
-        console.error('❌ Invalid analytics data structure:', typeof data);
         setError('Invalid data received from server');
       }
     } catch (error) {
-      console.error('❌ Error fetching performance analytics:', error);
+      console.error('Error fetching performance analytics:', error);
       setError(error.response?.data?.error || 'Failed to load performance analytics');
       onShowMessage?.('Failed to load performance analytics', 'error');
     } finally {
       setLoading(false);
-      console.log('📊 === END OF FETCH PROCESS ===\n');
     }
   };  // Grade utility functions based on your grading system
   const getGradeInfo = (percentage) => {
-    // Ensure percentage is a number
     const numPercentage = typeof percentage === 'number' ? percentage : 0;
-
-    // Log the grade calculation process
-    console.log('🎯 Grade Calculation (Percentage to Letter):', {
-      input: percentage,
-      processedInput: numPercentage,
-      inputType: typeof percentage
-    });
-
     let gradeResult;
-    if (numPercentage >= 80) gradeResult = { letter: 'A+', gpa: 4.00, color: '#059669', emoji: '🎯', description: 'Outstanding' };
-    else if (numPercentage >= 75) gradeResult = { letter: 'A', gpa: 3.75, color: '#16a34a', emoji: '⭐', description: 'Excellent' };
-    else if (numPercentage >= 70) gradeResult = { letter: 'A-', gpa: 3.50, color: '#22c55e', emoji: '✨', description: 'Very Good' };
-    else if (numPercentage >= 65) gradeResult = { letter: 'B+', gpa: 3.25, color: '#84cc16', emoji: '👍', description: 'Good' };
-    else if (numPercentage >= 60) gradeResult = { letter: 'B', gpa: 3.00, color: '#a3a3a3', emoji: '👌', description: 'Above Average' };
-    else if (numPercentage >= 55) gradeResult = { letter: 'B-', gpa: 2.75, color: '#d97706', emoji: '📚', description: 'Average' };
-    else if (numPercentage >= 50) gradeResult = { letter: 'C', gpa: 2.50, color: '#f59e0b', emoji: '💪', description: 'Below Average' };
-    else if (numPercentage >= 45) gradeResult = { letter: 'D', gpa: 2.25, color: '#f97316', emoji: '🔥', description: 'Poor' };
-    else if (numPercentage >= 40) gradeResult = { letter: 'E', gpa: 2.00, color: '#f97316', emoji: '🔥', description: 'Very Poor' };
-    else gradeResult = { letter: 'F', gpa: 0.00, color: '#ef4444', emoji: '📖', description: 'Fail' };
-
-    console.log('🎯 Grade Result:', numPercentage + '% →', gradeResult.letter, '(' + gradeResult.description + ')');
+    if (numPercentage >= 80) gradeResult = { letter: 'A+', gpa: 4.00, color: '#059669', iconName: 'FiTarget', description: 'Outstanding' };
+    else if (numPercentage >= 75) gradeResult = { letter: 'A', gpa: 3.75, color: '#16a34a', iconName: 'FiStar', description: 'Excellent' };
+    else if (numPercentage >= 70) gradeResult = { letter: 'A-', gpa: 3.50, color: '#22c55e', iconName: 'FiZap', description: 'Very Good' };
+    else if (numPercentage >= 65) gradeResult = { letter: 'B+', gpa: 3.25, color: '#3b82f6', iconName: 'FiThumbsUp', description: 'Good' };
+    else if (numPercentage >= 60) gradeResult = { letter: 'B', gpa: 3.00, color: '#6366f1', iconName: 'FiCheckCircle', description: 'Above Average' };
+    else if (numPercentage >= 55) gradeResult = { letter: 'B-', gpa: 2.75, color: '#d97706', iconName: 'FiBookOpen', description: 'Average' };
+    else if (numPercentage >= 50) gradeResult = { letter: 'C', gpa: 2.50, color: '#f59e0b', iconName: 'FiActivity', description: 'Below Average' };
+    else if (numPercentage >= 45) gradeResult = { letter: 'D', gpa: 2.25, color: '#f97316', iconName: 'FiAlertTriangle', description: 'Poor' };
+    else if (numPercentage >= 40) gradeResult = { letter: 'E', gpa: 2.00, color: '#f97316', iconName: 'FiAlertTriangle', description: 'Very Poor' };
+    else gradeResult = { letter: 'F', gpa: 0.00, color: '#ef4444', iconName: 'FiXCircle', description: 'Fail' };
     return gradeResult;
   };
 
   // Function to convert GPA to letter grade directly
   const getGradeFromGPA = (gpa) => {
     const numGPA = typeof gpa === 'number' ? gpa : 0;
-
-    // Log the GPA to grade conversion process
-    console.log('🎯 GPA to Letter Grade Conversion:', {
-      input: gpa,
-      processedInput: numGPA,
-      inputType: typeof gpa
-    });
-
     let gradeResult;
     if (numGPA >= 4.00) gradeResult = { letter: 'A+', color: '#059669', description: 'Outstanding' };
     else if (numGPA >= 3.75) gradeResult = { letter: 'A', color: '#16a34a', description: 'Excellent' };
     else if (numGPA >= 3.50) gradeResult = { letter: 'A-', color: '#22c55e', description: 'Very Good' };
-    else if (numGPA >= 3.25) gradeResult = { letter: 'B+', color: '#84cc16', description: 'Good' };
-    else if (numGPA >= 3.00) gradeResult = { letter: 'B', color: '#a3a3a3', description: 'Above Average' };
+    else if (numGPA >= 3.25) gradeResult = { letter: 'B+', color: '#3b82f6', description: 'Good' };
+    else if (numGPA >= 3.00) gradeResult = { letter: 'B', color: '#6366f1', description: 'Above Average' };
     else if (numGPA >= 2.75) gradeResult = { letter: 'B-', color: '#d97706', description: 'Average' };
     else if (numGPA >= 2.50) gradeResult = { letter: 'C', color: '#f59e0b', description: 'Below Average' };
     else if (numGPA >= 2.25) gradeResult = { letter: 'D', color: '#f97316', description: 'Poor' };
     else if (numGPA >= 2.00) gradeResult = { letter: 'E', color: '#ef4444', description: 'Very Poor' };
     else gradeResult = { letter: 'F', color: '#ef4444', description: 'Fail' };
-
-    console.log('🎯 GPA Result:', numGPA, 'GPA →', gradeResult.letter, '(' + gradeResult.description + ')');
     return gradeResult;
   };
 
@@ -167,63 +133,21 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   const renderProgressChart = (courses) => {
     if (!courses || courses.length === 0) return null;
 
-    console.log('📊 === PERFORMANCE CHART CALCULATIONS FOR USER ===');
-    console.log('🔍 Step 1: Input courses data:', courses);
-    console.log('🔍 Step 2: Filtering valid courses...');
-
-    // Ensure we only calculate with valid percentages - more robust filtering
-    // Allow negative percentages for courses with copy penalties (plagiarism detected)
+    // Filter valid percentages (allow negative for copy penalties)
     const validCourses = courses.filter(c =>
       typeof c.percentage === 'number' &&
       !isNaN(c.percentage) &&
-      c.percentage >= -100 &&  // Allow negative percentages for copy penalties
+      c.percentage >= -100 &&
       c.percentage <= 100
     );
 
-    console.log('🔍 Step 3: Valid courses after filtering:', validCourses);
-    console.log('🔍 Step 4: Course filtering results:');
-    console.log('   - Total courses provided:', courses.length);
-    console.log('   - Valid courses after filtering:', validCourses.length);
-    console.log('   - Filtered out courses:', courses.length - validCourses.length);
+    if (validCourses.length === 0) return null;
 
-    if (validCourses.length === 0) {
-      console.log('❌ No valid courses found for calculations');
-      return null;
-    }
-
-    console.log('🔍 Step 5: Calculating performance metrics...');
-
-    // Enhanced calculations with proper precision
     const maxPercentage = Math.max(...validCourses.map(c => c.percentage));
     const avgPercentage = validCourses.reduce((sum, c) => sum + c.percentage, 0) / validCourses.length;
-
-    // Round to 2 decimal places for accuracy, then display 1 decimal place
     const roundedMaxPercentage = Math.round(maxPercentage * 100) / 100;
     const roundedAvgPercentage = Math.round(avgPercentage * 100) / 100;
-
-    console.log('� Step 6: Detailed calculation breakdown:');
-    console.log('   📈 HIGHEST SCORE CALCULATION:');
-    console.log('      - Individual percentages:', validCourses.map(c => `${c.courseCode}: ${c.percentage}%`));
-    console.log('      - Math.max() result:', maxPercentage);
-    console.log('      - Rounded highest score:', roundedMaxPercentage, '%');
-
-    console.log('   📊 AVERAGE SCORE CALCULATION:');
-    console.log('      - Sum of all percentages:', validCourses.reduce((sum, c) => sum + c.percentage, 0));
-    console.log('      - Number of courses:', validCourses.length);
-    console.log('      - Raw average:', avgPercentage);
-    console.log('      - Rounded average score:', roundedAvgPercentage, '%');
-
-    console.log('   🎯 AVERAGE GRADE CALCULATION:');
     const avgGradeInfo = getGradeInfo(roundedAvgPercentage);
-    console.log('      - Average percentage input:', roundedAvgPercentage, '%');
-    console.log('      - Grade calculation result:', avgGradeInfo);
-    console.log('      - Final average grade:', avgGradeInfo.letter);
-
-    console.log('🔍 Step 7: Final performance metrics:');
-    console.log('   🏆 Highest Score:', roundedMaxPercentage.toFixed(1) + '%');
-    console.log('   📊 Average Score:', roundedAvgPercentage.toFixed(1) + '%');
-    console.log('   🎯 Average Grade:', avgGradeInfo.letter);
-    console.log('📊 === END OF PERFORMANCE CHART CALCULATIONS ===\n');
 
     return (
       <div style={{
@@ -256,7 +180,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Average Score</div>
           </div>
           <div style={{ textAlign: 'center', padding: '1rem', background: '#f8fafc', borderRadius: '8px' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1d4ed8' }}>
               {getGradeInfo(roundedAvgPercentage).letter}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Average Grade</div>
@@ -725,7 +649,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   };
 
   if (loading) {
-    console.log('StudentPerformanceAnalytics: Loading state');
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
         <div style={{ textAlign: 'center' }}>
@@ -745,7 +668,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   }
 
   if (error) {
-    console.log('StudentPerformanceAnalytics: Error state:', error);
     return (
       <div className="card">
         <div className="card-body">
@@ -766,7 +688,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   }
 
   if (!analytics) {
-    console.log('StudentPerformanceAnalytics: No analytics data');
     return (
       <div className="card">
         <div className="card-body">
@@ -787,84 +708,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
   const overallSummary = analytics?.overallSummary && typeof analytics.overallSummary === 'object' ? analytics.overallSummary : { overallGPA: 0, coursesEnrolled: 0, coursesWithGrades: 0 };
   const insights = analytics?.insights && typeof analytics.insights === 'object' ? analytics.insights : { strengths: [], areasForImprovement: [] };
 
-  // Debug logging
-  console.log('� === FINAL ANALYTICS DATA BREAKDOWN FOR USER ===');
-  console.log('🔍 Performance Trends (Course Data):', performanceTrends);
-  console.log('🔍 Assignment Type Performance:', assignmentTypePerformance);
-  console.log('🔍 Grade Distribution:', gradeDistribution);
-  console.log('🔍 Overall Summary (GPA Data):', overallSummary);
-  console.log('🔍 Insights (Strengths & Areas for Improvement):', insights);
-
-  console.log('📊 === DETAILED GPA CALCULATION ANALYSIS ===');
-  if (overallSummary && overallSummary.overallGPA) {
-    console.log('🎯 Current GPA Analysis:');
-    console.log('   - Raw GPA from backend:', overallSummary.overallGPA);
-    console.log('   - GPA rounded for display:', overallSummary.overallGPA.toFixed(2));
-    console.log('   - Number of courses enrolled:', overallSummary.coursesEnrolled);
-    console.log('   - Number of courses with grades:', overallSummary.coursesWithGrades);
-
-    // Show individual course GPA breakdown if we have performance trends data
-    if (performanceTrends && performanceTrends.length > 0) {
-      console.log('🔍 === INDIVIDUAL COURSE GPA BREAKDOWN ===');
-      console.log('   📚 Step-by-step calculation showing how Current GPA is derived:');
-
-      let totalGPA = 0;
-      let validCourses = 0;
-
-      performanceTrends.forEach((course, index) => {
-        const percentage = typeof course?.percentage === 'number' && course.percentage >= 0 ? course.percentage : 0;
-        const gradeInfo = getGradeInfo(percentage);
-        const courseCode = String(course?.courseCode || `Course ${index + 1}`);
-
-        console.log(`   📖 Course ${index + 1}: ${courseCode}`);
-        console.log(`      - Course Percentage: ${percentage.toFixed(2)}%`);
-        console.log(`      - Converted to GPA: ${gradeInfo.gpa.toFixed(2)} (${gradeInfo.letter} grade)`);
-        console.log(`      - GPA Conversion Logic: ${percentage.toFixed(1)}% → ${gradeInfo.gpa.toFixed(2)} GPA`);
-
-        if (percentage > 0) {
-          totalGPA += gradeInfo.gpa;
-          validCourses++;
-        }
-      });
-
-      const calculatedAvgGPA = validCourses > 0 ? totalGPA / validCourses : 0;
-
-      console.log('   🧮 === FINAL GPA CALCULATION ===');
-      console.log(`   📊 Sum of all individual course GPAs: ${totalGPA.toFixed(4)}`);
-      console.log(`   📊 Number of courses with grades: ${validCourses}`);
-      console.log(`   📊 Calculated Average GPA: ${totalGPA.toFixed(4)} ÷ ${validCourses} = ${calculatedAvgGPA.toFixed(4)}`);
-      console.log(`   📊 Backend provided GPA: ${overallSummary.overallGPA.toFixed(4)}`);
-      console.log(`   📊 Match between frontend/backend: ${Math.abs(calculatedAvgGPA - overallSummary.overallGPA) < 0.01 ? '✅ YES' : '❌ NO'}`);
-
-      if (Math.abs(calculatedAvgGPA - overallSummary.overallGPA) >= 0.01) {
-        console.log('   ⚠️  NOTE: Backend may include courses not shown in performance trends');
-      }
-    }
-
-    const gpaGradeInfo = getGradeFromGPA(overallSummary.overallGPA);
-    console.log('   🎯 GPA to Letter Grade conversion:', gpaGradeInfo);
-    console.log('   🎯 Letter Grade shown to user:', gpaGradeInfo.letter);
-
-    console.log('📋 === GPA SCALE REFERENCE ===');
-    console.log('   - 80%+ → 4.00 GPA → A+');
-    console.log('   - 75%+ → 3.75 GPA → A');
-    console.log('   - 70%+ → 3.50 GPA → A-');
-    console.log('   - 65%+ → 3.25 GPA → B+');
-    console.log('   - 60%+ → 3.00 GPA → B');
-    console.log('   - 55%+ → 2.75 GPA → B-');
-    console.log('   - 50%+ → 2.50 GPA → C');
-    console.log('   - 45%+ → 2.25 GPA → D');
-    console.log('   - 40%+ → 2.00 GPA → E');
-    console.log('   - <40% → 0.00 GPA → F');
-    console.log(`   🎯 User's GPA ${overallSummary.overallGPA.toFixed(2)} maps to: ${gpaGradeInfo.letter}`);
-
-    console.log('✅ === FORMULA CONFIRMATION ===');
-    console.log('   Current GPA = (Sum of All Course GPAs) ÷ (Number of Courses with Grades)');
-    console.log('   This is the correct standard GPA calculation method.');
-  } else {
-    console.log('   ❌ No GPA data available to analyze');
-  }
-  console.log('📊 === END OF DETAILED GPA ANALYSIS ===\n');
 
   return (
     <div style={{ padding: '1rem 0' }}>
@@ -1165,7 +1008,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       onClick={() => setActiveTab('insights')}
                       style={{
                         padding: '0.5rem 1rem',
-                        backgroundColor: '#8b5cf6',
+                        backgroundColor: '#1d4ed8',
                         color: 'white',
                         border: 'none',
                         borderRadius: '6px',
@@ -1386,27 +1229,6 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                           const assignmentType = String(type?.assignmentType || `Type ${index + 1}`);
                           const count = typeof type?.count === 'number' && type.count >= 0 ? type.count : 0;
 
-                          console.log('📝 === ASSIGNMENT TYPE PERFORMANCE CALCULATION ===');
-                          console.log(`🔍 Processing Assignment Type: ${assignmentType}`);
-                          console.log('   📊 Raw Data:', {
-                            rawPercentage: rawAvgPercentage,
-                            dataType: typeof rawAvgPercentage,
-                            isNaN: isNaN(rawAvgPercentage),
-                            isInRange: rawAvgPercentage >= 0 && rawAvgPercentage <= 100
-                          });
-                          console.log('   📊 Processed Data:', {
-                            roundedPercentage: avgPercentage,
-                            count: count,
-                            grade: gradeInfo.letter,
-                            gradeColor: gradeInfo.color,
-                            gradeDescription: gradeInfo.description
-                          });
-                          console.log('   📊 Calculation Steps:');
-                          console.log('      1. Input validation passed:', typeof rawAvgPercentage === 'number' && !isNaN(rawAvgPercentage) && rawAvgPercentage >= 0 && rawAvgPercentage <= 100);
-                          console.log('      2. Rounded to 2 decimal places:', Math.round(rawAvgPercentage * 100) / 100);
-                          console.log('      3. Grade mapping applied for', avgPercentage + '%', '→', gradeInfo.letter);
-                          console.log('📝 === END OF ASSIGNMENT TYPE CALCULATION ===\n');
-
                           return (
                             <div key={`${assignmentType}-${index}`} style={{
                               padding: '1rem',
@@ -1466,7 +1288,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       ))}
                     </ul>
                     <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#dcfce7', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '0.875rem', color: '#15803d', fontWeight: '600' }}>�Recommendation:</div>
+                      <div style={{ fontSize: '0.875rem', color: '#15803d', fontWeight: '600' }}>Recommendation:</div>
                       <div style={{ fontSize: '0.8rem', color: '#166534', marginTop: '0.25rem' }}>
                         Keep up the excellent work! These are your strongest areas. Consider helping classmates in these subjects.
                       </div>
@@ -1490,7 +1312,7 @@ const StudentPerformanceAnalytics = ({ user, onShowMessage }) => {
                       ))}
                     </ul>
                     <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#fef3c7', borderRadius: '6px' }}>
-                      <div style={{ fontSize: '0.875rem', color: '#d97706', fontWeight: '600' }}>💡Recommendation:</div>
+                      <div style={{ fontSize: '0.875rem', color: '#d97706', fontWeight: '600' }}>Recommendation:</div>
                       <div style={{ fontSize: '0.8rem', color: '#b45309', marginTop: '0.25rem' }}>
                         Focus extra study time on these areas. Consider seeking help from teachers or study groups.
                       </div>

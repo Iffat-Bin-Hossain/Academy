@@ -63,7 +63,8 @@ public class GradesService {
         Map<Long, AssessmentGrid> assessmentMap = assessments.stream()
                 .collect(Collectors.toMap(
                     assessment -> assessment.getAssignment().getId(),
-                    assessment -> assessment
+                    assessment -> assessment,
+                    (existing, replacement) -> existing
                 ));
         
         // Create assignment-submission map
@@ -71,7 +72,8 @@ public class GradesService {
                 .filter(submission -> submission.getAssignment().getCourse().getId().equals(courseId))
                 .collect(Collectors.toMap(
                     submission -> submission.getAssignment().getId(),
-                    submission -> submission
+                    submission -> submission,
+                    (existing, replacement) -> existing
                 ));
 
         List<Map<String, Object>> gradeDetails = new ArrayList<>();

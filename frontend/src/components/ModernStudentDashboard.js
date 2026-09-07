@@ -977,7 +977,7 @@ const ModernStudentDashboard = () => {
             <div className="card-body">
               {filterPendingCourses().length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
-                  <span style={{ fontSize: '2rem', display: 'block', marginBottom: '1rem' }}>⏳</span>
+                  <FiClock style={{ fontSize: '2.5rem', display: 'block', margin: '0 auto 1rem', color: '#2563eb' }} />
                   <h4>{pendingSearchTerm ? 'No courses found' : 'No pending enrollments'}</h4>
                   <p>{pendingSearchTerm ? 'Try adjusting your search terms' : 'All your course enrollments have been processed.'}</p>
                   {pendingSearchTerm && (
@@ -1064,7 +1064,7 @@ const ModernStudentDashboard = () => {
                                     background: '#fef3c7',
                                     color: '#92400e'
                                   }}>
-                                    ⏳ PENDING
+                                    <FiClock style={{ marginRight: '0.35rem', verticalAlign: 'middle' }} /> PENDING
                                   </span>
                                 </div>
                                 <p style={{ margin: '0 0 1rem 0', color: '#64748b' }}>
@@ -1078,9 +1078,9 @@ const ModernStudentDashboard = () => {
                                 </div>
                               </div>
                               <div style={{ display: 'flex', gap: '0.5rem', marginLeft: '1rem' }}>
-                                <button className="btn btn-secondary btn-sm" disabled>
-                                  ⏳ Waiting for Approval
-                                </button>
+                                  <button className="btn btn-secondary btn-sm" disabled style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                    <FiClock /> Waiting for Approval
+                                  </button>
                               </div>
                             </div>
                           </div>
@@ -1144,8 +1144,8 @@ const ModernStudentDashboard = () => {
                             ).length : 0;
                           
                           return recommendedCount > 0 ? 
-                            `⏳ Show All ${allCourses.length} Pending (${recommendedCount} recommended shown)` :
-                            `⏳ Show All ${allCourses.length} Pending`;
+                            `Show All ${allCourses.length} Pending (${recommendedCount} recommended shown)` :
+                            `Show All ${allCourses.length} Pending`;
                         })()}
                       </button>
                     </div>
@@ -1552,7 +1552,7 @@ const ModernStudentDashboard = () => {
                               style={{ fontSize: '0.75rem', padding: '0.5rem 0.75rem' }}
                               disabled={isOverdue && !canSubmitLate}
                             >
-                              {isOverdue && !canSubmitLate ? '⏰ Closed' : 
+                              {isOverdue && !canSubmitLate ? 'Closed' : 
                                isOverdue && canSubmitLate ? 'Submit Late' : 
                                'Submit'}
                             </button>
@@ -1579,7 +1579,7 @@ const ModernStudentDashboard = () => {
                                 color: '#d97706',
                                 fontWeight: '600'
                               }}>
-                                ⏰ Due Soon
+                                <FiClock style={{ marginRight: '0.25rem', verticalAlign: 'middle' }} /> Due Soon
                               </span>
                             )}
                           </div>

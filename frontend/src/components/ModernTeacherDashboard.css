@@ -43,13 +43,15 @@
 }
 
 .teacher-dashboard-page .stat-value {
-  color: #203b5c;
-  font-size: 1.7rem;
+  color: #1e3a8a;
+  font-size: 1.65rem;
+  font-weight: 700;
 }
 
 .teacher-dashboard-page .stat-label {
-  color: #667991;
-  font-size: 0.72rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .teacher-dashboard-page .teacher-course-code,
@@ -57,9 +59,9 @@
 .teacher-dashboard-page .teacher-enrollment-count,
 .teacher-dashboard-page .teacher-pending-count,
 .teacher-dashboard-page .teacher-retaking-count {
-  border-radius: 5px !important;
-  font-size: 0.7rem !important;
-  padding: 0.25rem 0.5rem !important;
+  border-radius: 6px !important;
+  font-size: 0.8rem !important;
+  padding: 0.3rem 0.6rem !important;
 }
 
 .teacher-dashboard-page .teacher-course-code {

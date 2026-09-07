@@ -745,7 +745,7 @@ const ModernAdminDashboard = () => {
                 onClick={closeCreateModal}
                 aria-label="Close modal"
               >
-                
+                <FiX size={18} />
               </button>
             </div>
             <div className="modal-body">
@@ -862,7 +862,7 @@ const ModernAdminDashboard = () => {
                   >
                     {isCreating ? (
                       <>
-                        <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                        <FiClock style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
                         Creating...
                       </>
                     ) : (
@@ -890,7 +890,7 @@ const ModernAdminDashboard = () => {
                 onClick={closeEditModal}
                 aria-label="Close modal"
               >
-                
+                <FiX size={18} />
               </button>
             </div>
             <div className="modal-body">
@@ -1020,7 +1020,7 @@ const ModernAdminDashboard = () => {
                   >
                     {isUpdating ? (
                       <>
-                        <span style={{ marginRight: '0.5rem' }}>⏳</span>
+                        <FiClock style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
                         Updating...
                       </>
                     ) : (

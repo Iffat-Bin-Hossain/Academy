@@ -37,13 +37,14 @@
 }
 
 .modern-admin-dashboard .course-code-badge {
-  padding: 0.3rem 0.55rem !important;
-  font-size: 0.75rem !important;
+  padding: 0.35rem 0.65rem !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
 }
 
 .modern-admin-dashboard .course-meta-badge {
-  padding: 0.2rem 0.5rem !important;
-  font-size: 0.7rem !important;
+  padding: 0.3rem 0.6rem !important;
+  font-size: 0.8rem !important;
 }
 
 .modern-admin-dashboard .btn-danger {

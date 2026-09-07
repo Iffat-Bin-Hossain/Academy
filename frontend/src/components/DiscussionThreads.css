@@ -65,14 +65,15 @@
 
 .empty-state {
   text-align: center;
-  padding: 3rem;
+  padding: 2rem 1.5rem;
   color: #64748b;
 }
 
 .empty-icon {
-  font-size: 3rem;
+  font-size: 2.2rem;
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  color: #94a3b8;
 }
 
 .empty-state h4 {

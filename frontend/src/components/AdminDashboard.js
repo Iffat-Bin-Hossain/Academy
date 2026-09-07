@@ -1,4 +1,4 @@
-// ✅ FILE: src/components/AdminDashboard.js
+// FILE: src/components/AdminDashboard.js
 // A React component for the Admin to view and approve pending users
 import React, { useEffect, useState } from 'react';
 import axios from '../api/axiosInstance';

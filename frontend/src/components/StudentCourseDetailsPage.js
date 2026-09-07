@@ -15,7 +15,8 @@ import {
   FiBell, 
   FiBookOpen, 
   FiAward, 
-  FiXCircle 
+  FiXCircle,
+  FiClock 
 } from 'react-icons/fi';
 
 const StudentCourseDetailsPage = () => {
@@ -1306,7 +1307,7 @@ const StudentCourseDetailsPage = () => {
                   (editMode && !submissionFile && !submissionText.trim() && !currentSubmissionData?.files?.length)}
               >
                 {isSubmitting ? (
-                  <>⏳ {editMode ? 'Updating...' : 'Submitting...'}</>
+                  <><FiClock style={{ verticalAlign: 'middle', marginRight: '0.35rem' }} /> {editMode ? 'Updating...' : 'Submitting...'}</>
                 ) : (
                   <>{editMode ? 'Update Submission' : 'Submit Assignment'}</>
                 )}

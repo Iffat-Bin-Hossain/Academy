@@ -555,7 +555,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                 onClick={closeTeacherModal}
                 aria-label="Close modal"
               >
-                
+                <FiX size={18} />
               </button>
             </div>
             <div className="modal-body">

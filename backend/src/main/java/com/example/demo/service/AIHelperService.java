@@ -47,7 +47,7 @@ public class AIHelperService {
             verifyStudentEnrollment(student, course);
             
             // Create enhanced prompt for finding real internet resources
-            String courseContext = course.getTitle() + (course.getDescription() != null ? " - " + course.getDescription() : "");
+            String courseContext = course.getTitle() + (course.getDescription() != null ? "- "+ course.getDescription() : "");
             String enhancedPrompt = createInternetResourceSearchPrompt(query, courseContext);
             
             return geminiAIService.generateResponse(enhancedPrompt, courseContext)
@@ -83,7 +83,7 @@ public class AIHelperService {
             verifyStudentEnrollment(student, course);
             
             // Create enhanced prompt for finding real internet resources
-            String courseContext = course.getTitle() + (course.getDescription() != null ? " - " + course.getDescription() : "");
+            String courseContext = course.getTitle() + (course.getDescription() != null ? "- "+ course.getDescription() : "");
             String enhancedPrompt = createInternetResourceSearchPrompt(query, courseContext);
             
             String aiResponse = geminiAIService.generateResponseSync(enhancedPrompt, courseContext);
@@ -108,16 +108,16 @@ public class AIHelperService {
         prompt.append("Student needs help with: ").append(userQuery).append("\n\n");
         prompt.append("Find 5-8 REAL educational resources from the internet. Respond in JSON format:\n\n");
         prompt.append("{\n");
-        prompt.append("  \"resources\": [\n");
-        prompt.append("    {\n");
-        prompt.append("      \"title\": \"Actual resource title\",\n");
-        prompt.append("      \"description\": \"What this resource teaches\",\n");
-        prompt.append("      \"url\": \"https://real-working-url.com\",\n");
-        prompt.append("      \"type\": \"video/article/tutorial/course\",\n");
-        prompt.append("      \"source\": \"Website name\"\n");
-        prompt.append("    }\n");
-        prompt.append("  ],\n");
-        prompt.append("  \"studyTips\": [\"tip1\", \"tip2\", \"tip3\"]\n");
+        prompt.append("\"resources\": [\n");
+        prompt.append("{\n");
+        prompt.append("\"title\": \"Actual resource title\",\n");
+        prompt.append("\"description\": \"What this resource teaches\",\n");
+        prompt.append("\"url\": \"https://real-working-url.com\",\n");
+        prompt.append("\"type\": \"video/article/tutorial/course\",\n");
+        prompt.append("\"source\": \"Website name\"\n");
+        prompt.append("}\n");
+        prompt.append("],\n");
+        prompt.append("\"studyTips\": [\"tip1\", \"tip2\", \"tip3\"]\n");
         prompt.append("}\n\n");
         prompt.append("ONLY use REAL websites like:\n");
         prompt.append("- YouTube (youtube.com)\n");
@@ -218,8 +218,7 @@ public class AIHelperService {
             "medium.com",
             "dev.to",
             "tutorialspoint.com",
-            "javatpoint.com"
-        };
+            "javatpoint.com"};
         
         for (String domain : trustedDomains) {
             if (url.toLowerCase().contains(domain)) {
@@ -285,12 +284,12 @@ public class AIHelperService {
         // General Programming Resources
         resources.add(createResource("Programming Questions - Stack Overflow", 
             "Community-driven Q&A for programming problems", 
-            "https://stackoverflow.com/questions/tagged/" + String.join("+", queryWords), 
+            "https://stackoverflow.com/questions/tagged/"+ String.join("+", queryWords), 
             "forum", "Stack Overflow"));
         
         resources.add(createResource("Programming Tutorials - YouTube", 
             "Video tutorials and coding walkthroughs", 
-            "https://www.youtube.com/results?search_query=" + query.replace(" ", "+") + "+programming+tutorial", 
+            "https://www.youtube.com/results?search_query="+ query.replace("", "+") + "+programming+tutorial", 
             "video", "YouTube"));
         
         // Limit to 6 resources
@@ -351,21 +350,21 @@ public class AIHelperService {
 
     private List<String> createDefaultStudyTips(String query) {
         List<String> tips = new ArrayList<>();
-        tips.add("💡 Break down complex topics into smaller, manageable parts");
-        tips.add("📝 Practice coding examples and try to modify them");
-        tips.add("🔄 Review the material regularly to reinforce your learning");
-        tips.add("🤝 Join study groups or online communities for discussion");
-        tips.add("🎯 Focus on understanding concepts rather than memorization");
+        tips.add("Break down complex topics into smaller, manageable parts");
+        tips.add("Practice coding examples and try to modify them");
+        tips.add("Review the material regularly to reinforce your learning");
+        tips.add("Join study groups or online communities for discussion");
+        tips.add("Focus on understanding concepts rather than memorization");
         
         // Add topic-specific tips
         String queryLower = query.toLowerCase();
         if (queryLower.contains("algorithm") || queryLower.contains("data structure")) {
-            tips.add("🔍 Visualize algorithms and data structures using online tools");
+            tips.add("Visualize algorithms and data structures using online tools");
             tips.add("⏰ Practice time and space complexity analysis");
         }
         if (queryLower.contains("programming") || queryLower.contains("code")) {
-            tips.add("💻 Write code daily, even if it's just small exercises");
-            tips.add("🐛 Debug your code systematically and learn from errors");
+            tips.add("Write code daily, even if it's just small exercises");
+            tips.add("Debug your code systematically and learn from errors");
         }
         
         return tips;
@@ -400,85 +399,79 @@ public class AIHelperService {
         // Programming course suggestions
         if (courseTitle.contains("java") || courseTitle.contains("programming") || courseTitle.contains("code")) {
             suggestions.addAll(Arrays.asList(
-                "💻 Start with Java syntax and basic programming concepts",
-                "🔢 Practice with variables, loops, and conditional statements",
-                "🎯 Master object-oriented programming principles",
-                "📚 Work through coding exercises on HackerRank or LeetCode",
-                "🛠️ Build a simple project to apply your knowledge",
-                "📖 Read Java documentation and best practices",
-                "👥 Join programming forums and communities",
-                "🎥 Watch Java tutorial videos on YouTube"
-            ));
+                "Start with Java syntax and basic programming concepts",
+                "Practice with variables, loops, and conditional statements",
+                "Master object-oriented programming principles",
+                "Work through coding exercises on HackerRank or LeetCode",
+                "Build a simple project to apply your knowledge",
+                "Read Java documentation and best practices",
+                "Join programming forums and communities",
+                "Watch Java tutorial videos on YouTube"));
         }
         
         // Database course suggestions
         else if (courseTitle.contains("database") || courseTitle.contains("sql")) {
             suggestions.addAll(Arrays.asList(
-                "🗄️ Learn basic SQL commands: SELECT, INSERT, UPDATE, DELETE",
-                "📊 Practice with real datasets and sample databases",
-                "🔗 Understand table relationships and foreign keys",
-                "📐 Study database normalization principles",
-                "🎯 Try SQLBolt for interactive SQL practice",
-                "📚 Read about database design patterns",
-                "🛠️ Set up your own database for practice",
-                "💡 Learn about indexing and query optimization"
-            ));
+                "Learn basic SQL commands: SELECT, INSERT, UPDATE, DELETE",
+                "Practice with real datasets and sample databases",
+                "Understand table relationships and foreign keys",
+                "Study database normalization principles",
+                "Try SQLBolt for interactive SQL practice",
+                "Read about database design patterns",
+                "Set up your own database for practice",
+                "Learn about indexing and query optimization"));
         }
         
         // Web development course suggestions
         else if (courseTitle.contains("web") || courseTitle.contains("html") || courseTitle.contains("css") || courseTitle.contains("javascript")) {
             suggestions.addAll(Arrays.asList(
-                "🌐 Master HTML structure and semantic elements",
-                "🎨 Learn CSS styling, flexbox, and grid layouts",
-                "⚡ Practice JavaScript fundamentals and DOM manipulation",
-                "📱 Build responsive web pages for mobile devices",
-                "🛠️ Create a personal portfolio website",
-                "📚 Follow MDN Web Docs for comprehensive guides",
-                "🎥 Watch web development tutorials and courses",
-                "💻 Practice on CodePen or JSFiddle"
-            ));
+                "Master HTML structure and semantic elements",
+                "Learn CSS styling, flexbox, and grid layouts",
+                "Practice JavaScript fundamentals and DOM manipulation",
+                "Build responsive web pages for mobile devices",
+                "Create a personal portfolio website",
+                "Follow MDN Web Docs for comprehensive guides",
+                "Watch web development tutorials and courses",
+                "Practice on CodePen or JSFiddle"));
         }
         
         // Math/Statistics course suggestions
         else if (courseTitle.contains("math") || courseTitle.contains("statistics") || courseTitle.contains("calculus") || courseTitle.contains("algebra")) {
             suggestions.addAll(Arrays.asList(
-                "📐 Review fundamental mathematical concepts regularly",
-                "🧮 Practice solving problems step by step",
-                "📊 Use Khan Academy for interactive math lessons",
-                "📝 Create formula sheets for quick reference",
-                "🎯 Work through textbook exercises consistently",
-                "👥 Form study groups to discuss complex problems",
-                "🖥️ Use graphing calculators or online tools",
-                "📚 Read math concept explanations from multiple sources"
-            ));
+                "Review fundamental mathematical concepts regularly",
+                "Practice solving problems step by step",
+                "Use Khan Academy for interactive math lessons",
+                "Create formula sheets for quick reference",
+                "Work through textbook exercises consistently",
+                "Form study groups to discuss complex problems",
+                "Use graphing calculators or online tools",
+                "Read math concept explanations from multiple sources"));
         }
         
         // Science course suggestions
         else if (courseTitle.contains("physics") || courseTitle.contains("chemistry") || courseTitle.contains("biology") || courseTitle.contains("science")) {
             suggestions.addAll(Arrays.asList(
-                "🔬 Connect theoretical concepts with practical experiments",
-                "📊 Create visual diagrams and concept maps",
-                "🧪 Practice problem-solving with real-world examples",
-                "📚 Read scientific articles and research papers",
-                "🎥 Watch educational videos and simulations",
-                "📝 Take detailed notes during lectures and labs",
-                "🤝 Discuss concepts with classmates and instructors",
-                "📖 Use multiple textbooks for different perspectives"
-            ));
+                "Connect theoretical concepts with practical experiments",
+                "Create visual diagrams and concept maps",
+                "Practice problem-solving with real-world examples",
+                "Read scientific articles and research papers",
+                "Watch educational videos and simulations",
+                "Take detailed notes during lectures and labs",
+                "Discuss concepts with classmates and instructors",
+                "Use multiple textbooks for different perspectives"));
         }
         
         // Generic suggestions for any course
         else {
             suggestions.addAll(Arrays.asList(
-                "📚 Review " + course.getTitle() + " fundamentals regularly",
-                "📝 Take comprehensive notes during lectures",
-                "🎯 Practice with exercises and assignments",
-                "🤝 Join study groups for " + course.getTitle(),
-                "💡 Ask questions during office hours",
-                "📖 Read supplementary materials and textbooks",
-                "🎥 Watch educational videos on the topic",
-                "🗂️ Create summary notes of important concepts"
-            ));
+                "Review "+ course.getTitle() + "fundamentals regularly",
+                "Take comprehensive notes during lectures",
+                "Practice with exercises and assignments",
+                "Join study groups for "+ course.getTitle(),
+                "Ask questions during office hours",
+                "Read supplementary materials and textbooks",
+                "Watch educational videos on the topic",
+                "Create summary notes of important concepts"));
         }
         
         return suggestions;
@@ -507,15 +500,14 @@ public class AIHelperService {
             
             for (Assignment assignment : upcomingAssignments) {
                 Map<String, Object> planItem = new HashMap<>();
-                planItem.put("title", "Prepare for: " + assignment.getTitle());
+                planItem.put("title", "Prepare for: "+ assignment.getTitle());
                 planItem.put("description", "Study and practice for the upcoming assignment");
                 planItem.put("deadline", assignment.getDeadline().toString());
                 planItem.put("priority", "high");
                 planItem.put("suggestedResources", Arrays.asList(
                     "Review course materials",
                     "Practice similar problems",
-                    "Ask questions in discussion forum"
-                ));
+                    "Ask questions in discussion forum"));
                 studyPlan.add(planItem);
             }
         } catch (Exception e) {

@@ -244,6 +244,14 @@ const NotificationBell = ({ user }) => {
     }
   };
 
+  const sanitizeText = (text) => {
+    if (!text) return '';
+    return text
+      .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   const getNotificationIcon = (type) => {
     switch (type) {
       case 'NEW_SIGNUP_REQUEST': return <FiUserPlus className="text-blue-500" />;
@@ -278,7 +286,7 @@ const NotificationBell = ({ user }) => {
         onClick={handleBellClick}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
       >
-        <span className="bell-icon"><FiBell size={20} /></span>
+        <span className="bell-icon"><FiBell size={22} /></span>
         {unreadCount > 0 && (
           <span className="unread-badge">
             {unreadCount > 99 ? '99+' : unreadCount}
@@ -329,8 +337,8 @@ const NotificationBell = ({ user }) => {
                     {getNotificationIcon(notification.type)}
                   </div>
                   <div className="notification-content">
-                    <div className="notification-title">{notification.title}</div>
-                    <div className="notification-message">{notification.message}</div>
+                    <div className="notification-title">{sanitizeText(notification.title)}</div>
+                    <div className="notification-message">{sanitizeText(notification.message)}</div>
                     <div className="notification-meta">
                       <div className="notification-time">{formatTimeAgo(notification.createdAt)}</div>
                       {notification.relatedCourse && (

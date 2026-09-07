@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 public class EmailValidationService {
     
     @Value("${app.email.validation.strict-mode:true}")
-    private boolean strictMode;
+    private boolean strictMode = true;
 
     // Enhanced email pattern (more strict than the basic one)
     private static final Pattern EMAIL_PATTERN = Pattern.compile(

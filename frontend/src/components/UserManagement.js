@@ -13,7 +13,8 @@ import {
   FiUnlock, 
   FiShield, 
   FiEdit3, 
-  FiUser 
+  FiUser,
+  FiX 
 } from 'react-icons/fi';
 
 const UserManagement = () => {
@@ -884,8 +885,9 @@ const UserManagement = () => {
               <button
                 className="modal-close"
                 onClick={() => setShowEditModal(false)}
+                aria-label="Close modal"
               >
-                ×
+                <FiX size={18} />
               </button>
             </div>
             <div className="modal-body">
