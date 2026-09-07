@@ -229,11 +229,13 @@
 
 .modal-content {
   background: white;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 2rem;
-  max-width: 600px;
-  width: 90%;
-  max-height: 80vh;
+  max-width: 680px;
+  width: 94%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
 }
 

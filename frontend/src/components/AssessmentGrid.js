@@ -1443,29 +1443,6 @@ const AssessmentGrid = ({ courseId, userId, courseName }) => {
                       </span>
                     </div>
                   )}
-                  {/* CSV Format Guide */}
-                  <div style={{
-                    marginTop: '0.75rem',
-                    padding: '0.75rem 1rem',
-                    background: '#eff6ff',
-                    borderRadius: '8px',
-                    border: '1px solid #bfdbfe',
-                    fontSize: '0.85rem'
-                  }}>
-                    <div style={{ fontWeight: '600', color: '#1d4ed8', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <FiFileText size={13} /> Expected CSV Format
-                    </div>
-                    <div style={{ color: '#1e40af', fontFamily: 'monospace', fontSize: '0.8rem', marginBottom: '0.3rem' }}>
-                      studentEmail (or studentId),isFlagged
-                    </div>
-                    <div style={{ color: '#3b82f6', fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                      student@university.edu,true<br />
-                      another@university.edu,false
-                    </div>
-                    <div style={{ color: '#64748b', marginTop: '0.4rem', fontSize: '0.78rem' }}>
-                      Only rows with <strong>true</strong> in the second column will have penalties applied.
-                    </div>
-                  </div>
                 </div>
               </div>
               <div className="modal-footer" style={{ 

@@ -67,7 +67,6 @@ const ProfileWrapper = () => {
       user={user} 
       onLogout={handleLogout}
       pageTitle="Profile"
-      pageSubtitle="Manage your account settings and preferences"
     >
       <SmartProfile />
     </Layout>

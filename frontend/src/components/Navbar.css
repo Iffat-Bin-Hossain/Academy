@@ -50,17 +50,7 @@
   margin-right: 0.5rem;
 }
 
-.brand-tagline {
-  font-size: 0.6rem;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.85;
-  margin-left: 0.75rem;
-  padding-left: 0.75rem;
-  border-left: 1px solid rgba(255, 255, 255, 0.3);
-  white-space: nowrap;
-}
+
 
 /* User Section */
 .desktop-user {
@@ -143,9 +133,87 @@
   line-height: 1.2;
 }
 
+.navbar-user-role,
+.mobile-navbar-user-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  line-height: 1.2;
+  margin-top: 3px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.role-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Teacher role badge */
+.navbar-user-role.role-teacher,
+.mobile-navbar-user-role.role-teacher {
+  background: rgba(16, 185, 129, 0.22) !important;
+  color: #ecfdf5 !important;
+  border: 1px solid rgba(52, 211, 153, 0.55) !important;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+.navbar-user-role.role-teacher .role-dot,
+.mobile-navbar-user-role.role-teacher .role-dot {
+  background: #34d399;
+  box-shadow: 0 0 6px #34d399;
+}
+
+/* Admin role badge */
+.navbar-user-role.role-admin,
+.mobile-navbar-user-role.role-admin {
+  background: rgba(168, 85, 247, 0.25) !important;
+  color: #faf5ff !important;
+  border: 1px solid rgba(216, 180, 254, 0.55) !important;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+}
+.navbar-user-role.role-admin .role-dot,
+.mobile-navbar-user-role.role-admin .role-dot {
+  background: #c084fc;
+  box-shadow: 0 0 6px #c084fc;
+}
+
+/* Student role badge */
+.navbar-user-role.role-student,
+.mobile-navbar-user-role.role-student {
+  background: rgba(14, 165, 233, 0.25) !important;
+  color: #f0f9ff !important;
+  border: 1px solid rgba(125, 211, 252, 0.55) !important;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+}
+.navbar-user-role.role-student .role-dot,
+.mobile-navbar-user-role.role-student .role-dot {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+/* Default / fallback */
+.navbar-user-role:not(.role-teacher):not(.role-admin):not(.role-student),
+.mobile-navbar-user-role:not(.role-teacher):not(.role-admin):not(.role-student) {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+}
+
 .user-role {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -333,8 +401,9 @@
 }
 
 .mobile-user-role {
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.9) !important;
   font-size: 0.85rem;
-  color: rgba(255, 255, 255, 0.8);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

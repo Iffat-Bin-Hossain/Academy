@@ -229,7 +229,6 @@ const CourseManagement = ({ courseId, onBack }) => {
       user={user} 
       onLogout={handleLogout}
       pageTitle="Course Management"
-      pageSubtitle="Manage course details, teachers, and enrollments"
     >
       <div className="course-management-page">
       {/* Message Alert */}
@@ -334,7 +333,6 @@ const CourseManagement = ({ courseId, onBack }) => {
       <div className="card" style={{ marginBottom: '2rem' }}>
         <div className="card-header">
           <h3 className="card-title"><FaChalkboardTeacher style={{ marginRight: '0.5rem' }} /> Teacher Assignment</h3>
-          <p className="card-subtitle">Manage course instructor</p>
         </div>
         <div className="card-body">
           {course.assignedTeacher ? (
@@ -459,7 +457,6 @@ const CourseManagement = ({ courseId, onBack }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h3 className="card-title"><FaGraduationCap style={{ marginRight: '0.5rem' }} /> Student Enrollments</h3>
-              <p className="card-subtitle">View student enrollment status and activity</p>
             </div>
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <select
@@ -591,9 +588,6 @@ const CourseManagement = ({ courseId, onBack }) => {
                     </div>
                   )}
                 </div>
-                <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
-                  Showing {getFilteredTeachers().length} of {teachers.length} approved teachers
-                </small>
               </div>
               
               {teachers.length === 0 && (
@@ -605,7 +599,7 @@ const CourseManagement = ({ courseId, onBack }) => {
                   borderRadius: '8px',
                   margin: '1rem 0'
                 }}>
-                  <p>No approved teachers available. Please ensure teachers are approved in the user management section.</p>
+                  <p>No approved teachers available.</p>
                 </div>
               )}
 

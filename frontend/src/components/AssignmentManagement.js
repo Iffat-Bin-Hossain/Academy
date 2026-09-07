@@ -1068,7 +1068,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       {/* Create Assignment Modal */}
       {showCreateModal && (
         <div className="modal-overlay" onClick={closeCreateModal}>
-          <div className="modal-content" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Create New Assignment</h3>
               <button 
@@ -1218,9 +1218,6 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                         {dateErrors.lateSubmissionDeadline}
                       </small>
                     )}
-                    <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                      Optional: Leave empty for 2 days after main deadline
-                    </small>
                   </div>
                 </div>
 
@@ -1247,9 +1244,6 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     onChange={handleFileSelect}
                     accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif,.bmp,.java,.py,.js,.html,.css,.cpp,.c,.cs"
                   />
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Supported files: PDF, DOC, TXT, ZIP, Images, Code files (Max 50MB each)
-                  </small>
                   
                   {selectedFiles.length > 0 && (
                     <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -1421,7 +1415,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       {/* Edit Assignment Modal */}
       {showEditModal && editingAssignment && (
         <div className="modal-overlay" onClick={closeEditModal}>
-          <div className="modal-content" style={{ maxWidth: '720px' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">Edit Assignment</h3>
               <button 
@@ -1673,9 +1667,6 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                     onChange={handleFileSelect}
                     accept=".pdf,.doc,.docx,.txt,.zip,.rar,.jpg,.jpeg,.png,.gif,.bmp,.java,.py,.js,.html,.css,.cpp,.c,.cs"
                   />
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>
-                    Supported files: PDF, DOC, TXT, ZIP, Images, Code files (Max 50MB each)
-                  </small>
                   
                   {selectedFiles.length > 0 && (
                     <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
@@ -1847,7 +1838,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
       {/* Submissions View Modal */}
       {showSubmissionsModal && viewingAssignment && (
         <div className="modal-overlay" onClick={closeSubmissionsModal}>
-          <div className="modal-content" style={{ maxWidth: '1000px', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-xl" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">
                 Submissions for "{viewingAssignment.title}"
@@ -1860,7 +1851,7 @@ const AssignmentManagement = ({ user, courses, onShowMessage }) => {
                 <FiX size={18} />
               </button>
             </div>
-            <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+            <div className="modal-body">
               {loadingSubmissions ? (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
                   <div className="spinner"></div>

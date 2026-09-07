@@ -332,7 +332,6 @@ const CourseDetailsPage = () => {
         user={user} 
         onLogout={handleLogout}
         pageTitle={`Course: ${course.title}`}
-        pageSubtitle={`Manage students and enrollments for ${course.courseCode}`}
       >
       <div className="course-details-page">
       {/* Message Alert */}

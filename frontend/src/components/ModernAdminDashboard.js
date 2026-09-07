@@ -478,7 +478,6 @@ const ModernAdminDashboard = () => {
       user={user}
       onLogout={handleLogout}
       pageTitle="Admin Dashboard"
-      pageSubtitle="Manage users, courses, and system settings"
     >
       <div className="modern-admin-dashboard">
       {/* Message Alert */}
@@ -543,7 +542,6 @@ const ModernAdminDashboard = () => {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">Quick Actions</h3>
-              <p className="card-subtitle">Common administrative tasks</p>
             </div>
             <div className="card-body">
               <div className="grid grid-cols-2">
@@ -619,13 +617,11 @@ const ModernAdminDashboard = () => {
                   <>
                     <FiBookOpen style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                     <h4>No courses yet</h4>
-                    <p>Click "Create New Course" to add your first course.</p>
                   </>
                 ) : (
                   <>
                     <FiSearch style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                     <h4>No courses found</h4>
-                    <p>No courses match your search criteria. Try different keywords.</p>
                   </>
                 )}
               </div>
@@ -722,13 +718,11 @@ const ModernAdminDashboard = () => {
         <div className="card">
           <div className="card-header">
             <h3 className="card-title">System Settings</h3>
-            <p className="card-subtitle">Configure system preferences</p>
           </div>
           <div className="card-body">
             <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
               <FiSettings style={{ fontSize: '3rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
               <h4>Settings Coming Soon</h4>
-              <p>System configuration options will be available here.</p>
             </div>
           </div>
         </div>
@@ -792,9 +786,6 @@ const ModernAdminDashboard = () => {
                     }}
                     required
                   />
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                    Course code must be unique. Examples: CS101, MATH201, PHY301
-                  </small>
                 </div>
 
                 <div className="form-group">
@@ -946,9 +937,6 @@ const ModernAdminDashboard = () => {
                     }}
                     required
                   />
-                  <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                    Course code must be unique. Examples: CS101, MATH201, PHY301
-                  </small>
                 </div>
 
                 <div className="form-group">

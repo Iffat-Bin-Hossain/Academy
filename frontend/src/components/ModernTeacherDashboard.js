@@ -206,7 +206,6 @@ const ModernTeacherDashboard = () => {
       user={user} 
       onLogout={handleLogout}
       pageTitle="Teacher Portal"
-      pageSubtitle="Manage your courses and students"
     >
       <div className="teacher-dashboard-page">
       {/* Message Alert */}
@@ -271,7 +270,6 @@ const ModernTeacherDashboard = () => {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">Quick Actions</h3>
-              <p className="card-subtitle">Common teaching tasks</p>
             </div>
             <div className="card-body">
               <div className="grid grid-cols-2">

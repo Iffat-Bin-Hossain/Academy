@@ -202,7 +202,7 @@ const StudentAttendanceView = ({ user, courseId, courseCode, courseTitle }) => {
                   <div className="warning-icon"><FiAlertTriangle /></div>
                   <div className="warning-content">
                     <strong>Attendance Notice</strong>
-                    <p>Your attendance is below the recommended 75%. Please make an effort to attend future sessions.</p>
+                    <p>Attendance is below 75%.</p>
                   </div>
                 </div>
               )}

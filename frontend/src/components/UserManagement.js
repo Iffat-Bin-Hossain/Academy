@@ -705,11 +705,6 @@ const UserManagement = () => {
           >
             Clear All ({selectedUsers.length})
           </button>
-          {filteredUsers.filter(user => user.status === 'REJECTED').length > 0 && (
-            <small className="selection-note">
-              * Rejected users ({filteredUsers.filter(user => user.status === 'REJECTED').length}) cannot be selected
-            </small>
-          )}
         </div>
       )}
 
@@ -719,11 +714,6 @@ const UserManagement = () => {
           <span className="results-count">
             Found {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} matching "{searchTerm}"
           </span>
-          {filteredUsers.length === 0 && (
-            <span className="no-results">
-              Try adjusting your search terms or clearing the search to see all users.
-            </span>
-          )}
         </div>
       )}
 

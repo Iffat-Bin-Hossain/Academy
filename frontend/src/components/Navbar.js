@@ -77,7 +77,6 @@ const Navbar = ({ user, onLogout }) => {
               </svg>
             </div>
             <span className="brand-text">ACADEMY</span>
-            <div className="brand-tagline">STAY LINKED, STAY LOCAL</div>
           </Link>
 
           {/* User Section (when logged in) */}
@@ -110,7 +109,10 @@ const Navbar = ({ user, onLogout }) => {
                   </div>
                   <div className="user-details">
                     <div className="user-name">{user.name}</div>
-                    <div className="user-role">{user.role}</div>
+                    <div className={`navbar-user-role role-${(user?.role || '').toLowerCase()}`}>
+                      <span className="role-dot"></span>
+                      {user.role}
+                    </div>
                   </div>
                 </Link>
               </div>
@@ -163,7 +165,10 @@ const Navbar = ({ user, onLogout }) => {
                     </div>
                     <div className="mobile-user-details">
                       <div className="mobile-user-name">{user.name}</div>
-                      <div className="mobile-user-role">{user.role}</div>
+                      <div className={`mobile-navbar-user-role role-${(user?.role || '').toLowerCase()}`}>
+                        <span className="role-dot"></span>
+                        {user.role}
+                      </div>
                     </div>
                   </Link>
                 </div>

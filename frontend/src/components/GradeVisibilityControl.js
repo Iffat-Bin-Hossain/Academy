@@ -85,9 +85,6 @@ const GradeVisibilityControl = ({ courseId, user, onShowMessage }) => {
         <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <FiEye style={{ color: '#2563eb' }} /> Grade Visibility Control
         </h3>
-        <p className="card-subtitle">
-          Control which assignment grades are visible to students
-        </p>
       </div>
       
       <div className="card-body">

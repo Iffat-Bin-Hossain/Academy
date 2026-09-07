@@ -468,21 +468,18 @@ const ModernStudentDashboard = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h2 style={{ margin: 0, color: '#1e293b' }}>Welcome back, {user?.name}!</h2>
-              <p style={{ margin: '0.25rem 0 0 0', color: '#64748b' }}>
-                Here's your learning progress overview
-                {user?.yearSemester && (() => {
-                  const { level, term } = getCurrentLevelAndTerm(user);
-                  return level && term ? (
-                    <span style={{ marginLeft: '1rem', fontWeight: '600', color: '#059669' }}>
-                      • Academic Level: {level}, Term: {term}
-                    </span>
-                  ) : (
-                    <span style={{ marginLeft: '1rem', fontStyle: 'italic', color: '#f59e0b' }}>
-                      • Academic Info: {user.yearSemester}
-                    </span>
-                  );
-                })()}
-              </p>
+              {user?.yearSemester && (() => {
+                const { level, term } = getCurrentLevelAndTerm(user);
+                return level && term ? (
+                  <p style={{ margin: '0.25rem 0 0 0', fontWeight: '600', color: '#059669' }}>
+                    Level: {level}, Term: {term}
+                  </p>
+                ) : (
+                  <p style={{ margin: '0.25rem 0 0 0', fontStyle: 'italic', color: '#f59e0b' }}>
+                    {user.yearSemester}
+                  </p>
+                );
+              })()}
             </div>
             <div style={{ 
               background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', 
@@ -627,7 +624,6 @@ const ModernStudentDashboard = () => {
           <div className="card">
             <div className="card-header">
               <h3 className="card-title">Quick Actions</h3>
-              <p className="card-subtitle">Common tasks and shortcuts</p>
             </div>
             <div className="card-body">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4" style={{ gap: '1rem' }}>
@@ -743,8 +739,7 @@ const ModernStudentDashboard = () => {
               {filterEnrolledCourses().length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                   <FiBookOpen style={{ fontSize: '2rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
-                  <h4>{enrolledSearchTerm ? 'No courses found' : 'No enrolled courses yet'}</h4>
-                  <p>{enrolledSearchTerm ? 'Try adjusting your search terms' : 'Browse available courses below to start your learning journey.'}</p>
+                  <h4>{enrolledSearchTerm ? 'No courses found' : 'No enrolled courses'}</h4>
                   {enrolledSearchTerm && (
                     <button 
                       className="btn btn-secondary"
@@ -979,7 +974,6 @@ const ModernStudentDashboard = () => {
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                   <FiClock style={{ fontSize: '2.5rem', display: 'block', margin: '0 auto 1rem', color: '#2563eb' }} />
                   <h4>{pendingSearchTerm ? 'No courses found' : 'No pending enrollments'}</h4>
-                  <p>{pendingSearchTerm ? 'Try adjusting your search terms' : 'All your course enrollments have been processed.'}</p>
                   {pendingSearchTerm && (
                     <button 
                       className="btn btn-secondary"
@@ -1201,7 +1195,6 @@ const ModernStudentDashboard = () => {
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
                   <FaGraduationCap style={{ fontSize: '2rem', display: 'block', margin: '0 auto 1rem', color: '#94a3b8' }} />
                   <h4>{availableSearchTerm ? 'No courses found' : 'No courses available'}</h4>
-                  <p>{availableSearchTerm ? 'Try adjusting your search terms' : 'All available courses have been enrolled or are pending approval.'}</p>
                   {availableSearchTerm && (
                     <button 
                       className="btn btn-secondary"
@@ -1415,7 +1408,6 @@ const ModernStudentDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 className="card-title">My Assignments</h3>
-                <p className="card-subtitle">Track your coursework and deadlines</p>
               </div>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

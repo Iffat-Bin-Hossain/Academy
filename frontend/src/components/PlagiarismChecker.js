@@ -614,16 +614,13 @@ const PlagiarismChecker = () => {
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
           backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050
         }} onClick={() => setShowBaselineModal(false)}>
-          <div style={{ background: '#fff', borderRadius: '12px', width: '600px', maxWidth: '90vw', padding: '1.5rem' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: '#fff', borderRadius: '16px', width: '640px', maxWidth: '94vw', padding: '1.75rem', boxShadow: '0 25px 60px -15px rgba(15, 23, 42, 0.3)' }} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.25rem' }}>
                 <FiShield style={{ color: '#2563eb' }} /> Configure Assignment Starter Code
               </h3>
               <button onClick={() => setShowBaselineModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.25rem' }}><FiX /></button>
             </div>
-            <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '1rem' }}>
-              To prevent false positives, provide the instructor starter code, template functions, or assignment boilerplate. The system will discount shared baseline lines from plagiarism scores.
-            </p>
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', fontWeight: '600', fontSize: '0.85rem', marginBottom: '0.25rem' }}>Filename (e.g. Solution.java, main.cpp):</label>
               <input 
@@ -659,8 +656,8 @@ const PlagiarismChecker = () => {
           backgroundColor: 'rgba(0, 0, 0, 0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100
         }} onClick={() => setShowReviewModal(false)}>
           <div style={{
-            background: '#fff', borderRadius: '14px', width: '95vw', height: '92vh',
-            display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)'
+            background: '#fff', borderRadius: '16px', width: '96vw', maxWidth: '1440px', height: '92vh', maxHeight: '92vh',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 60px -15px rgba(0,0,0,0.3)'
           }} onClick={e => e.stopPropagation()}>
             
             {/* Modal Header */}

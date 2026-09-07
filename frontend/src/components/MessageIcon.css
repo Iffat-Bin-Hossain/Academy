@@ -429,8 +429,12 @@
     gap: 6px;
 }
 
-.conversation-role,
-.user-role {
+.message-dropdown .conversation-role,
+.message-dropdown .user-role,
+.messenger-conversation-item .conversation-role,
+.messenger-conversation-item .user-role,
+.chat-conversation-item .conversation-role,
+.chat-conversation-item .user-role {
     background: #e0e7ff;
     color: #2563eb;
     padding: 2px 7px;

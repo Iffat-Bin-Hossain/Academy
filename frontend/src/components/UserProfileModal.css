@@ -6,14 +6,13 @@
 }
 
 .user-profile-modal {
-    max-width: 1400px;
-    min-width: 800px;
-    max-height: 85vh;
-    width: 98%;
+    max-width: 960px;
+    width: 94%;
+    max-height: 88vh;
     margin: 1rem auto;
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    border-radius: 18px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35);
     overflow: hidden;
     display: flex;
     flex-direction: column;

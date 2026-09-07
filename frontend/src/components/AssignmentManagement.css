@@ -63,11 +63,16 @@
 }
 
 .assignment-management-page .modal-content {
-  max-width: 720px;
-  width: 92%;
+  max-width: 780px;
+  width: 94%;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+  border-radius: 16px;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.22);
+}
+
+.assignment-management-page .modal-content.modal-xl {
+  max-width: 1080px;
+  width: 95%;
 }
 
 .assignment-management-page .modal-header {

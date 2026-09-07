@@ -17,9 +17,6 @@ const Layout = ({ user, onLogout, children, pageTitle, pageSubtitle }) => {
           {pageTitle && (
             <div className="page-header">
               <h1 className="page-title">{pageTitle}</h1>
-              {pageSubtitle && (
-                <p className="page-subtitle">{pageSubtitle}</p>
-              )}
             </div>
           )}
           
