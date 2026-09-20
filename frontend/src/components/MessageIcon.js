@@ -20,52 +20,66 @@ import {
     FiMessageSquare,
     FiSend,
     FiPlus,
-    FiArrowLeft
+    FiArrowLeft,
+    FiMaximize2,
+    FiMinimize2,
+    FiSearch,
+    FiAlertCircle,
+    FiInfo,
+    FiFileText,
+    FiDownload,
+    FiShare2
 } from 'react-icons/fi';
+import { auth } from '../utils/auth';
 import './MessageIcon.css';
 
-// Available smart reactions with icons
+// Available smart reactions with native emojis
 const SMART_REACTIONS = [
-    { id: 'like', label: 'Like', icon: FiThumbsUp, color: '#2563eb' },
-    { id: 'heart', label: 'Love', icon: FiHeart, color: '#ef4444' },
-    { id: 'smile', label: 'Laugh', icon: FiSmile, color: '#f59e0b' },
-    { id: 'zap', label: 'Fire', icon: FiZap, color: '#f97316' },
-    { id: 'star', label: 'Star', icon: FiStar, color: '#eab308' },
-    { id: 'check', label: 'Check', icon: FiCheck, color: '#10b981' },
+    { id: 'like', label: 'Like', emoji: '👍' },
+    { id: 'heart', label: 'Love', emoji: '❤️' },
+    { id: 'smile', label: 'Laugh', emoji: '😂' },
+    { id: 'zap', label: 'Fire', emoji: '🔥' },
+    { id: 'star', label: 'Star', emoji: '⭐' },
+    { id: 'check', label: 'Check', emoji: '✅' },
 ];
 
 const renderReactionBadge = (reactionKey) => {
     switch (reactionKey) {
         case 'like':
-        case '\uD83D\uDC4D':
-            return <FiThumbsUp style={{ color: '#2563eb', verticalAlign: 'middle' }} />;
+        case '👍':
+            return <span className="reaction-badge-symbol" role="img" aria-label="like">👍</span>;
         case 'heart':
-        case '\u2764\uFE0F':
-        case '\u2764':
-            return <FiHeart style={{ color: '#ef4444', verticalAlign: 'middle' }} />;
+        case '❤️':
+        case '❤':
+            return <span className="reaction-badge-symbol" role="img" aria-label="heart">❤️</span>;
         case 'smile':
-        case '\uD83D\uDE02':
-        case '\uD83D\uDE2E':
-            return <FiSmile style={{ color: '#f59e0b', verticalAlign: 'middle' }} />;
+        case 'laugh':
+        case '😂':
+        case '😊':
+            return <span className="reaction-badge-symbol" role="img" aria-label="smile">😂</span>;
         case 'zap':
         case 'fire':
-        case '\uD83D\uDD25':
-            return <FiZap style={{ color: '#f97316', verticalAlign: 'middle' }} />;
+        case '🔥':
+        case '⚡':
+            return <span className="reaction-badge-symbol" role="img" aria-label="fire">🔥</span>;
         case 'star':
-        case '\u2728':
-            return <FiStar style={{ color: '#eab308', verticalAlign: 'middle' }} />;
-        case 'dislike':
-        case '\uD83D\uDC4E':
-            return <FiThumbsDown style={{ color: '#64748b', verticalAlign: 'middle' }} />;
+        case '⭐':
+        case '✨':
+            return <span className="reaction-badge-symbol" role="img" aria-label="star">⭐</span>;
         case 'check':
-            return <FiCheck style={{ color: '#10b981', verticalAlign: 'middle' }} />;
+        case '✅':
+            return <span className="reaction-badge-symbol" role="img" aria-label="check">✅</span>;
+        case 'dislike':
+        case '👎':
+            return <span className="reaction-badge-symbol" role="img" aria-label="dislike">👎</span>;
         default:
-            return <FiSmile style={{ color: '#2563eb', verticalAlign: 'middle' }} />;
+            return <span className="reaction-badge-symbol">{reactionKey}</span>;
     }
 };
 
 const MessageIcon = ({ userId }) => {
     const [showModal, setShowModal] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -84,6 +98,10 @@ const MessageIcon = ({ userId }) => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [currentUserName, setCurrentUserName] = useState('');
 
+    // Toast notification state
+    const [toast, setToast] = useState(null);
+    const toastTimeoutRef = useRef(null);
+
     // Message interaction states
     const [selectedMessages, setSelectedMessages] = useState(new Set());
     const [selectionMode, setSelectionMode] = useState(false);
@@ -94,6 +112,9 @@ const MessageIcon = ({ userId }) => {
     const [showForwardModal, setShowForwardModal] = useState(false);
     const [selectedForwardRecipients, setSelectedForwardRecipients] = useState(new Set());
     const [messageReactions, setMessageReactions] = useState({});
+    const [dragOver, setDragOver] = useState(false);
+    const [highlightedMessageId, setHighlightedMessageId] = useState(null);
+
     // WebSocket connection status indicator
     const [wsConnected, setWsConnected] = useState(false);
 
@@ -104,6 +125,53 @@ const MessageIcon = ({ userId }) => {
     // WebSocket STOMP client ref — replaces all polling interval refs
     const stompClientRef = useRef(null);
     const selectedConversationRef = useRef(null);
+
+    // Helper: Show smooth in-app toast notification
+    const showToast = useCallback((message, type = 'info', duration = 3200) => {
+        if (toastTimeoutRef.current) {
+            clearTimeout(toastTimeoutRef.current);
+        }
+        setToast({ message, type, id: Date.now() });
+        toastTimeoutRef.current = setTimeout(() => {
+            setToast(null);
+        }, duration);
+    }, []);
+
+    // Initialize current user name from auth token on mount
+    useEffect(() => {
+        try {
+            const user = auth.getCurrentUser();
+            if (user && user.name) {
+                setCurrentUserName(user.name);
+            }
+        } catch (e) {
+            console.debug('Failed to get user name from auth token:', e);
+        }
+    }, []);
+
+    // Global keyboard shortcuts (Escape to close modals / exit reply)
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                if (showForwardModal) {
+                    setShowForwardModal(false);
+                    setForwardSearchTerm('');
+                    setForwardingMessages([]);
+                    setSelectedForwardRecipients(new Set());
+                } else if (replyingTo) {
+                    setReplyingTo(null);
+                } else if (selectionMode) {
+                    setSelectionMode(false);
+                    setSelectedMessages(new Set());
+                } else if (showImageModal) {
+                    setShowImageModal(false);
+                    setSelectedImage(null);
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [showForwardModal, replyingTo, selectionMode, showImageModal]);
 
     // Keep selectedConversationRef in sync with state for use inside WS callbacks
     useEffect(() => {
@@ -544,7 +612,7 @@ const MessageIcon = ({ userId }) => {
             fetchUnreadCount();
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message. Please try again.');
+            showToast('Failed to send message. Please try again.', 'error');
         }
     };
 
@@ -745,18 +813,19 @@ const MessageIcon = ({ userId }) => {
 
             // Show user-friendly error message
             if (error.response?.status === 400) {
-                alert('Unable to add reaction. Please try again.');
+                showToast('Unable to add reaction. Please try again.', 'error');
             } else {
-                alert('Failed to process reaction. Please check your connection.');
+                showToast('Failed to process reaction. Please check your connection.', 'error');
             }
         }
     };
 
     const startReply = (messageIndex) => {
         const message = messages[messageIndex];
+        if (!message) return;
         setReplyingTo({
             id: message.id,
-            content: message.content,
+            content: message.content || (message.attachmentFilename ? `📎 ${message.attachmentFilename}` : 'Attachment'),
             sender: message.senderName || 'User'
         });
         setSelectionMode(false);
@@ -767,9 +836,52 @@ const MessageIcon = ({ userId }) => {
         setReplyingTo(null);
     };
 
+    // Direct 1-click forward for a single message
+    const startForwardSingle = (message) => {
+        if (!message) return;
+        setForwardingMessages([message]);
+        setSelectedForwardRecipients(new Set());
+        setForwardSearchTerm('');
+        setShowForwardModal(true);
+    };
+
+    // Direct 1-click delete for an owned message
+    const handleDeleteSingle = async (messageId) => {
+        if (!messageId) return;
+        if (window.confirm('Delete this message? This action cannot be undone.')) {
+            try {
+                await axios.delete(`/messages/${messageId}?userId=${userId}`);
+                showToast('Message deleted', 'success');
+                if (selectedConversation) {
+                    await fetchConversationQuietly(selectedConversation.userId);
+                }
+                fetchConversations();
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                showToast('Failed to delete message', 'error');
+            }
+        }
+    };
+
+    // Smooth scroll to quoted message and flash highlight
+    const scrollToMessage = (targetMessageId) => {
+        if (!targetMessageId) return;
+        const elem = document.getElementById(`chat-message-${targetMessageId}`);
+        if (elem) {
+            elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setHighlightedMessageId(targetMessageId);
+            setTimeout(() => {
+                setHighlightedMessageId(null);
+            }, 1800);
+        } else {
+            showToast('Quoted message not visible in current view', 'info');
+        }
+    };
+
+    // Multi-message forward from selection mode
     const forwardMessages = () => {
         if (selectedMessages.size === 0) {
-            alert('Please select messages to forward.');
+            showToast('Please select messages to forward.', 'warning');
             return;
         }
 
@@ -780,29 +892,28 @@ const MessageIcon = ({ userId }) => {
                 return null;
             }
             return message;
-        }).filter(message => message !== null);
+        }).filter(Boolean);
 
         if (messagesToForward.length === 0) {
-            alert('No valid messages selected for forwarding.');
+            showToast('No valid messages selected for forwarding.', 'warning');
             return;
         }
 
-        console.log('Messages to forward:', messagesToForward);
         setForwardingMessages(messagesToForward);
         setSelectedForwardRecipients(new Set());
-
-        // Close the main message modal to prevent z-index conflicts and improve UX
-        setShowModal(false);
+        setForwardSearchTerm('');
         setShowForwardModal(true);
+        setSelectionMode(false);
+        setSelectedMessages(new Set());
     };
 
-    const toggleRecipientSelection = (userId) => {
+    const toggleRecipientSelection = (targetUserId) => {
         setSelectedForwardRecipients(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(userId)) {
-                newSet.delete(userId);
+            if (newSet.has(targetUserId)) {
+                newSet.delete(targetUserId);
             } else {
-                newSet.add(userId);
+                newSet.add(targetUserId);
             }
             return newSet;
         });
@@ -811,52 +922,32 @@ const MessageIcon = ({ userId }) => {
     const sendForwardedMessages = async () => {
         try {
             if (selectedForwardRecipients.size === 0) {
-                alert('Please select at least one recipient.');
+                showToast('Please select at least one recipient.', 'warning');
                 return;
             }
 
             if (forwardingMessages.length === 0) {
-                alert('No messages to forward.');
+                showToast('No messages to forward.', 'warning');
                 return;
             }
 
-            console.log('Forwarding messages to recipients:', Array.from(selectedForwardRecipients));
-            console.log('Messages to forward:', forwardingMessages);
+            const recipientCount = selectedForwardRecipients.size;
+            const messageCount = forwardingMessages.length;
 
             for (const recipientId of selectedForwardRecipients) {
                 for (const message of forwardingMessages) {
-                    if (!message) {
-                        console.warn('Skipping invalid message:', message);
-                        continue;
-                    }
+                    if (!message) continue;
 
-                    // Handle both text messages and file attachments
                     if (message.attachmentUrl && message.attachmentContentType) {
-                        // Forward file attachment using clean content
                         let cleanContent = message.content || 'File attachment';
-
-                        const forwardData = {
-                            senderId: userId,
-                            recipientId: recipientId,
-                            content: cleanContent,
-                            attachmentUrl: message.attachmentUrl,
-                            attachmentFilename: message.attachmentFilename || 'forwarded_file',
-                            attachmentSize: message.attachmentSize || 0,
-                            attachmentContentType: message.attachmentContentType,
-                            isForwarded: true // Add forwarded indicator
-                        };
-
-                        console.log('Forwarding message with attachment:', forwardData);
-
-                        // Create URLSearchParams for form data
                         const params = new URLSearchParams();
-                        params.append('senderId', forwardData.senderId);
-                        params.append('recipientId', forwardData.recipientId);
-                        params.append('content', forwardData.content);
-                        params.append('attachmentUrl', forwardData.attachmentUrl);
-                        params.append('attachmentFilename', forwardData.attachmentFilename);
-                        params.append('attachmentSize', forwardData.attachmentSize);
-                        params.append('attachmentContentType', forwardData.attachmentContentType);
+                        params.append('senderId', userId);
+                        params.append('recipientId', recipientId);
+                        params.append('content', cleanContent);
+                        params.append('attachmentUrl', message.attachmentUrl);
+                        params.append('attachmentFilename', message.attachmentFilename || 'forwarded_file');
+                        params.append('attachmentSize', message.attachmentSize || 0);
+                        params.append('attachmentContentType', message.attachmentContentType);
                         params.append('isForwarded', 'true');
 
                         await axios.post('/messages/send-with-attachment', params, {
@@ -865,17 +956,12 @@ const MessageIcon = ({ userId }) => {
                             }
                         });
                     } else if (message.content) {
-                        // Forward text message with clean content
                         const forwardData = {
                             recipientId: recipientId,
                             content: message.content,
-                            isForwarded: true // Add forwarded indicator
+                            isForwarded: true
                         };
-
-                        console.log('Forwarding text message:', forwardData);
                         await axios.post(`/messages/send?senderId=${userId}`, forwardData);
-                    } else {
-                        console.warn('Message has no content or attachment to forward:', message);
                     }
                 }
             }
@@ -883,22 +969,19 @@ const MessageIcon = ({ userId }) => {
             setShowForwardModal(false);
             setForwardingMessages([]);
             setSelectedForwardRecipients(new Set());
-            setForwardSearchTerm(''); // Clear forward search
+            setForwardSearchTerm('');
             exitSelectionMode();
 
-            // Reopen the main message modal for better UX
-            setShowModal(true);
-
-            // Refresh conversations to show the new forwarded messages
+            // Refresh conversations and active chat
             fetchConversations();
+            if (selectedConversation) {
+                fetchConversation(selectedConversation.userId);
+            }
 
-            const recipientCount = selectedForwardRecipients.size;
-            const messageCount = forwardingMessages.length;
-            alert(`Successfully forwarded ${messageCount} message(s) to ${recipientCount} recipient(s)!`);
+            showToast(`Forwarded ${messageCount} message${messageCount !== 1 ? 's' : ''} to ${recipientCount} recipient${recipientCount !== 1 ? 's' : ''}!`, 'success');
         } catch (error) {
             console.error('Error forwarding messages:', error);
-            console.error('Error response:', error.response?.data);
-            alert('Failed to forward messages. Please try again.');
+            showToast('Failed to forward messages. Please try again.', 'error');
         }
     };
 
@@ -912,35 +995,23 @@ const MessageIcon = ({ userId }) => {
             try {
                 const messageIds = Array.from(selectedMessages).map(index => {
                     const message = messages[index];
-                    if (!message || !message.id) {
-                        console.error('Invalid message at index:', index, message);
-                        return null;
-                    }
+                    if (!message || !message.id) return null;
                     return message.id;
-                }).filter(id => id !== null);
+                }).filter(Boolean);
 
                 if (messageIds.length === 0) {
-                    alert('No valid messages selected for deletion.');
+                    showToast('No valid messages selected for deletion.', 'warning');
                     return;
                 }
 
-                console.log('Deleting message IDs:', messageIds);
-
-                // Use the correct delete endpoint with POST request body
                 await axios.post(`/messages/delete-multiple?userId=${userId}`, messageIds);
-
-                // Refresh the conversation
+                showToast(`Deleted ${messageCount} ${messageText}`, 'success');
                 await fetchConversation(selectedConversation.userId);
                 exitSelectionMode();
-
-                // Update conversations list to reflect changes
                 fetchConversations();
-
-                console.log('Messages deleted successfully');
             } catch (error) {
                 console.error('Error deleting messages:', error);
-                console.error('Error response:', error.response?.data);
-                alert('Failed to delete messages. You may not have permission to delete these messages.');
+                showToast('Failed to delete messages. You may not have permission.', 'error');
             }
         }
     };
@@ -962,14 +1033,12 @@ const MessageIcon = ({ userId }) => {
     };
 
     const openChatModal = (conversation) => {
-        // Prevent opening chat with disabled users
         if (conversation.userName === 'disabled user') {
-            return; // Do nothing for disabled users
+            return;
         }
 
         setSelectedConversation(conversation);
 
-        // Fetch profile photo if not already available
         if (!conversation.profilePhotoUrl) {
             fetchUserProfilePhoto(conversation.userId, conversation);
         }
@@ -977,7 +1046,6 @@ const MessageIcon = ({ userId }) => {
         fetchConversation(conversation.userId);
         setSearchTerm('');
         setCurrentView('chat');
-        // Immediately update the unread count in state for this conversation
         setConversations(prevConversations =>
             prevConversations.map(conv =>
                 conv.userId === conversation.userId
@@ -987,20 +1055,18 @@ const MessageIcon = ({ userId }) => {
         );
     };
 
-    const fetchUserProfilePhoto = async (userId, conversation) => {
+    const fetchUserProfilePhoto = async (targetUserId, conversation) => {
         try {
-            const response = await axios.get(`/profile/${userId}`);
+            const response = await axios.get(`/profile/${targetUserId}`);
             if (response.data?.profilePhotoUrl) {
-                // Update the selected conversation with profile photo
                 setSelectedConversation(prev => ({
                     ...prev,
                     profilePhotoUrl: response.data.profilePhotoUrl
                 }));
 
-                // Also update the conversations list
                 setConversations(prevConversations =>
                     prevConversations.map(conv =>
-                        conv.userId === userId
+                        conv.userId === targetUserId
                             ? { ...conv, profilePhotoUrl: response.data.profilePhotoUrl }
                             : conv
                     )
@@ -1012,31 +1078,68 @@ const MessageIcon = ({ userId }) => {
     };
 
     const openFullMessaging = () => {
-        // This could open a dedicated messaging page or a larger modal
-        // For now, just close the dropdown
         setShowModal(false);
         setSearchTerm('');
     };
 
-    const handleFileSelect = (event) => {
-        const file = event.target.files[0];
+    const processSelectedFile = (file) => {
         if (!file) return;
-
-        // Check file size (10MB limit)
         if (file.size > 10 * 1024 * 1024) {
-            alert('File size too large. Maximum 10MB allowed.');
+            showToast('File size too large. Maximum 10MB allowed.', 'error');
             return;
         }
 
         setSelectedFile(file);
 
-        // Create preview for images
         if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = (e) => setFilePreview(e.target.result);
             reader.readAsDataURL(file);
         } else {
             setFilePreview(null);
+        }
+    };
+
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0];
+        processSelectedFile(file);
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!dragOver) setDragOver(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setDragOver(false);
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            processSelectedFile(e.dataTransfer.files[0]);
+            showToast('File attached', 'info');
+        }
+    };
+
+    const handlePaste = (e) => {
+        if (e.clipboardData && e.clipboardData.items) {
+            for (let i = 0; i < e.clipboardData.items.length; i++) {
+                const item = e.clipboardData.items[i];
+                if (item.type.indexOf('image') !== -1) {
+                    const file = item.getAsFile();
+                    if (file) {
+                        processSelectedFile(file);
+                        showToast('Image pasted from clipboard', 'info');
+                        break;
+                    }
+                }
+            }
         }
     };
 
@@ -1086,7 +1189,7 @@ const MessageIcon = ({ userId }) => {
         } catch (error) {
             console.error('Error downloading file:', error);
             console.error('Failed URL:', attachmentUrl);
-            alert('Failed to download file. Please try again.');
+            showToast('Failed to download file. Please try again.', 'error');
         }
     };
 
@@ -1113,17 +1216,14 @@ const MessageIcon = ({ userId }) => {
             <div
                 className={`message-content-wrapper ${isSelected ? 'selected' : ''}`}
                 onMouseEnter={() => {
-                    // Clear any existing timeout
                     if (hoverTimeoutRef.current) {
                         clearTimeout(hoverTimeoutRef.current);
                     }
-                    // Add delay before showing hover actions
                     hoverTimeoutRef.current = setTimeout(() => {
                         setHoveredMessage(messageIndex);
-                    }, 300); // 300ms delay
+                    }, 200);
                 }}
                 onMouseLeave={() => {
-                    // Clear timeout and immediately hide hover actions
                     if (hoverTimeoutRef.current) {
                         clearTimeout(hoverTimeoutRef.current);
                     }
@@ -1141,36 +1241,45 @@ const MessageIcon = ({ userId }) => {
                     </div>
                 )}
 
-                {/* Reply indicator - Modern messenger style */}
+                {/* Reply indicator - Interactive click-to-scroll quote */}
                 {message.replyToMessageId && (
-                    <div className="modern-reply-indicator">
+                    <div 
+                        className="modern-reply-indicator clickable-quote"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            scrollToMessage(message.replyToMessageId);
+                        }}
+                        title="Click to jump to quoted message"
+                    >
                         <div className="reply-line"></div>
                         <div className="reply-content">
                             <div className="reply-to-name">
+                                <FiCornerUpLeft size={11} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
                                 {message.replyToSenderName || 'Previous message'}
                             </div>
                             <div className="reply-to-text">
                                 {message.replyToContent ?
-                                    (message.replyToContent.length > 50 ?
-                                        message.replyToContent.substring(0, 50) + '...' :
+                                    (message.replyToContent.length > 55 ?
+                                        message.replyToContent.substring(0, 55) + '...' :
                                         message.replyToContent
                                     ) :
-                                    'Message'
+                                    'Message / Attachment'
                                 }
                             </div>
                         </div>
                     </div>
                 )}
 
-                {message.content && (
+                {/* Message text with linkify */}
+                {message.content && (!hasAttachment || (message.content !== 'File attachment' && message.content !== 'Attachment')) && (
                     <div className="message-text">
-                        {/* Check if this is a forwarded message - handle both isForwarded and forwarded properties */}
+                        {/* Check if this is a forwarded message */}
                         {(message.isForwarded === true || message.forwarded === true) ? (
                             <>
                                 <div className="forwarded-indicator">
-                                    <span className="forwarded-arrow">→</span>
+                                    <span className="forwarded-arrow">↩</span>
                                     <span className="forwarded-label">
-                                        {String(message.senderId) === String(userId) ? "You forwarded a message" : "Forwarded"}
+                                        {String(message.senderId) === String(userId) ? "You forwarded" : "Forwarded"}
                                     </span>
                                 </div>
                                 <div className="forwarded-content">
@@ -1187,6 +1296,7 @@ const MessageIcon = ({ userId }) => {
                     </div>
                 )}
 
+                {/* Modern File / Image Attachment */}
                 {hasAttachment && (
                     <div className="message-attachment">
                         {isImageFile(message.attachmentContentType) ? (
@@ -1195,30 +1305,43 @@ const MessageIcon = ({ userId }) => {
                                     src={message.attachmentUrl}
                                     alt={message.attachmentFilename}
                                     onClick={() => openImageModal(message.attachmentUrl)}
-                                    style={{ maxWidth: '200px', maxHeight: '200px', cursor: 'pointer', borderRadius: '8px' }}
+                                    className="attachment-img-preview"
                                 />
-                                <div className="attachment-filename">{message.attachmentFilename}</div>
+                                {message.attachmentFilename && (
+                                    <div className="attachment-filename">{message.attachmentFilename}</div>
+                                )}
                             </div>
                         ) : (
-                            <div className="attachment-file">
-                                <div className="file-icon"><FiPaperclip /></div>
-                                <div className="file-details">
-                                    <div className="file-name">{message.attachmentFilename}</div>
-                                    <div className="file-size">{formatFileSize(message.attachmentSize)}</div>
+                            <div className="modern-file-card">
+                                <div className="file-card-icon">
+                                    <FiFileText size={20} />
+                                </div>
+                                <div className="file-card-info">
+                                    <div className="file-card-name" title={message.attachmentFilename}>
+                                        {message.attachmentFilename || 'Attached file'}
+                                    </div>
+                                    <div className="file-card-size">
+                                        {formatFileSize(message.attachmentSize)}
+                                    </div>
                                 </div>
                                 <button
-                                    onClick={() => handleFileView(message.attachmentUrl, message.attachmentFilename)}
-                                    className="download-link"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleFileView(message.attachmentUrl, message.attachmentFilename);
+                                    }}
+                                    className="file-download-btn"
                                     type="button"
+                                    title="Download file"
                                 >
-                                    Download
+                                    <FiDownload size={13} />
+                                    <span>Download</span>
                                 </button>
                             </div>
                         )}
                     </div>
                 )}
 
-                {/* Reactions display */}
+                {/* Reactions display pills */}
                 {messageReactionsData.length > 0 && (
                     <div className="message-reactions">
                         {messageReactionsData.map((reactionGroup, index) => {
@@ -1230,7 +1353,10 @@ const MessageIcon = ({ userId }) => {
                                     key={index}
                                     className={`reaction clickable-reaction ${currentUserReacted ? 'user-reacted' : ''}`}
                                     title={`${reactionGroup.users.join(', ')}`}
-                                    onClick={() => handleReaction(messageIndex, reactionGroup.emoji)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleReaction(messageIndex, reactionGroup.emoji);
+                                    }}
                                 >
                                     {renderReactionBadge(reactionGroup.emoji)}
                                     {reactionGroup.count > 1 && (
@@ -1242,62 +1368,86 @@ const MessageIcon = ({ userId }) => {
                     </div>
                 )}
 
-                {/* Message interaction buttons */}
+                {/* Message interaction buttons (Hover Toolbar) */}
                 {!selectionMode && isHovered && (
                     <div className={`message-actions ${isSent ? 'actions-left' : 'actions-right'}`}>
                         <button
                             className="action-btn reaction-btn"
-                            onClick={() => setShowEmojiPicker(showEmojiPicker === messageIndex ? null : messageIndex)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowEmojiPicker(showEmojiPicker === messageIndex ? null : messageIndex);
+                            }}
                             title="Add reaction"
+                            type="button"
                         >
                             <FiSmile size={14} />
                         </button>
                         <button
                             className="action-btn reply-btn"
-                            onClick={() => startReply(messageIndex)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                startReply(messageIndex);
+                            }}
                             title="Reply"
+                            type="button"
                         >
                             <FiCornerUpLeft size={14} />
                         </button>
                         <button
+                            className="action-btn forward-btn"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                startForwardSingle(message);
+                            }}
+                            title="Forward"
+                            type="button"
+                        >
+                            <FiCornerUpRight size={14} />
+                        </button>
+                        {isSent && (
+                            <button
+                                className="action-btn delete-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteSingle(message.id);
+                                }}
+                                title="Delete"
+                                type="button"
+                            >
+                                <FiTrash2 size={14} />
+                            </button>
+                        )}
+                        <button
                             className="action-btn select-btn"
-                            onClick={() => enterSelectionMode(messageIndex)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                enterSelectionMode(messageIndex);
+                            }}
                             title="Select"
+                            type="button"
                         >
                             <FiCheck size={14} />
                         </button>
                     </div>
                 )}
 
-                {/* Reaction picker */}
+                {/* Reaction picker popover */}
                 {showEmojiPicker === messageIndex && (
-                    <div className="emoji-picker" style={{ display: 'flex', gap: '4px', padding: '6px', background: '#fff', borderRadius: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', border: '1px solid #e2e8f0' }}>
-                        {SMART_REACTIONS.map((r) => {
-                            const IconComponent = r.icon;
-                            return (
-                                <button
-                                    key={r.id}
-                                    className="emoji-btn"
-                                    onClick={() => handleReaction(messageIndex, r.id)}
-                                    title={r.label}
-                                    style={{ 
-                                        display: 'inline-flex', 
-                                        alignItems: 'center', 
-                                        justifyContent: 'center', 
-                                        padding: '6px',
-                                        background: 'transparent',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        borderRadius: '50%',
-                                        transition: 'transform 0.15s ease'
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.2)'}
-                                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                                >
-                                    <IconComponent size={18} style={{ color: r.color }} />
-                                </button>
-                            );
-                        })}
+                    <div className={`modern-reaction-picker ${isSent ? 'picker-right' : 'picker-left'}`}>
+                        {SMART_REACTIONS.map((r) => (
+                            <button
+                                key={r.id}
+                                className="reaction-emoji-btn"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleReaction(messageIndex, r.id);
+                                }}
+                                title={r.label}
+                                type="button"
+                            >
+                                <span className="reaction-picker-emoji">{r.emoji}</span>
+                            </button>
+                        ))}
                     </div>
                 )}
             </div>
@@ -1416,28 +1566,35 @@ const MessageIcon = ({ userId }) => {
 
             {showModal && (
                 <div
-                    className="message-dropdown"
+                    className={`message-dropdown ${isExpanded ? 'is-expanded' : ''}`}
                     ref={modalRef}
-                    onClick={() => {
-                        // Close forward modal when clicking anywhere in the main message modal
-                        if (showForwardModal) {
-                            setShowForwardModal(false);
-                            setForwardSearchTerm('');
-                            setSelectedForwardRecipients(new Set());
-                        }
-                    }}
                 >
+                    {/* In-app Toast Notification */}
+                    {toast && (
+                        <div className={`chat-toast chat-toast-${toast.type}`}>
+                            {toast.type === 'success' && <FiCheck size={14} />}
+                            {toast.type === 'error' && <FiAlertCircle size={14} />}
+                            {toast.type === 'info' && <FiInfo size={14} />}
+                            {toast.type === 'warning' && <FiAlertCircle size={14} />}
+                            <span>{toast.message}</span>
+                            <button className="chat-toast-close" onClick={() => setToast(null)} type="button">
+                                <FiX size={12} />
+                            </button>
+                        </div>
+                    )}
+
                     {/* Header with back button for chat view */}
                     {currentView === 'chat' ? (
                         <div className="message-dropdown-header messenger-chat-header">
                             <div className="header-left">
                                 <button
-                                    className="back-btn"
+                                    className="chat-back-btn"
                                     onClick={() => {
                                         setCurrentView('conversations');
                                         setSelectedConversation(null);
                                     }}
                                     title="Back to chats"
+                                    type="button"
                                 >
                                     <FiArrowLeft size={18} />
                                 </button>
@@ -1461,7 +1618,7 @@ const MessageIcon = ({ userId }) => {
                                             >
                                                 {selectedConversation.userName?.charAt(0).toUpperCase() || 'U'}
                                             </div>
-                                            <span className="messenger-online-dot"></span>
+                                            <span className={`messenger-online-dot ${wsConnected ? 'active' : ''}`}></span>
                                         </div>
                                         <div className="chat-header-text">
                                             <div className="chat-user-name">{selectedConversation.userName}</div>
@@ -1471,10 +1628,23 @@ const MessageIcon = ({ userId }) => {
                                 )}
                             </div>
                             <div className="header-actions">
+                                <span 
+                                    className={`ws-status-dot ${wsConnected ? 'connected' : 'connecting'}`} 
+                                    title={wsConnected ? 'Connected (live)' : 'Connecting live...'} 
+                                />
+                                <button
+                                    className="header-action-btn expand-btn"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    title={isExpanded ? "Standard size" : "Expand window"}
+                                    type="button"
+                                >
+                                    {isExpanded ? <FiMinimize2 size={16} /> : <FiMaximize2 size={16} />}
+                                </button>
                                 <button
                                     className="header-action-btn close-btn"
                                     onClick={() => setShowModal(false)}
                                     title="Close"
+                                    type="button"
                                 >
                                     <FiX size={18} />
                                 </button>
@@ -1485,9 +1655,10 @@ const MessageIcon = ({ userId }) => {
                             <div className="header-left">
                                 {currentView === 'newChat' && (
                                     <button
-                                        className="back-btn"
+                                        className="chat-back-btn"
                                         onClick={() => setCurrentView('conversations')}
                                         title="Back to chats"
+                                        type="button"
                                     >
                                         <FiArrowLeft size={18} />
                                     </button>
@@ -1495,6 +1666,10 @@ const MessageIcon = ({ userId }) => {
                                 <h4>{currentView === 'newChat' ? 'New Message' : 'Chats'}</h4>
                             </div>
                             <div className="message-header-actions">
+                                <span 
+                                    className={`ws-status-dot ${wsConnected ? 'connected' : 'connecting'}`} 
+                                    title={wsConnected ? 'Connected (live)' : 'Connecting live...'} 
+                                />
                                 {currentView === 'conversations' && (
                                     <button
                                         className="new-chat-btn"
@@ -1502,14 +1677,24 @@ const MessageIcon = ({ userId }) => {
                                             setCurrentView('newChat');
                                         }}
                                         title="Start new conversation"
+                                        type="button"
                                     >
                                         <FiPlus size={18} />
                                     </button>
                                 )}
                                 <button
+                                    className="header-action-btn expand-btn"
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    title={isExpanded ? "Standard size" : "Expand window"}
+                                    type="button"
+                                >
+                                    {isExpanded ? <FiMinimize2 size={16} /> : <FiMaximize2 size={16} />}
+                                </button>
+                                <button
                                     className="header-action-btn close-btn"
                                     onClick={() => setShowModal(false)}
                                     title="Close"
+                                    type="button"
                                 >
                                     <FiX size={18} />
                                 </button>
@@ -1690,13 +1875,30 @@ const MessageIcon = ({ userId }) => {
                         )}
 
                         {currentView === 'chat' && selectedConversation && (
-                            <div className="chat-content">
+                            <div 
+                                className={`chat-content ${dragOver ? 'drag-over' : ''}`}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                            >
+                                {/* Drag & Drop visual overlay */}
+                                {dragOver && (
+                                    <div className="chat-dropzone-overlay">
+                                        <div className="dropzone-box">
+                                            <FiPaperclip size={36} className="dropzone-icon" />
+                                            <p>Drop file here to send</p>
+                                            <span>Images or documents up to 10MB</span>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="chat-messages">
                                     {messages.length > 0 ? (
                                         messages.map((message, index) => (
                                             <div
-                                                key={index}
-                                                className={`message-bubble ${message.senderId === userId ? 'sent' : 'received'}`}
+                                                key={message.id || index}
+                                                id={`chat-message-${message.id}`}
+                                                className={`message-bubble ${message.senderId === userId ? 'sent' : 'received'} ${highlightedMessageId === message.id ? 'message-highlight-pulse' : ''}`}
                                             >
                                                 {renderMessageContent(message, index)}
                                                 <div className="message-time">{formatTime(message.timestamp)}</div>
@@ -1704,38 +1906,46 @@ const MessageIcon = ({ userId }) => {
                                         ))
                                     ) : (
                                         <div className="no-messages">
-                                            Start your conversation with {selectedConversation.userName}
+                                            <div className="no-messages-icon">
+                                                <FiMessageSquare size={36} />
+                                            </div>
+                                            <p className="no-messages-title">Start your conversation</p>
+                                            <span className="no-messages-sub">with {selectedConversation.userName}</span>
                                         </div>
                                     )}
+                                    <div ref={messagesEndRef} />
                                 </div>
 
                                 {/* Selection mode toolbar */}
                                 {selectionMode && selectedMessages.size > 0 && (
                                     <div className="selection-toolbar">
                                         <div className="selection-info">
-                                            {selectedMessages.size} message(s) selected
+                                            {selectedMessages.size} selected
                                         </div>
                                         <div className="selection-actions">
                                             <button
                                                 className="toolbar-btn forward-btn"
                                                 onClick={forwardMessages}
-                                                title="Forward"
+                                                title="Forward selected"
+                                                type="button"
                                             >
-                                                <FiCornerUpRight style={{ marginRight: '6px' }} /> Forward
+                                                <FiCornerUpRight style={{ marginRight: '5px' }} /> Forward
                                             </button>
                                             <button
                                                 className="toolbar-btn delete-btn"
                                                 onClick={deleteSelectedMessages}
-                                                title="Delete"
+                                                title="Delete selected"
+                                                type="button"
                                             >
-                                                <FiTrash2 style={{ marginRight: '6px' }} /> Delete
+                                                <FiTrash2 style={{ marginRight: '5px' }} /> Delete
                                             </button>
                                             <button
                                                 className="toolbar-btn cancel-btn"
                                                 onClick={exitSelectionMode}
                                                 title="Cancel"
+                                                type="button"
                                             >
-                                                <FiX style={{ marginRight: '6px' }} /> Cancel
+                                                <FiX style={{ marginRight: '4px' }} /> Cancel
                                             </button>
                                         </div>
                                     </div>
@@ -1760,25 +1970,30 @@ const MessageIcon = ({ userId }) => {
                                                 onClick={removeSelectedFile}
                                                 className="remove-file-btn"
                                                 title="Remove file"
+                                                type="button"
                                             >
                                                 <FiX />
                                             </button>
                                         </div>
                                     )}
 
-                                    {/* Reply indicator */}
+                                    {/* Reply indicator banner above input */}
                                     {replyingTo && (
                                         <div className="reply-indicator-input">
                                             <div className="reply-content">
-                                                <span className="reply-label">Replying to {replyingTo.sender}:</span>
+                                                <span className="reply-label">
+                                                    <FiCornerUpLeft size={13} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                                                    Replying to {replyingTo.sender}:
+                                                </span>
                                                 <span className="reply-text">{replyingTo.content}</span>
                                             </div>
                                             <button
                                                 className="cancel-reply-btn"
                                                 onClick={cancelReply}
-                                                title="Cancel reply"
+                                                title="Cancel reply (Esc)"
+                                                type="button"
                                             >
-                                                <FiX />
+                                                <FiX size={14} />
                                             </button>
                                         </div>
                                     )}
@@ -1794,7 +2009,7 @@ const MessageIcon = ({ userId }) => {
                                         <button
                                             onClick={() => fileInputRef.current?.click()}
                                             className="file-input-btn"
-                                            title="Attach file"
+                                            title="Attach file or drop here"
                                             type="button"
                                         >
                                             <FiPaperclip size={18} />
@@ -1804,7 +2019,8 @@ const MessageIcon = ({ userId }) => {
                                             value={newMessage}
                                             onChange={(e) => setNewMessage(e.target.value)}
                                             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                                            placeholder="Aa"
+                                            onPaste={handlePaste}
+                                            placeholder={replyingTo ? "Type your reply..." : "Type a message..."}
                                             className="message-input"
                                         />
                                         <button
@@ -1822,241 +2038,260 @@ const MessageIcon = ({ userId }) => {
                         )}
                     </div>
 
-                    {currentView === 'conversations' && (
-                        <div className="message-dropdown-footer">
-                            <button
-                                className="view-all-btn"
-                                onClick={() => {
-                                    setShowModal(false);
-                                    // Open full messaging interface
-                                    openFullMessaging();
-                                }}
-                            >
-                                View All Messages
-                            </button>
+                    {/* Integrated In-Chat Forward Overlay */}
+                    {showForwardModal && (
+                        <div className="chat-forward-overlay" onClick={() => {
+                            setShowForwardModal(false);
+                            setForwardSearchTerm('');
+                            setForwardingMessages([]);
+                            setSelectedForwardRecipients(new Set());
+                        }}>
+                            <div className="chat-forward-container" onClick={(e) => e.stopPropagation()}>
+                                {/* Header */}
+                                <div className="chat-forward-header">
+                                    <button
+                                        className="chat-back-btn forward-back-btn"
+                                        onClick={() => {
+                                            setShowForwardModal(false);
+                                            setForwardSearchTerm('');
+                                            setForwardingMessages([]);
+                                            setSelectedForwardRecipients(new Set());
+                                        }}
+                                        title="Back"
+                                        type="button"
+                                    >
+                                        <FiArrowLeft size={18} />
+                                    </button>
+                                    <div className="forward-header-info">
+                                        <h4>Forward Message</h4>
+                                        <span className="forward-subtitle">
+                                            {forwardingMessages.length} message{forwardingMessages.length !== 1 ? 's' : ''} queued
+                                        </span>
+                                    </div>
+                                    {selectedForwardRecipients.size > 0 && (
+                                        <button
+                                            className="forward-send-quick-btn"
+                                            onClick={sendForwardedMessages}
+                                            title="Send forward now"
+                                            type="button"
+                                        >
+                                            <FiSend size={15} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Forward Preview Box */}
+                                {forwardingMessages.length > 0 && (
+                                    <div className="forward-preview-banner">
+                                        <div className="forward-preview-tag">
+                                            <FiShare2 size={12} style={{ marginRight: '5px' }} />
+                                            <span>Forwarding Preview</span>
+                                        </div>
+                                        <div className="forward-preview-body">
+                                            {forwardingMessages.slice(0, 2).map((msg, i) => (
+                                                <div key={i} className="preview-snippet">
+                                                    <span className="snippet-sender">{msg.senderName || 'Message'}:</span>
+                                                    <span className="snippet-text">
+                                                        {msg.content || (msg.attachmentFilename ? `📎 ${msg.attachmentFilename}` : 'Attachment')}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                            {forwardingMessages.length > 2 && (
+                                                <div className="preview-more">+{forwardingMessages.length - 2} more</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Selected Recipients Bar */}
+                                {selectedForwardRecipients.size > 0 && (
+                                    <div className="selected-recipients-bar">
+                                        <div className="selected-recipients-scroll">
+                                            {Array.from(selectedForwardRecipients).map(uId => {
+                                                const user = [...conversations, ...availableUsers].find(
+                                                    u => u.userId === uId || u.id === uId
+                                                );
+                                                const userName = user?.userName || user?.name || 'Unknown';
+                                                return (
+                                                    <div key={uId} className="selected-recipient-chip">
+                                                        <span className="chip-avatar">
+                                                            {userName.charAt(0).toUpperCase()}
+                                                        </span>
+                                                        <span className="chip-name">{userName}</span>
+                                                        <button
+                                                            className="chip-remove"
+                                                            onClick={() => toggleRecipientSelection(uId)}
+                                                            type="button"
+                                                        >
+                                                            <FiX size={12} />
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="recipient-count">
+                                            {selectedForwardRecipients.size} selected
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Search Bar */}
+                                <div className="forward-search-container">
+                                    <div className="forward-search-wrapper">
+                                        <FiSearch className="search-icon" size={16} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search people to forward..."
+                                            className="forward-search-input"
+                                            value={forwardSearchTerm}
+                                            onChange={(e) => setForwardSearchTerm(e.target.value)}
+                                        />
+                                        {forwardSearchTerm && (
+                                            <button
+                                                className="clear-search-btn"
+                                                onClick={() => setForwardSearchTerm('')}
+                                                type="button"
+                                            >
+                                                <FiX size={13} />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Recipients List */}
+                                <div className="forward-recipients-container">
+                                    <div className="forward-recipients-list">
+                                        {/* Recent Conversations */}
+                                        {conversations.length > 0 && (
+                                            <>
+                                                <div className="recipient-section-header">Recent Chats</div>
+                                                {conversations
+                                                    .filter(conv =>
+                                                        !forwardSearchTerm ||
+                                                        conv.userName.toLowerCase().includes(forwardSearchTerm.toLowerCase())
+                                                    )
+                                                    .map((conversation) => {
+                                                        const isSelected = selectedForwardRecipients.has(conversation.userId);
+                                                        return (
+                                                            <div
+                                                                key={`conv-${conversation.userId}`}
+                                                                className={`modern-recipient-item ${isSelected ? 'selected' : ''}`}
+                                                                onClick={() => toggleRecipientSelection(conversation.userId)}
+                                                            >
+                                                                <div className="recipient-checkbox">
+                                                                    <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
+                                                                        {isSelected && <FiCheck size={12} />}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="modern-recipient-avatar">
+                                                                    {conversation.profilePhotoUrl ? (
+                                                                        <img
+                                                                            src={conversation.profilePhotoUrl}
+                                                                            alt={conversation.userName}
+                                                                            className="recipient-avatar-image"
+                                                                            onError={(e) => {
+                                                                                e.target.style.display = 'none';
+                                                                                e.target.nextSibling.style.display = 'flex';
+                                                                            }}
+                                                                        />
+                                                                    ) : null}
+                                                                    <div
+                                                                        className="recipient-avatar-initials"
+                                                                        style={{ display: conversation.profilePhotoUrl ? 'none' : 'flex' }}
+                                                                    >
+                                                                        {conversation.userName?.charAt(0).toUpperCase() || 'U'}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="modern-recipient-info">
+                                                                    <span className="modern-recipient-name">{conversation.userName}</span>
+                                                                    <span className="modern-recipient-role">{conversation.userRole}</span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </>
+                                        )}
+
+                                        {/* All Available Users */}
+                                        {availableUsers.length > 0 && (
+                                            <>
+                                                <div className="recipient-section-header">All Users</div>
+                                                {availableUsers
+                                                    .filter(user =>
+                                                        (!forwardSearchTerm ||
+                                                            user.name.toLowerCase().includes(forwardSearchTerm.toLowerCase())) &&
+                                                        !conversations.some(conv => conv.userId === user.id)
+                                                    )
+                                                    .map((user) => {
+                                                        const isSelected = selectedForwardRecipients.has(user.id);
+                                                        return (
+                                                            <div
+                                                                key={`user-${user.id}`}
+                                                                className={`modern-recipient-item ${isSelected ? 'selected' : ''}`}
+                                                                onClick={() => toggleRecipientSelection(user.id)}
+                                                            >
+                                                                <div className="recipient-checkbox">
+                                                                    <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
+                                                                        {isSelected && <FiCheck size={12} />}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="modern-recipient-avatar">
+                                                                    {user.profilePhotoUrl ? (
+                                                                        <img
+                                                                            src={user.profilePhotoUrl}
+                                                                            alt={user.name}
+                                                                            className="recipient-avatar-image"
+                                                                            onError={(e) => {
+                                                                                e.target.style.display = 'none';
+                                                                                e.target.nextSibling.style.display = 'flex';
+                                                                            }}
+                                                                        />
+                                                                    ) : null}
+                                                                    <div
+                                                                        className="recipient-avatar-initials"
+                                                                        style={{ display: user.profilePhotoUrl ? 'none' : 'flex' }}
+                                                                    >
+                                                                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="modern-recipient-info">
+                                                                    <span className="modern-recipient-name">{user.name}</span>
+                                                                    <span className="modern-recipient-role">{user.role}</span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Forward Action Button Footer */}
+                                <div className="forward-modal-footer">
+                                    <button
+                                        className={`forward-action-btn ${selectedForwardRecipients.size > 0 ? 'active' : 'disabled'}`}
+                                        onClick={sendForwardedMessages}
+                                        disabled={selectedForwardRecipients.size === 0}
+                                        type="button"
+                                    >
+                                        {selectedForwardRecipients.size > 0
+                                            ? `Forward to ${selectedForwardRecipients.size} recipient${selectedForwardRecipients.size > 1 ? 's' : ''}`
+                                            : 'Select recipients to forward'
+                                        }
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Modern Forward Modal - Messenger/Telegram Style */}
-            {showForwardModal && (
-                <div className="modern-forward-overlay" onClick={() => {
-                    setShowForwardModal(false);
-                    setForwardSearchTerm(''); // Clear forward search
-                    // Reopen main message modal when closing forward modal
-                    setShowModal(true);
-                }}>
-                    <div className="modern-forward-modal" onClick={(e) => e.stopPropagation()}>
-                        {/* Header */}
-                        <div className="modern-forward-header">
-                            <button
-                                className="forward-back-btn"
-                                onClick={() => {
-                                    setShowForwardModal(false);
-                                    setForwardSearchTerm(''); // Clear forward search
-                                    // Reopen main message modal when going back
-                                    setShowModal(true);
-                                }}
-                            >
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
-                                </svg>
-                            </button>
-                            <div className="forward-header-info">
-                                <h3>Forward Messages</h3>
-                                <span className="forward-subtitle">{forwardingMessages.length} message{forwardingMessages.length !== 1 ? 's' : ''}</span>
-                            </div>
-                            {selectedForwardRecipients.size > 0 && (
-                                <button
-                                    className="forward-send-btn"
-                                    onClick={sendForwardedMessages}
-                                >
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                                    </svg>
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Selected Recipients Bar */}
-                        {selectedForwardRecipients.size > 0 && (
-                            <div className="selected-recipients-bar">
-                                <div className="selected-recipients-scroll">
-                                    {Array.from(selectedForwardRecipients).map(userId => {
-                                        const user = [...conversations, ...availableUsers].find(
-                                            u => u.userId === userId || u.id === userId
-                                        );
-                                        const userName = user?.userName || user?.name || 'Unknown';
-                                        return (
-                                            <div key={userId} className="selected-recipient-chip">
-                                                <span className="chip-avatar">
-                                                    {userName.charAt(0).toUpperCase()}
-                                                </span>
-                                                <span className="chip-name">{userName}</span>
-                                                <button
-                                                    className="chip-remove"
-                                                    onClick={() => toggleRecipientSelection(userId)}
-                                                >
-                                                    <FiX size={12} />
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                <div className="recipient-count">
-                                    {selectedForwardRecipients.size} selected
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Search Bar */}
-                        <div className="forward-search-container">
-                            <div className="forward-search-wrapper">
-                                <svg className="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                                </svg>
-                                <input
-                                    type="text"
-                                    placeholder="Search for people..."
-                                    className="forward-search-input"
-                                    value={forwardSearchTerm}
-                                    onChange={(e) => setForwardSearchTerm(e.target.value)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Recipients List */}
-                        <div className="forward-recipients-container">
-                            <div className="forward-recipients-list">
-                                {/* Recent Conversations */}
-                                {conversations.length > 0 && (
-                                    <>
-                                        <div className="recipient-section-header">Recent Chats</div>
-                                        {conversations
-                                            .filter(conv =>
-                                                !forwardSearchTerm ||
-                                                conv.userName.toLowerCase().includes(forwardSearchTerm.toLowerCase())
-                                            )
-                                            .map((conversation) => {
-                                                const isSelected = selectedForwardRecipients.has(conversation.userId);
-                                                return (
-                                                    <div
-                                                        key={`conv-${conversation.userId}`}
-                                                        className={`modern-recipient-item ${isSelected ? 'selected' : ''}`}
-                                                        onClick={() => toggleRecipientSelection(conversation.userId)}
-                                                    >
-                                                        <div className="recipient-checkbox">
-                                                            <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
-                                                                {isSelected && <span className="checkmark"><FiCheck size={12} /></span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="modern-recipient-avatar">
-                                                            {conversation.profilePhotoUrl ? (
-                                                                <img
-                                                                    src={conversation.profilePhotoUrl}
-                                                                    alt={conversation.userName}
-                                                                    className="recipient-avatar-image"
-                                                                    onError={(e) => {
-                                                                        e.target.style.display = 'none';
-                                                                        e.target.nextSibling.style.display = 'flex';
-                                                                    }}
-                                                                />
-                                                            ) : null}
-                                                            <div
-                                                                className="recipient-avatar-initials"
-                                                                style={{ display: conversation.profilePhotoUrl ? 'none' : 'flex' }}
-                                                            >
-                                                                {conversation.userName?.charAt(0).toUpperCase() || 'U'}
-                                                            </div>
-                                                        </div>
-                                                        <div className="modern-recipient-info">
-                                                            <span className="modern-recipient-name">{conversation.userName}</span>
-                                                            <span className="modern-recipient-role">{conversation.userRole}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                    </>
-                                )}
-
-                                {/* All Users */}
-                                {availableUsers.length > 0 && (
-                                    <>
-                                        <div className="recipient-section-header">All Users</div>
-                                        {availableUsers
-                                            .filter(user =>
-                                                (!forwardSearchTerm ||
-                                                    user.name.toLowerCase().includes(forwardSearchTerm.toLowerCase())) &&
-                                                !conversations.some(conv => conv.userId === user.id)
-                                            )
-                                            .map((user) => {
-                                                const isSelected = selectedForwardRecipients.has(user.id);
-                                                return (
-                                                    <div
-                                                        key={`user-${user.id}`}
-                                                        className={`modern-recipient-item ${isSelected ? 'selected' : ''}`}
-                                                        onClick={() => toggleRecipientSelection(user.id)}
-                                                    >
-                                                        <div className="recipient-checkbox">
-                                                            <div className={`checkbox ${isSelected ? 'checked' : ''}`}>
-                                                                {isSelected && <span className="checkmark"><FiCheck size={12} /></span>}
-                                                            </div>
-                                                        </div>
-                                                        <div className="modern-recipient-avatar">
-                                                            {user.profilePhotoUrl ? (
-                                                                <img
-                                                                    src={user.profilePhotoUrl}
-                                                                    alt={user.name}
-                                                                    className="recipient-avatar-image"
-                                                                    onError={(e) => {
-                                                                        e.target.style.display = 'none';
-                                                                        e.target.nextSibling.style.display = 'flex';
-                                                                    }}
-                                                                />
-                                                            ) : null}
-                                                            <div
-                                                                className="recipient-avatar-initials"
-                                                                style={{ display: user.profilePhotoUrl ? 'none' : 'flex' }}
-                                                            >
-                                                                {user.name?.charAt(0).toUpperCase() || 'U'}
-                                                            </div>
-                                                        </div>
-                                                        <div className="modern-recipient-info">
-                                                            <span className="modern-recipient-name">{user.name}</span>
-                                                            <span className="modern-recipient-role">{user.role}</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Forward Action Button */}
-                        <div className="forward-modal-footer">
-                            <button
-                                className={`forward-action-btn ${selectedForwardRecipients.size > 0 ? 'active' : 'disabled'}`}
-                                onClick={sendForwardedMessages}
-                                disabled={selectedForwardRecipients.size === 0}
-                            >
-                                {selectedForwardRecipients.size > 0
-                                    ? `Forward to ${selectedForwardRecipients.size} recipient${selectedForwardRecipients.size > 1 ? 's' : ''}`
-                                    : 'Select recipients to forward'
-                                }
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Image Modal */}
+            {/* Image Lightbox Modal */}
             {showImageModal && selectedImage && (
                 <div className="image-modal-overlay" onClick={closeImageModal}>
                     <div className="image-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="close-image-modal" onClick={closeImageModal}><FiX /></button>
-                        <img src={selectedImage} alt="Full size" className="modal-image" />
+                        <button className="close-image-modal" onClick={closeImageModal} type="button"><FiX /></button>
+                        <img src={selectedImage} alt="Full size attachment" className="modal-image" />
                     </div>
                 </div>
             )}
