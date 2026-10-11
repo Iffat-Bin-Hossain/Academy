@@ -11,11 +11,8 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry
             .addMapping("/**")
-            .allowedOrigins(
-                "http://localhost:3000", // Docker frontend port
-                "http://localhost:3001"  // Development frontend port
-            )
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .allowedOriginPatterns("*")
+            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
             .allowedHeaders("*")
             .allowCredentials(true);
     }

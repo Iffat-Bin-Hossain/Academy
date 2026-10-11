@@ -35,7 +35,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
 
                 // 4.1 Public endpoints
-                .requestMatchers("/api/auth/**", "/api/test").permitAll()
+                .requestMatchers("/api/auth/**", "/api/test/**", "/api/health").permitAll()
                 .requestMatchers("/api/files/download/**").permitAll()
                 // WebSocket/SockJS handshake endpoints
                 .requestMatchers("/ws/**").permitAll()

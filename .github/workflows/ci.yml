@@ -1,0 +1,71 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  backend-ci:
+    name: Backend Tests & Build (Spring Boot)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up OpenJDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x backend/gradlew
+
+      - name: Run Backend Unit & Integration Tests
+        run: |
+          cd backend
+          ./gradlew test --no-daemon
+
+      - name: Build Executable BootJar
+        run: |
+          cd backend
+          ./gradlew bootJar -x test --no-daemon
+
+      - name: Verify Docker Container Build
+        run: |
+          docker build -t academy-backend:test ./backend
+
+  frontend-ci:
+    name: Frontend Tests & Build (React)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Frontend Tests
+        run: |
+          cd frontend
+          npm test -- --watchAll=false
+
+      - name: Build Frontend Production Bundle
+        run: |
+          cd frontend
+          CI=false npm run build

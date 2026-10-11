@@ -14,6 +14,7 @@ RUN npm ci --legacy-peer-deps --timeout=120000 || npm ci --legacy-peer-deps --ti
 COPY . .
 
 # Build the application
+ENV CI=false
 RUN npm run build 2>&1
 
 # Production stage

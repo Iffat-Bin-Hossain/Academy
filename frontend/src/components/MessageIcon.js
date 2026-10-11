@@ -183,9 +183,11 @@ const MessageIcon = ({ userId }) => {
         if (stompClientRef.current?.connected) return;
 
         const token = localStorage.getItem('token');
-        const backendBase = window.location.hostname === 'localhost'
-            ? 'http://localhost:8081'
-            : window.location.origin;
+        const envBackend = process.env.REACT_APP_BACKEND_URL;
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const backendBase = envBackend 
+            ? envBackend.replace(/\/+$/, '') 
+            : (isLocal ? 'http://localhost:8081' : window.location.origin);
 
         const client = new Client({
             webSocketFactory: () => new SockJS(`${backendBase}/ws`),

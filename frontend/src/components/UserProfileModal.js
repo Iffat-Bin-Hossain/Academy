@@ -146,15 +146,18 @@ const UserProfileModal = ({ userId, isOpen, onClose }) => {
                 console.log('Full URL constructed:', finalUrl);
                 return finalUrl;
             }
+            const envBackend = process.env.REACT_APP_BACKEND_URL;
+            const baseURL = envBackend 
+                ? envBackend.replace(/\/+$/, '') 
+                : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8081' : '');
+
             // Handle relative URLs starting with /api/
             if (profile.profilePhotoUrl.startsWith('/api/')) {
-                const baseURL = 'http://localhost:8081';
                 const finalUrl = `${baseURL}${profile.profilePhotoUrl}?t=${Date.now()}`;
                 console.log('API URL constructed:', finalUrl);
                 return finalUrl;
             }
             // Handle other relative URLs (likely from file upload service)
-            const baseURL = 'http://localhost:8081';
             const finalUrl = `${baseURL}${profile.profilePhotoUrl}?t=${Date.now()}`;
             console.log('Relative URL constructed:', finalUrl);
             return finalUrl;

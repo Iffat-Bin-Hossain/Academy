@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: academy-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: docker
+      - key: JAVA_TOOL_OPTIONS
+        value: "-Xms180m -Xmx280m -XX:MaxMetaspaceSize=110m -XX:ReservedCodeCacheSize=40m -Xss512k -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
+      - key: HIKARI_MAX_POOL_SIZE
+        value: "4"
+      - key: HIKARI_MIN_IDLE
+        value: "2"
+      - key: SPRING_DATASOURCE_URL
+        sync: false # Neon DB JDBC URL: jdbc:postgresql://ep-xyz.region.aws.neon.tech/neondb?sslmode=require
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false # Neon DB username
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false # Neon DB password
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: UPLOAD_DIR
+        value: /app/data/uploads
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false

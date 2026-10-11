@@ -12,6 +12,7 @@
 
 # Package Files
 *.jar
+!**/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -171,7 +172,6 @@ dist
 
 # Gatsby files
 .cache/
-public
 
 # Storybook build outputs
 .out
@@ -226,3 +226,10 @@ logs/
 *.old
 *.orig
 *.tmp
+
+# Uploads & Storage
+uploads/
+**/uploads/
+persistent-uploads/
+**/persistent-uploads/
+

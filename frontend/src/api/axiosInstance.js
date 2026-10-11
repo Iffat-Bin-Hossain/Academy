@@ -2,8 +2,12 @@
 // Reusable axios instance with automatic JWT Authorization header attachment
 import axios from 'axios';
 
+// Get backend URL from environment if configured, otherwise use relative /api
+const envBackend = process.env.REACT_APP_BACKEND_URL;
+const baseURL = envBackend ? `${envBackend.replace(/\/+$/, '')}/api` : '/api';
+
 const instance = axios.create({
-  baseURL: '/api', // Use relative path, proxied in dev and nginx in prod
+  baseURL: baseURL,
 });
 
 // Add Authorization header with token if it exists in localStorage

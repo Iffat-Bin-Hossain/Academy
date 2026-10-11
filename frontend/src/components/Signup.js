@@ -71,7 +71,6 @@ function Signup() {
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='40' height='40' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='%23ffffff' stroke-width='0.5' opacity='0.3'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)'/%3E%3C/svg%3E")`
         }}></div>
       </div>
-      
       <div className="max-w-md w-full space-y-6 relative z-10">
         <div className="text-center">
           <svg viewBox="0 0 24 24" fill="currentColor" className="mx-auto h-12 w-12 text-white" style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>
@@ -144,11 +143,17 @@ function Signup() {
                     name="email"
                     required
                     className="input-field pl-10"
-                    placeholder="Enter your email address"
+                    placeholder="e.g. yourname@gmail.com"
                     value={formData.email}
                     onChange={handleChange}
                   />
                 </div>
+                <p className="mt-1.5 text-xs text-blue-100 flex items-center gap-1.5 opacity-90">
+                  <svg className="w-3.5 h-3.5 text-blue-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Real email required. Account approval & course alerts will be sent here.
+                </p>
               </div>
 
               <div>

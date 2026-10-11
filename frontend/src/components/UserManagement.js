@@ -96,9 +96,11 @@ const UserManagement = () => {
       }
       
       // Handle relative URLs - construct full URL
-      // Since we're in development, use localhost:8081, in production this will be handled by proxy
+      const envBackend = process.env.REACT_APP_BACKEND_URL;
       const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const baseURL = isDevelopment ? 'http://localhost:8081' : '';
+      const baseURL = envBackend 
+        ? envBackend.replace(/\/+$/, '') 
+        : (isDevelopment ? 'http://localhost:8081' : '');
       const token = localStorage.getItem('token');
       
       let fullUrl;

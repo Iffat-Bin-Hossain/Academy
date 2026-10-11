@@ -20,6 +20,7 @@ public class AnnouncementService {
     private final AnnouncementRepository announcementRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     /**
      * Get all announcements for a course
@@ -52,6 +53,24 @@ public class AnnouncementService {
 
         Announcement saved = announcementRepository.save(announcement);
         log.info("General announcement '{}' created for course {} by teacher {}", title, courseId, teacherId);
+
+        // Notify all enrolled students via email
+        try {
+            List<User> enrolledStudents = userRepository.findEnrolledStudentsByCourse(courseId);
+            for (User student : enrolledStudents) {
+                emailService.sendCourseAnnouncementEmail(
+                    student.getEmail(),
+                    student.getName(),
+                    course.getTitle(),
+                    course.getCourseCode(),
+                    title,
+                    content,
+                    teacher.getName()
+                );
+            }
+        } catch (Exception e) {
+            log.error("Failed to send announcement emails for course {}: {}", courseId, e.getMessage());
+        }
         
         return mapToResponse(saved);
     }

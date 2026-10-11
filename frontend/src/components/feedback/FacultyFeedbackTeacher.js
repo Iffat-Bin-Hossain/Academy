@@ -246,18 +246,6 @@ const FacultyFeedbackTeacher = ({ user, onShowMessage }) => {
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    style={{
-                      position: 'absolute',
-                      right: '0.5rem',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      background: 'none',
-                      border: 'none',
-                      color: '#6b7280',
-                      cursor: 'pointer',
-                      fontSize: '1.125rem',
-                      padding: '0.25rem'
-                    }}
                     title="Clear search"
                     style={{
                       position: 'absolute',

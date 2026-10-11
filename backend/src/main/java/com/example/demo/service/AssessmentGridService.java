@@ -32,6 +32,7 @@ public class AssessmentGridService {
     private final CourseEnrollmentRepository courseEnrollmentRepository;
     private final StudentSubmissionRepository submissionRepository;
     private final SubmissionFileRepository submissionFileRepository;
+    private final NotificationService notificationService;
 
     @Value("${app.upload.dir:/app/data/uploads}")
     private String uploadDir;
@@ -178,6 +179,21 @@ public class AssessmentGridService {
         assessmentGrid.calculateFinalMark();
 
         AssessmentGrid saved = assessmentGridRepository.save(assessmentGrid);
+        
+        // Notify student about published grade
+        if (saved.getStudent() != null && saved.getAssignment() != null && saved.getFinalMark() != null) {
+            try {
+                notificationService.notifyAssignmentGraded(
+                    saved.getStudent().getId(),
+                    saved.getAssignment(),
+                    saved.getFinalMark().intValue(),
+                    saved.getAssignment().getMaxMarks()
+                );
+            } catch (Exception e) {
+                log.error("Failed to notify student about graded assignment {}: {}", saved.getAssignment().getId(), e.getMessage());
+            }
+        }
+        
         return mapToResponse(saved);
     }
 

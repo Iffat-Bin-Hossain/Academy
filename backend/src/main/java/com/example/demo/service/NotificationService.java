@@ -19,6 +19,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     /**
      * Create a notification for a user
@@ -411,6 +412,18 @@ public class NotificationService {
                 null,
                 null
         );
+        userRepository.findById(studentId).ifPresent(student -> {
+            emailService.sendGradeNotificationEmail(
+                student.getEmail(),
+                student.getName(),
+                assignment.getTitle(),
+                assignment.getCourse().getTitle(),
+                assignment.getCourse().getCourseCode(),
+                marks,
+                maxMarks,
+                null
+            );
+        });
     }
 
     /**
@@ -486,6 +499,14 @@ public class NotificationService {
                 .build();
                 
         notificationRepository.save(notification);
+        emailService.sendEnrollmentRequestEmail(
+            teacher.getEmail(),
+            teacher.getName(),
+            student.getName(),
+            student.getEmail(),
+            course.getTitle(),
+            course.getCourseCode()
+        );
     }
     
     // Enrollment decision notification for students
@@ -514,6 +535,13 @@ public class NotificationService {
                 .build();
                 
         notificationRepository.save(notification);
+        emailService.sendEnrollmentDecisionEmail(
+            student.getEmail(),
+            student.getName(),
+            course.getTitle(),
+            course.getCourseCode(),
+            approved
+        );
     }
     
     // New assignment notification for students
@@ -539,6 +567,15 @@ public class NotificationService {
                     .build();
                     
             notificationRepository.save(notification);
+            emailService.sendNewAssignmentEmail(
+                student.getEmail(),
+                student.getName(),
+                course.getTitle(),
+                course.getCourseCode(),
+                assignment.getTitle(),
+                assignment.getDeadline(),
+                assignment.getMaxMarks()
+            );
         }
     }
 
@@ -746,7 +783,22 @@ public class NotificationService {
                     .build();
                     
             notificationRepository.save(notification);
+            emailService.sendNewSubmissionTeacherAlert(
+                teacher.getEmail(),
+                teacher.getName(),
+                student.getName(),
+                assignment.getTitle(),
+                assignment.getCourse().getTitle(),
+                assignment.getCourse().getCourseCode()
+            );
         }
+        emailService.sendSubmissionConfirmationEmail(
+            student.getEmail(),
+            student.getName(),
+            assignment.getTitle(),
+            assignment.getCourse().getTitle(),
+            LocalDateTime.now()
+        );
     }
     
     // Discussion post notification for course members
@@ -865,6 +917,12 @@ public class NotificationService {
                         
                 notificationRepository.save(notification);
                 log.info("Created signup request notification for admin: {}", admin.getEmail());
+                emailService.sendAdminNewSignupAlert(
+                    admin.getEmail(),
+                    newUser.getName(),
+                    newUser.getEmail(),
+                    newUser.getRole().toString()
+                );
             }
         } catch (Exception e) {
             log.error("Error creating signup request notification for user: " + newUser.getEmail(), e);
@@ -927,6 +985,12 @@ public class NotificationService {
                 .build();
                 
         notificationRepository.save(notification);
+        emailService.sendTeacherCourseAssignmentEmail(
+            teacher.getEmail(),
+            teacher.getName(),
+            course.getTitle(),
+            course.getCourseCode()
+        );
     }
     
     // User profile update notifications
@@ -1094,6 +1158,31 @@ public class NotificationService {
             notificationRepository.save(notification);
             log.info("Plagiarism detection notification created for student {} in assignment {}", 
                     student.getName(), assignment.getTitle());
+            
+            // Dispatch email alert to student
+            emailService.sendPlagiarismAlertEmail(
+                student.getEmail(),
+                student.getName(),
+                assignment.getTitle(),
+                assignment.getCourse() != null ? assignment.getCourse().getTitle() : "Course",
+                similarityPercentage,
+                "Similarity detected with " + detectedWith
+            );
+
+            // Also alert teacher if course has an assigned teacher
+            if (assignment.getCourse() != null && assignment.getCourse().getAssignedTeacher() != null) {
+                User teacher = assignment.getCourse().getAssignedTeacher();
+                if (teacher.getEmail() != null && !teacher.getEmail().isBlank()) {
+                    emailService.sendPlagiarismAlertEmail(
+                        teacher.getEmail(),
+                        teacher.getName(),
+                        assignment.getTitle(),
+                        assignment.getCourse().getTitle(),
+                        similarityPercentage,
+                        String.format("Student %s submission flagged (%.1f%% similarity with %s)", student.getName(), similarityPercentage, detectedWith)
+                    );
+                }
+            }
                     
         } catch (Exception e) {
             log.error("Error creating plagiarism detection notification for student: " + student.getEmail(), e);
