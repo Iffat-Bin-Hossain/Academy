@@ -31,13 +31,12 @@ RUN mkdir -p /app/data/uploads && chmod 755 /app/data/uploads
 # Copy built jar from builder stage
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# Expose default Render port
-EXPOSE 8080
+# Expose default ports
+EXPOSE 8080 8081
 
 # Production JVM options tuned for 512MB RAM constraint (Render Free Tier)
-ENV PORT=8080
 ENV SPRING_PROFILES_ACTIVE=docker
 ENV JAVA_OPTS="-Xms180m -Xmx280m -XX:MaxMetaspaceSize=110m -XX:ReservedCodeCacheSize=40m -Xss512k -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
 
-# Dynamic port binding for Render ($PORT) with fallback to 8080
-CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-8080} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-docker} -jar app.jar"]
+# Dynamic port binding for Render ($PORT) or Docker Compose ($SERVER_PORT) with fallback to 8081
+CMD ["sh", "-c", "java $JAVA_OPTS -Dserver.port=${PORT:-${SERVER_PORT:-8081}} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-docker} -jar app.jar"]
